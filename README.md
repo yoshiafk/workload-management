@@ -1,73 +1,16 @@
-# Workload Resource Management
+# React + Vite
 
-A comprehensive web application for tracking and managing team workload, resource allocation, and daily performance metrics. Built with React + Vite for hosting on GitHub Pages.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🚀 Features
+Currently, two official plugins are available:
 
-- **Configuration Management** - Set up task categories, complexity levels, costs, holidays, and team members
-- **Resource Allocation Tracking** - Plan and track actual task assignments with automatic workload calculations
-- **Workload Summary Dashboard** - Visual overview of team workload and resource utilization
-- **No Backend Required** - All data stored in LocalStorage with JSON import/export
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## 📁 Documentation
+## React Compiler
 
-| Document | Description |
-|----------|-------------|
-| [Implementation Plan](docs/IMPLEMENTATION_PLAN.md) | Complete technical specification and requirements |
-| [Architecture](docs/ARCHITECTURE.md) | System diagrams, ERD, data flows, and schemas |
-| [Tasks](docs/TASKS.md) | Development task breakdown and checklist |
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## 🛠️ Tech Stack
+## Expanding the ESLint configuration
 
-- **Framework**: React 18 + Vite 5
-- **Routing**: React Router v6
-- **State Management**: React Context + useReducer
-- **Styling**: CSS Modules + CSS Variables
-- **Charts**: Recharts
-- **Deployment**: GitHub Pages
-
-## 📊 Core Modules
-
-### 1. Library (Configuration)
-- Team Members management
-- Task Phases (8 phases)
-- Task Templates with complexity estimates
-- Complexity Settings (Low/Medium/High)
-- Resource Costs (monthly, daily, hourly rates in IDR)
-
-### 2. Important Dates
-- Indonesian Public Holidays (pre-loaded for 2025)
-- Team Leave Plans
-
-### 3. Resource Allocation
-- Activity tracking with Plan/Actual dates
-- Auto-calculated fields:
-  - Plan Task End (WORKDAY formula)
-  - Project Cost (cycleActivity × hourlyRate)
-  - Monthly Cost (projectCost / months)
-  - Workload Percentage
-
-### 4. Workload Summary Dashboard
-- Top 5 tasks per team member
-- Task allocation matrix
-- Workload charts and statistics
-
-## 🏃 Getting Started
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Deploy to GitHub Pages
-npm run deploy
-```
-
-## 📄 License
-
-MIT
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

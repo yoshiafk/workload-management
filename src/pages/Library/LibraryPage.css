@@ -1,0 +1,295 @@
+/**
+ * Library Pages Styles
+ */
+
+.library-page {
+    animation: fadeInUp var(--transition-normal);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: var(--spacing-2);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.btn-icon:hover {
+    opacity: 1;
+}
+
+/* Data Table */
+.data-table-container {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    text-align: left;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary);
+    padding: var(--spacing-4);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-table th.complexity-header {
+    text-align: center;
+    border-left: 1px solid var(--color-border);
+}
+
+.data-table .sub-header th {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-4);
+    text-align: center;
+}
+
+.data-table td {
+    padding: var(--spacing-4);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tr:hover td {
+    background: var(--color-glass-hover);
+}
+
+.cell-id {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.cell-name {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.cell-currency {
+    font-family: var(--font-family-mono);
+    text-align: right;
+}
+
+.cell-pct {
+    text-align: center;
+    color: var(--color-primary);
+}
+
+.cell-actions {
+    display: flex;
+    gap: var(--spacing-1);
+}
+
+/* Badges */
+.type-badge {
+    display: inline-block;
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-full);
+}
+
+.type-badge.ba {
+    background: var(--color-info-light);
+    color: var(--color-info);
+}
+
+.type-badge.pm {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-full);
+}
+
+.status-badge.active {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.status-badge.inactive {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* Phases List */
+.phases-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.phase-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.phase-card:hover {
+    border-color: var(--color-primary);
+}
+
+.phase-card.terminal {
+    opacity: 0.7;
+}
+
+.phase-number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    font-weight: var(--font-weight-bold);
+    color: white;
+}
+
+.phase-content {
+    flex: 1;
+}
+
+.phase-name {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.phase-tasks {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    margin: 0;
+}
+
+.terminal-badge {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-2);
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+    border-radius: var(--radius-full);
+}
+
+/* Complexity Cards */
+.complexity-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.complexity-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+
+.complexity-card:hover {
+    border-color: var(--level-color, var(--color-primary));
+    box-shadow: 0 0 20px color-mix(in srgb, var(--level-color, var(--color-primary)) 20%, transparent);
+}
+
+.complexity-indicator {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto var(--spacing-4);
+    border-radius: var(--radius-full);
+    opacity: 0.8;
+}
+
+.complexity-label {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-4);
+}
+
+.complexity-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.stat-row .stat-value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-mono);
+}

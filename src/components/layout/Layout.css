@@ -1,0 +1,34 @@
+/**
+ * Layout Styles
+ */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.layout-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.layout-content {
+    flex: 1;
+    padding: var(--spacing-8);
+    max-width: var(--content-max-width);
+    width: 100%;
+    animation: fadeIn var(--transition-normal);
+}
+
+@media (max-width: 1024px) {
+    .layout-main {
+        margin-left: 0;
+    }
+
+    .layout-content {
+        padding: var(--spacing-4);
+    }
+}
