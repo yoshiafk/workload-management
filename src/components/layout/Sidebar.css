@@ -1,5 +1,5 @@
 /**
- * Sidebar Styles
+ * Sidebar Styles - Professional Light Theme
  */
 
 .sidebar {
@@ -8,16 +8,15 @@
     position: fixed;
     left: 0;
     top: 0;
-    background: var(--color-bg-secondary);
-    border-right: 1px solid var(--color-border);
+    background: var(--color-sidebar-bg);
     display: flex;
     flex-direction: column;
     z-index: var(--z-sticky);
 }
 
 .sidebar-header {
-    padding: var(--spacing-6);
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-5) var(--spacing-5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .logo {
@@ -26,44 +25,56 @@
     gap: var(--spacing-3);
 }
 
-.logo-icon {
-    font-size: var(--font-size-2xl);
+.logo-mark {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: white;
+}
+
+.logo-content {
+    display: flex;
+    flex-direction: column;
 }
 
 .logo-text {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-sidebar-text-active);
+    letter-spacing: -0.01em;
 }
 
 .logo-subtitle {
     font-size: var(--font-size-xs);
-    color: var(--color-text-tertiary);
-    margin-top: var(--spacing-1);
-    margin-bottom: 0;
+    color: var(--color-sidebar-text);
+    opacity: 0.7;
 }
 
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-4);
+    padding: var(--spacing-4) var(--spacing-3);
 }
 
 .nav-section {
-    margin-bottom: var(--spacing-6);
+    margin-bottom: var(--spacing-5);
 }
 
 .nav-section-title {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-sidebar-text);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     padding: 0 var(--spacing-3);
     margin-bottom: var(--spacing-2);
+    opacity: 0.6;
 }
 
 .nav-list {
@@ -74,31 +85,42 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-3);
-    padding: var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-3);
     border-radius: var(--radius-md);
-    color: var(--color-text-secondary);
+    color: var(--color-sidebar-text);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     transition: all var(--transition-fast);
+    margin-bottom: 2px;
 }
 
 .nav-link:hover {
-    background: var(--color-glass-hover);
-    color: var(--color-text-primary);
+    background: var(--color-sidebar-hover);
+    color: var(--color-sidebar-text-active);
 }
 
 .nav-link.active {
-    background: var(--color-primary-light);
+    background: var(--color-sidebar-active);
     color: var(--color-primary);
 }
 
 .nav-link.active .nav-icon {
-    transform: scale(1.1);
+    color: var(--color-primary);
 }
 
 .nav-icon {
-    font-size: var(--font-size-lg);
-    transition: transform var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.nav-link:hover .nav-icon,
+.nav-link.active .nav-icon {
+    opacity: 1;
 }
 
 .nav-label {
@@ -106,13 +128,24 @@
 }
 
 .sidebar-footer {
-    padding: var(--spacing-4);
-    border-top: 1px solid var(--color-border);
-    text-align: center;
+    padding: var(--spacing-4) var(--spacing-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.version {
+.sidebar-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.version-label {
     font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-    margin: 0;
+    color: var(--color-sidebar-text);
+    opacity: 0.5;
+}
+
+.version-number {
+    font-size: var(--font-size-xs);
+    color: var(--color-sidebar-text);
+    font-family: var(--font-family-mono);
 }

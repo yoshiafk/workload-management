@@ -3,27 +3,29 @@
 ## Phase 1: MVP - Core Application
 
 ### 1. Project Setup & Foundation
-- [ ] Initialize Vite + React project
-- [ ] Configure Vite for GitHub Pages deployment (`base` path)
-- [ ] Set up folder structure (components, pages, hooks, utils, data, context)
-- [ ] Install dependencies (react-router-dom, recharts, date-fns, gh-pages)
-- [ ] Create design system CSS (index.css with variables, colors, typography)
-- [ ] Create component styles (components.css)
-- [ ] Create page-specific styles (pages.css)
+- [x] Initialize Vite + React project
+- [x] Configure Vite for GitHub Pages deployment (`base` path)
+- [x] Set up folder structure (components, pages, hooks, utils, data, context)
+- [x] Install dependencies (react-router-dom, recharts, date-fns, gh-pages)
+- [x] Create design system CSS (index.css with variables, colors, typography)
+- [x] Create component styles (Layout.css, Sidebar.css, Header.css)
+- [x] Create page-specific styles (WorkloadSummary.css, LibraryPage.css, PagePlaceholder.css)
+- [x] Implement professional light theme with CSS variables
+- [x] Replace all emojis with inline SVG icons
 
 ### 2. Layout & Navigation
-- [ ] Create Layout component (sidebar + header + main content)
-- [ ] Create Sidebar component with navigation links
-- [ ] Create Header component
-- [ ] Set up React Router with all routes
-- [ ] Implement active link highlighting
-- [ ] Add collapsible sections for Library sub-pages
+- [x] Create Layout component (sidebar + header + main content)
+- [x] Create Sidebar component with navigation links
+- [x] Create Header component
+- [x] Set up React Router with all routes
+- [x] Implement active link highlighting
+- [x] Add collapsible sections for Library sub-pages
 
 ### 3. State Management & Data Persistence
-- [ ] Create AppContext with useReducer
-- [ ] Implement useLocalStorage hook
-- [ ] Create storage utility functions (save, load, export, import)
-- [ ] Define initial state structure
+- [x] Create AppContext with useReducer
+- [/] Implement useLocalStorage hook
+- [x] Create storage utility functions (save, load, export, import)
+- [x] Define initial state structure
 - [ ] Implement data migration/versioning
 
 ### 4. UI Component Library
@@ -49,41 +51,45 @@
 ### 6. Library Module (Config - Sheet 4)
 
 #### 6.1 Team Members Page
-- [ ] Create TeamMembers.jsx page
-- [ ] Display table with: ID, Name, Type (BA/PM), Max Hours/Week
-- [ ] Add "Add Member" button with modal form
+- [x] Create TeamMembers.jsx page
+- [x] Display table with: ID, Name, Type (BA/PM), Max Hours/Week, Status
+- [x] Add "Add Member" button with SVG plus icon
+- [x] Edit/Delete action buttons with SVG icons
+- [ ] Add member modal form functionality
 - [ ] Edit member functionality
 - [ ] Delete member with confirmation
 - [ ] Link to resource cost tier
 
 #### 6.2 Phases Page
-- [ ] Create Phases.jsx page
-- [ ] Display list of 8 phases
+- [x] Create Phases.jsx page
+- [x] Display list of phases with card layout
+- [x] Show terminal phase indicator badge
 - [ ] Edit phase name
 - [ ] Reorder phases (drag or move buttons)
-- [ ] Mark terminal phases (Idle, Completed)
+- [ ] Add phase functionality
 
 #### 6.3 Task Templates Page
-- [ ] Create TaskTemplates.jsx page
-- [ ] Display table with task names and estimates
-- [ ] Show Low/Medium/High estimates (days, hours, percentage)
+- [x] Create TaskTemplates.jsx page
+- [x] Display table with task names and estimates
+- [x] Show Low/Medium/High estimates (days, hours, percentage)
 - [ ] Edit task template modal
 - [ ] Add new task template
 
 #### 6.4 Complexity Settings Page
-- [ ] Create Complexity.jsx page
-- [ ] Display Low/Medium/High settings
-- [ ] Edit: days, hours, cycleActivity values
-- [ ] Show calculated values
+- [x] Create Complexity.jsx page
+- [x] Display Low/Medium/High settings with card layout
+- [x] Show days, hours, cycleActivity values
+- [ ] Edit complexity settings
 - [ ] Color picker for complexity indicators
 
 #### 6.5 Resource Costs Page
-- [ ] Create ResourceCosts.jsx page
-- [ ] Display table: Resource, Monthly Cost, Per Day, Per Hour
-- [ ] Add new cost tier
-- [ ] Edit cost tier
-- [ ] Delete cost tier
-- [ ] Format currency as IDR
+- [x] Create ResourceCosts.jsx page
+- [x] Display table: Resource, Monthly Cost, Per Day, Per Hour
+- [x] Format currency as IDR
+- [x] Add/Edit/Delete action buttons with SVG icons
+- [ ] Add cost tier modal functionality
+- [ ] Edit cost tier functionality
+- [ ] Delete cost tier with confirmation
 
 ---
 
@@ -143,18 +149,19 @@
 ### 9. Workload Summary Dashboard (Sheet 1)
 
 #### 9.1 Top 5 Tasks Section
-- [ ] Create WorkloadSummary.jsx page
-- [ ] Display cards for each team member
-- [ ] Show top 5 tasks with finish dates per member
-- [ ] Sort by Plan TaskEnd date
-- [ ] Filter non-completed tasks
+- [x] Create WorkloadSummary.jsx page
+- [x] Display cards for each team member with avatar
+- [x] Show top 5 tasks with finish dates per member
+- [x] Sort by Plan TaskEnd date
+- [x] Filter non-completed tasks
+- [x] Stats cards with SVG icons (Team Members, Allocations, In Progress, Completed)
 
 #### 9.2 Task Allocation Matrix
-- [ ] Create matrix table: Tasks × Members
-- [ ] Implement COUNTIFS logic for cell values
-- [ ] Highlight high counts
-- [ ] Row for each task type
-- [ ] Column for each team member
+- [x] Create matrix table: Tasks × Members
+- [x] Implement COUNTIFS logic for cell values
+- [x] Count badge styling for values
+- [x] Row for each task type
+- [x] Column for each team member
 
 #### 9.3 Charts (using Recharts)
 - [ ] WorkloadChart - bar chart of workload per member
