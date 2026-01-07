@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { getMemberWorkloads, formatCurrency } from '../utils/calculations';
+import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend } from '../utils/calculations';
 import {
     BarChart,
     Bar,
@@ -17,6 +17,9 @@ import {
     Pie,
     Cell,
     Legend,
+    AreaChart,
+    Area,
+    CartesianGrid,
 } from 'recharts';
 import './WorkloadSummary.css';
 
@@ -79,6 +82,28 @@ export default function WorkloadSummary() {
             { name: 'Medium', value: categories.medium, color: '#3b82f6' },
             { name: 'High', value: categories.high, color: '#f59e0b' },
         ].filter(d => d.value > 0);
+    }, [allocations]);
+
+    // Chart data: Cost Trend
+    const costTrendData = useMemo(() => {
+        return calculateMonthlyTrend(allocations);
+    }, [allocations]);
+
+    // Chart data: Allocation by Phase
+    const phaseChartData = useMemo(() => {
+        const phases = {};
+        allocations.forEach(a => {
+            const phase = a.phase || 'Unspecified';
+            phases[phase] = (phases[phase] || 0) + 1;
+        });
+
+        return Object.entries(phases)
+            .map(([name, value], index) => ({
+                name,
+                value,
+                color: COLORS[index % COLORS.length]
+            }))
+            .filter(d => d.value > 0);
     }, [allocations]);
 
     // Total project cost
@@ -227,6 +252,97 @@ export default function WorkloadSummary() {
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="chart-empty">No allocation data yet</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Cost Trend */}
+                    <div className="chart-card">
+                        <h3 className="chart-title">Projected Monthly Cost</h3>
+                        <div className="chart-container">
+                            {costTrendData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <AreaChart data={costTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                                        <XAxis
+                                            dataKey="month"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <YAxis
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value) => `${value / 1000000}M`}
+                                        />
+                                        <Tooltip
+                                            formatter={(value) => formatCurrency(value)}
+                                            contentStyle={{
+                                                background: 'var(--color-bg-card)',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="cost"
+                                            stroke="#8b5cf6"
+                                            fillOpacity={1}
+                                            fill="url(#colorCost)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="chart-empty">No cost data available</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Allocation by Phase */}
+                    <div className="chart-card">
+                        <h3 className="chart-title">Allocation by Phase</h3>
+                        <div className="chart-container">
+                            {phaseChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie
+                                            data={phaseChartData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={80}
+                                            paddingAngle={3}
+                                            dataKey="value"
+                                        >
+                                            {phaseChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{
+                                                background: 'var(--color-bg-card)',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                            }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            formatter={(value) => <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>{value}</span>}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="chart-empty">No phase data available</div>
                             )}
                         </div>
                     </div>

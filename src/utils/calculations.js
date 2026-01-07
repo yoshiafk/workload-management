@@ -272,3 +272,61 @@ export function formatPercentage(value, isDecimal = true) {
     const percentage = isDecimal ? value * 100 : value;
     return `${percentage.toFixed(1)}%`;
 }
+
+/**
+ * Calculate Monthly Cost Trend
+ * Aggregates monthly costs across all allocations over time
+ * 
+ * @param {Array} allocations - Allocation records
+ * @returns {Array} Array of { month, cost } objects
+ */
+export function calculateMonthlyTrend(allocations) {
+    if (!allocations.length) return [];
+
+    // Find min start and max end dates
+    const dates = allocations.flatMap(a => {
+        const d = [];
+        if (a.plan?.taskStart) d.push(new Date(a.plan.taskStart));
+        if (a.plan?.taskEnd) d.push(new Date(a.plan.taskEnd));
+        return d;
+    });
+
+    if (!dates.length) return [];
+
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+
+    // Generate array of all months in range
+    const months = [];
+    let current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+    while (current <= end) {
+        months.push(new Date(current));
+        current.setMonth(current.getMonth() + 1);
+    }
+
+    // Calculate cost for each month
+    return months.map(monthDate => {
+        const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+        const monthlyTotal = allocations.reduce((sum, a) => {
+            if (!a.plan?.taskStart || !a.plan?.taskEnd || !a.plan?.costMonthly) return sum;
+
+            const taskStart = new Date(a.plan.taskStart);
+            const taskEnd = new Date(a.plan.taskEnd);
+
+            // Check if task is active in this month (overlaps)
+            if (taskStart <= monthEnd && taskEnd >= monthStart) {
+                return sum + a.plan.costMonthly;
+            }
+            return sum;
+        }, 0);
+
+        return {
+            month: monthDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+            cost: monthlyTotal
+        };
+    });
+}
