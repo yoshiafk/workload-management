@@ -92,60 +92,60 @@ export default function WorkloadSummary() {
             <section className="stats-section">
                 <div className="stats-grid">
                     <div className="stat-card">
-                        <div className="stat-header">
+                        <div className="stat-icon-wrapper blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div className="stat-content">
                             <span className="stat-label">Team Members</span>
-                            <span className="stat-icon stat-icon-blue">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                                </svg>
-                            </span>
+                            <div className="stat-value">{members.length}</div>
+                            <div className="stat-footer">Active resources</div>
                         </div>
-                        <div className="stat-value">{members.length}</div>
-                        <div className="stat-footer">Active resources</div>
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-header">
+                        <div className="stat-icon-wrapper purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                <rect x="8" y="2" width="8" height="4" rx="1" />
+                            </svg>
+                        </div>
+                        <div className="stat-content">
                             <span className="stat-label">Total Allocations</span>
-                            <span className="stat-icon stat-icon-purple">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                                    <rect x="8" y="2" width="8" height="4" rx="1" />
-                                </svg>
-                            </span>
+                            <div className="stat-value">{allocations.length}</div>
+                            <div className="stat-footer">Task assignments</div>
                         </div>
-                        <div className="stat-value">{allocations.length}</div>
-                        <div className="stat-footer">Task assignments</div>
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-header">
+                        <div className="stat-icon-wrapper amber">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                        </div>
+                        <div className="stat-content">
                             <span className="stat-label">In Progress</span>
-                            <span className="stat-icon stat-icon-amber">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
-                            </span>
+                            <div className="stat-value">{activeCount}</div>
+                            <div className="stat-footer">Active tasks</div>
                         </div>
-                        <div className="stat-value">{activeCount}</div>
-                        <div className="stat-footer">Active tasks</div>
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-header">
-                            <span className="stat-label">Total Cost</span>
-                            <span className="stat-icon stat-icon-green">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <line x1="12" y1="1" x2="12" y2="23" />
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                                </svg>
-                            </span>
+                        <div className="stat-icon-wrapper green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
                         </div>
-                        <div className="stat-value stat-value-small">{formatCurrency(totalCost)}</div>
-                        <div className="stat-footer">Project costs</div>
+                        <div className="stat-content">
+                            <span className="stat-label">Total Cost</span>
+                            <div className="stat-value stat-value-small">{formatCurrency(totalCost)}</div>
+                            <div className="stat-footer">Project costs</div>
+                        </div>
                     </div>
                 </div>
             </section>
