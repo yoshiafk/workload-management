@@ -96,24 +96,28 @@ export function calculatePlanEndDate(startDate, complexity, resourceName, holida
 
 /**
  * Calculate Project Cost
- * =CycleActivity × PerHourCost
+ * Excel formula: =XLOOKUP(Category, ComplexityLevel, Hours) × XLOOKUP(Resource, ResourceName, PerHourCost)
  * 
- * @param {string} complexity - Complexity level
+ * @param {string} complexity - Complexity level (low/medium/high)
  * @param {string} resourceName - Team member name
  * @param {Object} complexitySettings - Complexity settings
  * @param {Array} resourceCosts - Resource cost records
  * @returns {number} Project cost in IDR
  */
 export function calculateProjectCost(complexity, resourceName, complexitySettings, resourceCosts) {
-    const cycleActivity = complexitySettings[complexity.toLowerCase()]?.cycleActivity || 0;
+    // Get hours (BA rate) from complexity settings - this is the multiplier
+    const hours = complexitySettings[complexity.toLowerCase()]?.hours || 0;
+
     const resource = resourceCosts.find(r =>
         r.resourceName.toLowerCase() === resourceName.toLowerCase()
     );
 
     if (!resource) return 0;
 
-    return cycleActivity * resource.perHourCost;
+    // Cost = Hours × Per Hour Cost
+    return hours * resource.perHourCost;
 }
+
 
 /**
  * Calculate Monthly Cost

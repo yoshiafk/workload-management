@@ -1,0 +1,273 @@
+/**
+ * Resource Allocation Page Styles
+ */
+
+.allocation-page {
+    animation: fadeIn var(--transition-normal);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-5);
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+}
+
+.page-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    margin: var(--spacing-1) 0 0 0;
+}
+
+/* Table Container */
+.allocation-table-container {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.allocation-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+.allocation-table th {
+    text-align: left;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.allocation-table td {
+    padding: var(--spacing-3) var(--spacing-4);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.allocation-table tr:last-child td {
+    border-bottom: none;
+}
+
+.allocation-table tr:hover td {
+    background: var(--color-bg-secondary);
+}
+
+/* Cell Types */
+.cell-name {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.cell-date {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+}
+
+.cell-currency {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cell-workload {
+    text-align: center;
+}
+
+.cell-actions {
+    display: flex;
+    gap: var(--spacing-1);
+}
+
+/* Category Badge */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-sm);
+    text-transform: capitalize;
+}
+
+.category-low {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.category-medium {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.category-high {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+/* Workload Badge */
+.workload-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+}
+
+/* Empty State */
+.empty-row td {
+    padding: var(--spacing-8) var(--spacing-4);
+}
+
+.empty-state {
+    text-align: center;
+}
+
+.empty-state p {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
+.empty-hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-1);
+}
+
+/* Calculated Fields Section */
+.calculated-fields {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.calculated-fields h4 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--spacing-3) 0;
+}
+
+.calculated-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+}
+
+.calculated-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.calculated-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+}
+
+.calculated-value {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-mono);
+}
+
+/* Button styles (inherit from library page) */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border-hover);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-tertiary);
+    transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.btn-icon-danger:hover {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .allocation-table-container {
+        overflow-x: auto;
+    }
+
+    .allocation-table {
+        min-width: 900px;
+    }
+
+    .calculated-row {
+        grid-template-columns: 1fr;
+    }
+}

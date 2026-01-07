@@ -117,8 +117,8 @@
 ### 8. Resource Allocation Module (Sheet 2)
 
 #### 8.1 Allocation Table
-- [ ] Create ResourceAllocation.jsx page
-- [ ] Display main table with all columns:
+- [x] Create ResourceAllocation.jsx page
+- [x] Display main table with all columns:
   - Activity Name
   - Resource (team member dropdown)
   - Category (complexity dropdown)
@@ -128,22 +128,20 @@
   - Plan: TaskEnd (auto-calculated)
   - Plan: Cost Project (auto-calculated)
   - Plan: Cost Monthly (auto-calculated)
-  - Actual: TaskStart (date picker)
-  - Actual: TaskEnd (date picker)
   - Workload (auto-calculated)
   - Remarks (text)
 
 #### 8.2 Auto-Calculations
-- [ ] Implement calculatePlanEndDate() - WORKDAY formula
-- [ ] Implement calculateProjectCost() - cycleActivity × hourlyRate
-- [ ] Implement calculateMonthlyCost() - projectCost / months
-- [ ] Implement calculateWorkloadPercentage() - XLOOKUP formula
-- [ ] Create useCalculations hook
+- [x] Implement calculatePlanEndDate() - WORKDAY formula
+- [x] Implement calculateProjectCost() - cycleActivity × hourlyRate
+- [x] Implement calculateMonthlyCost() - projectCost / months
+- [x] Implement calculateWorkloadPercentage() - XLOOKUP formula
+- [x] Create useCalculations hook (integrated in component)
 
 #### 8.3 CRUD Operations
-- [ ] Add new allocation modal
-- [ ] Edit allocation (inline or modal)
-- [ ] Delete allocation with confirmation
+- [x] Add new allocation modal
+- [x] Edit allocation (modal)
+- [x] Delete allocation with confirmation
 - [ ] Bulk delete selected rows
 
 ---
