@@ -75,6 +75,12 @@
     color: var(--color-text-primary);
 }
 
+.btn-icon-danger:hover {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+
 /* Data Table Container */
 .data-table-container {
     background: var(--color-bg-card);
@@ -262,6 +268,13 @@
     font-weight: var(--font-weight-medium);
 }
 
+.phase-actions {
+    display: flex;
+    gap: var(--spacing-1);
+    margin-left: auto;
+}
+
+
 /* Complexity Cards */
 .complexity-cards {
     display: grid;
@@ -328,4 +341,9 @@
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
     font-family: var(--font-family-mono);
+}
+
+.complexity-edit-btn {
+    width: 100%;
+    margin-top: var(--spacing-4);
 }

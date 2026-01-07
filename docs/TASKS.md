@@ -29,22 +29,23 @@
 - [ ] Implement data migration/versioning
 
 ### 4. UI Component Library
-- [ ] Button component (variants: primary, secondary, ghost, danger)
-- [ ] Input component (text, number, with validation)
-- [ ] Select component (dropdown)
+- [x] Button component (btn, btn-primary, btn-secondary, btn-icon)
+- [x] Input component (text, number, with validation)
+- [x] Select component (dropdown)
 - [ ] DatePicker component
-- [ ] Modal component (animated dialog)
-- [ ] Card component (glass effect)
-- [ ] Table component (sortable, with actions)
-- [ ] Badge component (status indicators)
+- [x] Modal component (animated dialog)
+- [x] Card component (glass effect)
+- [x] Table component (sortable, with actions)
+- [x] Badge component (status indicators)
+- [x] ConfirmDialog component
 
 ### 5. Pre-loaded Data
-- [ ] Create indonesiaHolidays.js (2025-2026 holidays)
-- [ ] Create defaultTeam.js (7 team members: Beatrix, Herindra, Care BA, Azdan, Laili, Cici, Yosy)
-- [ ] Create defaultPhases.js (8 phases)
-- [ ] Create defaultTasks.js (12 task templates with complexity percentages)
-- [ ] Create defaultCosts.js (resource cost tiers)
-- [ ] Create defaultComplexity.js (Low, Medium, High settings)
+- [x] Create indonesiaHolidays.js (2025-2026 holidays)
+- [x] Create defaultTeam.js (7 team members: Beatrix, Herindra, Care BA, Azdan, Laili, Cici, Yosy)
+- [x] Create defaultPhases.js (8 phases)
+- [x] Create defaultTasks.js (12 task templates with complexity percentages)
+- [x] Create defaultCosts.js (resource cost tiers)
+- [x] Create defaultComplexity.js (Low, Medium, High settings)
 
 ---
 
@@ -55,18 +56,19 @@
 - [x] Display table with: ID, Name, Type (BA/PM), Max Hours/Week, Status
 - [x] Add "Add Member" button with SVG plus icon
 - [x] Edit/Delete action buttons with SVG icons
-- [ ] Add member modal form functionality
-- [ ] Edit member functionality
-- [ ] Delete member with confirmation
+- [x] Add member modal form functionality
+- [x] Edit member functionality
+- [x] Delete member with confirmation
 - [ ] Link to resource cost tier
 
 #### 6.2 Phases Page
 - [x] Create Phases.jsx page
 - [x] Display list of phases with card layout
 - [x] Show terminal phase indicator badge
-- [ ] Edit phase name
+- [x] Edit phase name
 - [ ] Reorder phases (drag or move buttons)
-- [ ] Add phase functionality
+- [x] Add phase functionality
+- [x] Delete phase functionality
 
 #### 6.3 Task Templates Page
 - [x] Create TaskTemplates.jsx page
@@ -79,7 +81,7 @@
 - [x] Create Complexity.jsx page
 - [x] Display Low/Medium/High settings with card layout
 - [x] Show days, hours, cycleActivity values
-- [ ] Edit complexity settings
+- [x] Edit complexity settings
 - [ ] Color picker for complexity indicators
 
 #### 6.5 Resource Costs Page
@@ -87,9 +89,9 @@
 - [x] Display table: Resource, Monthly Cost, Per Day, Per Hour
 - [x] Format currency as IDR
 - [x] Add/Edit/Delete action buttons with SVG icons
-- [ ] Add cost tier modal functionality
-- [ ] Edit cost tier functionality
-- [ ] Delete cost tier with confirmation
+- [x] Add cost tier modal functionality
+- [x] Edit cost tier functionality
+- [x] Delete cost tier with confirmation
 
 ---
 
