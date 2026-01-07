@@ -453,6 +453,25 @@
 
 .form-row .form-group {
     flex: 1;
+    min-width: 0;
+}
+
+.form-row .form-input {
+    width: 100%;
+    min-width: 60px;
+    padding-right: var(--spacing-1);
+}
+
+/* Number input spinner fix */
+.form-input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.form-input[type="number"]::-webkit-inner-spin-button,
+.form-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .btn-danger:hover {
