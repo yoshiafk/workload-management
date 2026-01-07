@@ -229,6 +229,34 @@
     opacity: 0.6;
 }
 
+.reorder-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.btn-reorder {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    opacity: 0.5;
+    transition: all var(--transition-fast);
+}
+
+.phase-card:hover .btn-reorder {
+    opacity: 1;
+}
+
+.btn-reorder:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.btn-reorder:hover:not(:disabled) {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
 .phase-number {
     width: 36px;
     height: 36px;
@@ -346,4 +374,88 @@
 .complexity-edit-btn {
     width: 100%;
     margin-top: var(--spacing-4);
+}
+
+/* Form Styles */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.form-group label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+}
+
+.form-input,
+.form-select {
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    background: var(--color-bg-card);
+    transition: all var(--transition-fast);
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.form-input:read-only {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-muted);
+}
+
+.section-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: var(--spacing-4) 0;
+    padding-bottom: var(--spacing-2);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.complexity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.complexity-grid .complexity-card {
+    padding: var(--spacing-4);
+}
+
+.complexity-grid .complexity-label {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-row {
+    display: flex;
+    gap: var(--spacing-3);
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.btn-danger:hover {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
 }

@@ -95,6 +95,26 @@ export default function Phases() {
         setPhaseToDelete(null);
     };
 
+    // Move phase up
+    const handleMoveUp = (index) => {
+        if (index === 0) return;
+        const newPhases = [...state.phases];
+        [newPhases[index - 1], newPhases[index]] = [newPhases[index], newPhases[index - 1]];
+        // Update IDs to reflect new order
+        const reorderedPhases = newPhases.map((p, i) => ({ ...p, id: i + 1 }));
+        dispatch({ type: ACTIONS.SET_PHASES, payload: reorderedPhases });
+    };
+
+    // Move phase down
+    const handleMoveDown = (index) => {
+        if (index === state.phases.length - 1) return;
+        const newPhases = [...state.phases];
+        [newPhases[index], newPhases[index + 1]] = [newPhases[index + 1], newPhases[index]];
+        // Update IDs to reflect new order
+        const reorderedPhases = newPhases.map((p, i) => ({ ...p, id: i + 1 }));
+        dispatch({ type: ACTIONS.SET_PHASES, payload: reorderedPhases });
+    };
+
     return (
         <div className="library-page">
             <div className="page-header">
@@ -109,9 +129,31 @@ export default function Phases() {
             </div>
 
             <div className="phases-list">
-                {state.phases.map(phase => (
+                {state.phases.map((phase, index) => (
                     <div key={phase.id} className={`phase-card ${phase.isTerminal ? 'terminal' : ''}`}>
-                        <div className="phase-number">{phase.id}</div>
+                        <div className="reorder-buttons">
+                            <button
+                                className="btn-icon btn-reorder"
+                                title="Move Up"
+                                onClick={() => handleMoveUp(index)}
+                                disabled={index === 0}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="18 15 12 9 6 15" />
+                                </svg>
+                            </button>
+                            <button
+                                className="btn-icon btn-reorder"
+                                title="Move Down"
+                                onClick={() => handleMoveDown(index)}
+                                disabled={index === state.phases.length - 1}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="phase-number">{index + 1}</div>
                         <div className="phase-content">
                             <h3 className="phase-name">{phase.name}</h3>
                             <p className="phase-tasks">

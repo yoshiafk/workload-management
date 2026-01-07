@@ -66,7 +66,7 @@
 - [x] Display list of phases with card layout
 - [x] Show terminal phase indicator badge
 - [x] Edit phase name
-- [ ] Reorder phases (drag or move buttons)
+- [x] Reorder phases (drag or move buttons)
 - [x] Add phase functionality
 - [x] Delete phase functionality
 
@@ -74,8 +74,8 @@
 - [x] Create TaskTemplates.jsx page
 - [x] Display table with task names and estimates
 - [x] Show Low/Medium/High estimates (days, hours, percentage)
-- [ ] Edit task template modal
-- [ ] Add new task template
+- [x] Edit task template modal
+- [x] Add new task template
 
 #### 6.4 Complexity Settings Page
 - [x] Create Complexity.jsx page
