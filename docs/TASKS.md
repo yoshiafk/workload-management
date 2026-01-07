@@ -23,7 +23,7 @@
 
 ### 3. State Management & Data Persistence
 - [x] Create AppContext with useReducer
-- [/] Implement useLocalStorage hook
+- [x] Implement useLocalStorage hook
 - [x] Create storage utility functions (save, load, export, import)
 - [x] Define initial state structure
 - [ ] Implement data migration/versioning
@@ -164,9 +164,9 @@
 - [x] Column for each team member
 
 #### 9.3 Charts (using Recharts)
-- [ ] WorkloadChart - bar chart of workload per member
+- [x] WorkloadChart - bar chart of workload per member
 - [ ] CostChart - monthly cost trend line chart
-- [ ] StatusPie - task status distribution
+- [x] StatusPie - task status distribution
 
 ---
 
