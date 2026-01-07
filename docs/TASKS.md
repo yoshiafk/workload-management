@@ -166,7 +166,7 @@
 #### 9.3 Charts (using Recharts)
 - [x] WorkloadChart - bar chart of workload per member
 - [ ] CostChart - monthly cost trend line chart
-- [x] StatusPie - task status distribution
+- [ ] StatusPie - task status distribution (Currently implementing Complexity Pie Chart)
 
 ---
 
