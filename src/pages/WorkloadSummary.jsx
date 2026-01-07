@@ -168,7 +168,7 @@ export default function WorkloadSummary() {
                         </div>
                         <div className="stat-content">
                             <span className="stat-label">Total Cost</span>
-                            <div className="stat-value stat-value-small">{formatCurrency(totalCost)}</div>
+                            <div className="stat-value">{formatCurrency(totalCost)}</div>
                             <div className="stat-footer">Project costs</div>
                         </div>
                     </div>

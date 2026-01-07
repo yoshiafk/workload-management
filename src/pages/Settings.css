@@ -10,7 +10,7 @@
 }
 
 /* Toast Notification */
-.toast {
+.settings-page .toast {
     position: fixed;
     top: var(--spacing-4);
     right: var(--spacing-4);
@@ -38,56 +38,56 @@
     }
 }
 
-.toast-success {
+.settings-page .toast-success {
     background: var(--color-success-light);
     color: var(--color-success);
     border: 1px solid var(--color-success);
 }
 
-.toast-error {
+.settings-page .toast-error {
     background: var(--color-danger-light);
     color: var(--color-danger);
     border: 1px solid var(--color-danger);
 }
 
-.toast-icon {
+.settings-page .toast-icon {
     display: flex;
     align-items: center;
 }
 
 /* Section */
-.settings-section {
+.settings-page .settings-section {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--spacing-6);
 }
 
-.section-header {
+.settings-page .section-header {
     margin-bottom: var(--spacing-5);
 }
 
-.section-title {
+.settings-page .section-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
     margin: 0 0 var(--spacing-1) 0;
 }
 
-.section-subtitle {
+.settings-page .section-subtitle {
     font-size: var(--font-size-sm);
     color: var(--color-text-tertiary);
     margin: 0;
 }
 
 /* Stats Grid */
-.stats-grid {
+.settings-page .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: var(--spacing-4);
 }
 
-.stat-item {
+.settings-page .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -98,20 +98,20 @@
     text-align: center;
 }
 
-.stat-count {
+.settings-page .stat-count {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-primary);
 }
 
-.stat-label {
+.settings-page .stat-label {
     font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
     margin-top: var(--spacing-1);
 }
 
 /* Settings Card */
-.settings-card {
+.settings-page .settings-card {
     display: flex;
     align-items: center;
     gap: var(--spacing-4);
@@ -121,7 +121,7 @@
     border-radius: var(--radius-md);
 }
 
-.card-icon {
+.settings-page .card-icon {
     width: 48px;
     height: 48px;
     display: flex;
@@ -133,50 +133,50 @@
     flex-shrink: 0;
 }
 
-.card-content {
+.settings-page .card-content {
     flex: 1;
     min-width: 0;
 }
 
-.card-content h3 {
+.settings-page .card-content h3 {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
     margin: 0 0 var(--spacing-1) 0;
 }
 
-.card-content p {
+.settings-page .card-content p {
     font-size: var(--font-size-sm);
     color: var(--color-text-tertiary);
     margin: 0;
 }
 
 /* Danger Zone */
-.danger-zone .section-title {
+.settings-page .danger-zone .section-title {
     color: var(--color-danger);
 }
 
-.settings-card-danger {
+.settings-page .settings-card-danger {
     border-color: var(--color-danger);
     background: var(--color-danger-light);
 }
 
-.card-icon-danger {
+.settings-page .card-icon-danger {
     background: var(--color-danger);
     color: white;
 }
 
 /* File Input */
-.file-input-hidden {
+.settings-page .file-input-hidden {
     display: none;
 }
 
-.file-input-label {
+.settings-page .file-input-label {
     cursor: pointer;
 }
 
 /* Buttons */
-.btn {
+.settings-page .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -191,37 +191,37 @@
     white-space: nowrap;
 }
 
-.btn-primary {
+.settings-page .btn-primary {
     background: var(--color-primary);
     color: white;
 }
 
-.btn-primary:hover {
+.settings-page .btn-primary:hover {
     background: var(--color-primary-hover);
 }
 
-.btn-secondary {
+.settings-page .btn-secondary {
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
 }
 
-.btn-secondary:hover {
+.settings-page .btn-secondary:hover {
     background: var(--color-bg-secondary);
     border-color: var(--color-border-hover);
 }
 
-.btn-danger {
+.settings-page .btn-danger {
     background: var(--color-danger);
     color: white;
 }
 
-.btn-danger:hover {
+.settings-page .btn-danger:hover {
     background: #dc2626;
 }
 
 /* Modal */
-.modal-overlay {
+.settings-page .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
@@ -232,7 +232,7 @@
     padding: var(--spacing-4);
 }
 
-.modal {
+.settings-page .modal {
     background: var(--color-bg-card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl);
@@ -253,7 +253,7 @@
     }
 }
 
-.modal-header {
+.settings-page .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -261,14 +261,14 @@
     border-bottom: 1px solid var(--color-border);
 }
 
-.modal-title {
+.settings-page .modal-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
     margin: 0;
 }
 
-.modal-close {
+.settings-page .modal-close {
     width: 32px;
     height: 32px;
     display: flex;
@@ -282,17 +282,17 @@
     transition: all var(--transition-fast);
 }
 
-.modal-close:hover {
+.settings-page .modal-close:hover {
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
 }
 
-.modal-body {
+.settings-page .modal-body {
     padding: var(--spacing-5);
     text-align: center;
 }
 
-.confirm-warning {
+.settings-page .confirm-warning {
     width: 64px;
     height: 64px;
     display: flex;
@@ -304,17 +304,17 @@
     margin: 0 auto var(--spacing-4);
 }
 
-.modal-body p {
+.settings-page .modal-body p {
     margin: 0 0 var(--spacing-2) 0;
     color: var(--color-text-primary);
 }
 
-.modal-body .text-muted {
+.settings-page .modal-body .text-muted {
     font-size: var(--font-size-sm);
     color: var(--color-text-tertiary);
 }
 
-.modal-footer {
+.settings-page .modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: var(--spacing-3);
@@ -324,12 +324,12 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-    .settings-card {
+    .settings-page .settings-card {
         flex-direction: column;
         text-align: center;
     }
 
-    .settings-card .btn {
+    .settings-page .settings-card .btn {
         width: 100%;
     }
 }
