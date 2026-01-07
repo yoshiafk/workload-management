@@ -8,6 +8,7 @@ import {
     saveToStorage,
     loadFromStorage,
 } from '../utils/storage';
+import { getHolidaysWithFallback } from '../utils/holidayService';
 import {
     defaultTeamMembers,
     defaultPhases,
@@ -280,25 +281,35 @@ export function AppProvider({ children }) {
         const allocations = loadFromStorage('allocations', []);
         const settings = loadFromStorage('settings', { currency: 'IDR', theme: 'dark' });
 
-        // If no data exists, load defaults
-        if (!members || members.length === 0) {
-            dispatch({ type: ACTIONS.RESET_TO_DEFAULTS });
-        } else {
-            dispatch({
-                type: ACTIONS.LOAD_DATA,
-                payload: {
-                    members,
-                    phases: phases || defaultPhases,
-                    tasks: tasks || defaultTaskTemplates,
-                    complexity: complexity || defaultComplexity,
-                    costs: costs || defaultResourceCosts,
-                    holidays: holidays || defaultHolidays,
-                    leaves,
-                    allocations,
-                    settings,
-                },
-            });
-        }
+        // Load initial data
+        const loadData = async () => {
+            // Fetch holidays from API (with cache and fallback)
+            const fetchedHolidays = await getHolidaysWithFallback();
+
+            // If no data exists, load defaults
+            if (!members || members.length === 0) {
+                dispatch({ type: ACTIONS.RESET_TO_DEFAULTS });
+                // Override holidays with fetched data
+                dispatch({ type: ACTIONS.SET_HOLIDAYS, payload: fetchedHolidays });
+            } else {
+                dispatch({
+                    type: ACTIONS.LOAD_DATA,
+                    payload: {
+                        members,
+                        phases: phases || defaultPhases,
+                        tasks: tasks || defaultTaskTemplates,
+                        complexity: complexity || defaultComplexity,
+                        costs: costs || defaultResourceCosts,
+                        holidays: fetchedHolidays,
+                        leaves,
+                        allocations,
+                        settings,
+                    },
+                });
+            }
+        };
+
+        loadData();
     }, []);
 
     // Persist to localStorage on state change

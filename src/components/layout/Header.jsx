@@ -15,6 +15,7 @@ const pageTitles = {
     '/library/tasks': 'Task Templates',
     '/library/complexity': 'Complexity Settings',
     '/library/costs': 'Resource Costs',
+    '/settings': 'Settings',
 };
 
 const pageDescriptions = {
@@ -26,6 +27,7 @@ const pageDescriptions = {
     '/library/tasks': 'Define task templates with effort estimates',
     '/library/complexity': 'Configure complexity levels and durations',
     '/library/costs': 'Set resource cost rates and billing',
+    '/settings': 'Data management and application settings',
 };
 
 export default function Header() {

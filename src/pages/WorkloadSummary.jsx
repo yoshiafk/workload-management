@@ -1,15 +1,31 @@
 /**
  * Workload Summary Page
- * Professional dashboard with clean statistics and data visualization
+ * Dashboard with statistics, team overview, charts, and task matrix
  */
 
+import { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { getMemberWorkloads } from '../utils/calculations';
+import { getMemberWorkloads, formatCurrency } from '../utils/calculations';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    Legend,
+} from 'recharts';
 import './WorkloadSummary.css';
+
+// Chart colors
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 export default function WorkloadSummary() {
     const { state } = useApp();
-    const { members, allocations, tasks } = state;
+    const { members, allocations, tasks, costs } = state;
 
     const memberWorkloads = getMemberWorkloads(allocations, members);
 
@@ -31,6 +47,44 @@ export default function WorkloadSummary() {
     // Calculate stats
     const activeCount = allocations.filter(a => a.taskName !== 'Completed' && a.taskName !== 'Idle').length;
     const completedCount = allocations.filter(a => a.taskName === 'Completed').length;
+
+    // Chart data: Workload by team member
+    const workloadChartData = useMemo(() => {
+        return members.map(member => {
+            const active = allocations.filter(a =>
+                a.resource === member.name && a.taskName !== 'Completed' && a.taskName !== 'Idle'
+            ).length;
+            const completed = allocations.filter(a =>
+                a.resource === member.name && a.taskName === 'Completed'
+            ).length;
+            return {
+                name: member.name,
+                active,
+                completed,
+            };
+        });
+    }, [members, allocations]);
+
+    // Chart data: Allocation by category
+    const categoryChartData = useMemo(() => {
+        const categories = { low: 0, medium: 0, high: 0 };
+        allocations.forEach(a => {
+            const cat = a.category?.toLowerCase();
+            if (cat && categories.hasOwnProperty(cat)) {
+                categories[cat]++;
+            }
+        });
+        return [
+            { name: 'Low', value: categories.low, color: '#10b981' },
+            { name: 'Medium', value: categories.medium, color: '#3b82f6' },
+            { name: 'High', value: categories.high, color: '#f59e0b' },
+        ].filter(d => d.value > 0);
+    }, [allocations]);
+
+    // Total project cost
+    const totalCost = useMemo(() => {
+        return allocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+    }, [allocations]);
 
     return (
         <div className="workload-summary">
@@ -82,16 +136,99 @@ export default function WorkloadSummary() {
 
                     <div className="stat-card">
                         <div className="stat-header">
-                            <span className="stat-label">Completed</span>
+                            <span className="stat-label">Total Cost</span>
                             <span className="stat-icon stat-icon-green">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                    <line x1="12" y1="1" x2="12" y2="23" />
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                                 </svg>
                             </span>
                         </div>
-                        <div className="stat-value">{completedCount}</div>
-                        <div className="stat-footer">Finished tasks</div>
+                        <div className="stat-value stat-value-small">{formatCurrency(totalCost)}</div>
+                        <div className="stat-footer">Project costs</div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Charts Section */}
+            <section className="section charts-section">
+                <div className="charts-grid">
+                    {/* Workload by Member */}
+                    <div className="chart-card">
+                        <h3 className="chart-title">Workload by Team Member</h3>
+                        <div className="chart-container">
+                            {workloadChartData.some(d => d.active > 0 || d.completed > 0) ? (
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <BarChart data={workloadChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <XAxis
+                                            dataKey="name"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <YAxis
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            allowDecimals={false}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                background: 'var(--color-bg-card)',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                            }}
+                                        />
+                                        <Bar dataKey="active" name="Active" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="chart-empty">No allocation data yet</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Allocation by Category */}
+                    <div className="chart-card">
+                        <h3 className="chart-title">Allocation by Complexity</h3>
+                        <div className="chart-container">
+                            {categoryChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie
+                                            data={categoryChartData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={80}
+                                            paddingAngle={3}
+                                            dataKey="value"
+                                        >
+                                            {categoryChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{
+                                                background: 'var(--color-bg-card)',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                            }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            formatter={(value) => <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>{value}</span>}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="chart-empty">No allocation data yet</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </section>

@@ -16,6 +16,7 @@ import Phases from './pages/Library/Phases';
 import TaskTemplates from './pages/Library/TaskTemplates';
 import Complexity from './pages/Library/Complexity';
 import ResourceCosts from './pages/Library/ResourceCosts';
+import Settings from './pages/Settings';
 
 import './index.css';
 
@@ -38,6 +39,9 @@ function App() {
             <Route path="library/tasks" element={<TaskTemplates />} />
             <Route path="library/complexity" element={<Complexity />} />
             <Route path="library/costs" element={<ResourceCosts />} />
+
+            {/* Settings */}
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -98,19 +98,19 @@
 ### 7. Important Dates Module (Sheet 3)
 
 #### 7.1 Holidays Section
-- [ ] Create ImportantDates.jsx page
-- [ ] Display holidays table: Date, Name, Type, Year
-- [ ] Pre-load Indonesian holidays 2025
-- [ ] Add holiday functionality
-- [ ] Edit/delete holidays
-- [ ] Year filter dropdown
+- [x] Create ImportantDates.jsx page
+- [x] Display holidays table: Date, Name, Type, Year
+- [x] Pre-load Indonesian holidays 2026
+- [x] Add holiday functionality
+- [x] Edit/delete holidays
+- [x] Year filter dropdown
 
 #### 7.2 Leave Section
-- [ ] Display leaves table: Member Name, Date
-- [ ] Add leave with member selection
-- [ ] Date range selection for multi-day leaves
-- [ ] Edit/delete leaves
-- [ ] Filter by team member
+- [x] Display leaves table: Member Name, Date
+- [x] Add leave with member selection
+- [x] Date range selection for multi-day leaves
+- [x] Edit/delete leaves
+- [x] Filter by team member
 
 ---
 
@@ -171,10 +171,10 @@
 ---
 
 ### 10. Data Import/Export
-- [ ] Export all data to JSON
-- [ ] Import data from JSON file
-- [ ] Clear all data with confirmation
-- [ ] Validate imported data structure
+- [x] Export all data to JSON
+- [x] Import data from JSON file
+- [x] Clear all data with confirmation
+- [x] Validate imported data structure
 
 ---
 
