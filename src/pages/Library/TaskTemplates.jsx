@@ -236,7 +236,7 @@ export default function TaskTemplates() {
                         {['low', 'medium', 'high', 'sophisticated'].map(level => (
                             <div key={level} className="complexity-card">
                                 <h5 className="complexity-label">{level.charAt(0).toUpperCase() + level.slice(1)}</h5>
-                                <div className="form-row">
+                                <div className="estimate-row">
                                     <div className="form-group">
                                         <label>Days</label>
                                         <input
@@ -264,7 +264,7 @@ export default function TaskTemplates() {
                                             className="form-input form-input-calc"
                                             value={`${(formData.estimates[level].percentage * 100).toFixed(1)}%`}
                                             readOnly
-                                            title="Auto-calculated: Hours / 8"
+                                            title="Auto-calculated: Hours / (Days * 8)"
                                         />
                                     </div>
                                 </div>

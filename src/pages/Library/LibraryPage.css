@@ -446,33 +446,33 @@
     letter-spacing: 0.05em;
 }
 
-.form-row {
+.estimate-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-2);
 }
 
-.form-row .form-group {
+.estimate-row .form-group {
     min-width: 0;
 }
 
-.form-row .form-group label {
+.estimate-row .form-group label {
     font-size: var(--font-size-xs);
 }
 
-.form-row .form-input {
+.estimate-row .form-input {
     width: 100%;
     padding: var(--spacing-2);
     font-size: var(--font-size-sm);
     text-align: center;
 }
 
-.form-row .form-group {
+.estimate-row .form-group {
     flex: 1;
     min-width: 0;
 }
 
-.form-row .form-input {
+.estimate-row .form-input {
     width: 100%;
     min-width: 60px;
     padding-right: var(--spacing-1);

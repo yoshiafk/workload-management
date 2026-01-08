@@ -28,7 +28,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function WorkloadSummary() {
     const { state } = useApp();
-    const { members, allocations, tasks, costs } = state;
+    const { members, allocations, tasks, costs, complexity } = state;
 
     const memberWorkloads = getMemberWorkloads(allocations, members);
 
@@ -63,19 +63,24 @@ export default function WorkloadSummary() {
 
     // Chart data: Allocation by category
     const categoryChartData = useMemo(() => {
-        const categories = { low: 0, medium: 0, high: 0 };
+        const stats = {};
+        Object.keys(complexity).forEach(key => {
+            stats[key.toLowerCase()] = 0;
+        });
+
         allocations.forEach(a => {
             const cat = a.category?.toLowerCase();
-            if (cat && categories.hasOwnProperty(cat)) {
-                categories[cat]++;
+            if (cat && stats.hasOwnProperty(cat)) {
+                stats[cat]++;
             }
         });
-        return [
-            { name: 'Low', value: categories.low, color: '#10b981' },
-            { name: 'Medium', value: categories.medium, color: '#3b82f6' },
-            { name: 'High', value: categories.high, color: '#f59e0b' },
-        ].filter(d => d.value > 0);
-    }, [allocations]);
+
+        return Object.values(complexity).map(level => ({
+            name: level.label,
+            value: stats[level.level.toLowerCase()] || 0,
+            color: level.color
+        })).filter(d => d.value > 0);
+    }, [allocations, complexity]);
 
     // Chart data: Cost Trend
     const costTrendData = useMemo(() => {

@@ -69,11 +69,10 @@ export default function ResourceAllocation() {
             .map(t => ({ value: t.name, label: t.name }));
     }, [tasks, formData.phase, phases]);
 
-    const categoryOptions = [
-        { value: 'low', label: 'Low' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'high', label: 'High' },
-    ];
+    const categoryOptions = Object.values(complexity).map(level => ({
+        value: level.level.toLowerCase(),
+        label: level.label
+    }));
 
     // Calculate plan values when relevant form data changes
     const calculatedPlan = useMemo(() => {
