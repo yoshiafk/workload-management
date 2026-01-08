@@ -112,7 +112,7 @@ erDiagram
         string level PK "low|medium|high"
         number days "Total duration days"
         number hours "Total duration hours"
-        number cycleActivity "Cycle activity value"
+        number workload "Workload value"
         string color "Visual indicator"
     }
 
@@ -326,7 +326,7 @@ flowchart TB
     
     subgraph AutoCalc["Auto-Calculated Fields"]
         C1["Plan TaskEnd<br/>=WORKDAY(Start, Days, Holidays+Leaves)"]
-        C2["Cost Project<br/>=CycleActivity × HourlyRate"]
+        C2["Cost Project<br/>=Workload × HourlyRate"]
         C3["Cost Monthly<br/>=CostProject / Months"]
         C4["Workload %<br/>=XLOOKUP(Task → ComplexityPct)"]
     end
@@ -388,7 +388,7 @@ flowchart TB
     end
     
     subgraph Step2["Step 2: Calculate Project Cost"]
-        S2A["Lookup complexity → cycleActivity"]
+        S2A["Lookup complexity → workload"]
         S2B["Lookup resource → perHourCost"]
         S2C["Multiply: cycle × hourly"]
         S2D["Result: Cost Project"]
@@ -556,9 +556,9 @@ flowchart TB
     end
     
     subgraph Step2["Step 2: Calculate Project Cost"]
-        S2A["Lookup complexity → cycleActivity"]
+        S2A["Lookup complexity → workload"]
         S2B["Lookup resource → perHourCost"]
-        S2C["cycleActivity × perHourCost"]
+        S2C["workload × perHourCost"]
         S2D["= Cost Project"]
     end
     
@@ -652,21 +652,21 @@ flowchart TB
     level: "low",
     days: 27,
     hours: 14.5,
-    cycleActivity: 2.446875,
+    workload: 2.446875,
     color: "#10b981"
   },
   medium: {
     level: "medium",
     days: 72,
     hours: 19,
-    cycleActivity: 8.55,
+    workload: 8.55,
     color: "#3b82f6"
   },
   high: {
     level: "high",
     days: 102,
     hours: 30,
-    cycleActivity: 19.125,
+    workload: 19.125,
     color: "#f59e0b"
   }
 }
@@ -782,9 +782,9 @@ function calculatePlanEndDate(startDate, complexity, resourceName, holidays, lea
 
 ```javascript
 function calculateProjectCost(complexity, resourceName, complexitySettings, resourceCosts) {
-  const cycleActivity = complexitySettings[complexity].cycleActivity;
+  const workload = complexitySettings[complexity].workload;
   const resource = resourceCosts.find(r => r.name === resourceName);
-  return cycleActivity * resource.perHourCost;
+  return workload * resource.perHourCost;
 }
 ```
 

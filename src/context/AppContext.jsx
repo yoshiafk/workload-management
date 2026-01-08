@@ -3,11 +3,13 @@
  * Global state management using React Context + useReducer
  */
 
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import {
     saveToStorage,
     loadFromStorage,
 } from '../utils/storage';
+import { migrateData, CURRENT_VERSION } from '../utils/migration';
+import { recalculateAllocations } from '../utils/recalculate';
 import { getHolidaysWithFallback } from '../utils/holidayService';
 import {
     defaultTeamMembers,
@@ -271,18 +273,29 @@ export function AppProvider({ children }) {
 
     // Load data from localStorage on mount
     useEffect(() => {
-        const members = loadFromStorage('members', null);
-        const phases = loadFromStorage('phases', null);
-        const tasks = loadFromStorage('tasks', null);
-        const complexity = loadFromStorage('complexity', null);
-        const costs = loadFromStorage('costs', null);
-        const holidays = loadFromStorage('holidays', null);
-        const leaves = loadFromStorage('leaves', []);
-        const allocations = loadFromStorage('allocations', []);
-        const settings = loadFromStorage('settings', { currency: 'IDR', theme: 'dark' });
-
         // Load initial data
         const loadData = async () => {
+            // Run migrations first to ensure data schema is up-to-date
+            try {
+                const migrationResult = migrateData();
+                if (migrationResult.migrated) {
+                    console.log(`[AppContext] Data migrated from v${migrationResult.from} to v${migrationResult.version}`);
+                }
+            } catch (error) {
+                console.error('[AppContext] Migration failed:', error);
+            }
+
+            // Load data after migrations
+            const members = loadFromStorage('members', null);
+            const phases = loadFromStorage('phases', null);
+            const tasks = loadFromStorage('tasks', null);
+            const complexity = loadFromStorage('complexity', null);
+            const costs = loadFromStorage('costs', null);
+            const holidays = loadFromStorage('holidays', null);
+            const leaves = loadFromStorage('leaves', []);
+            const allocations = loadFromStorage('allocations', []);
+            const settings = loadFromStorage('settings', { currency: 'IDR', theme: 'dark' });
+
             // Fetch holidays from API (with cache and fallback)
             const fetchedHolidays = await getHolidaysWithFallback();
 
@@ -291,6 +304,8 @@ export function AppProvider({ children }) {
                 dispatch({ type: ACTIONS.RESET_TO_DEFAULTS });
                 // Override holidays with fetched data
                 dispatch({ type: ACTIONS.SET_HOLIDAYS, payload: fetchedHolidays });
+                // Save initial version
+                saveToStorage('version', CURRENT_VERSION);
             } else {
                 dispatch({
                     type: ACTIONS.LOAD_DATA,
@@ -327,6 +342,60 @@ export function AppProvider({ children }) {
         saveToStorage('allocations', state.allocations);
         saveToStorage('settings', state.settings);
     }, [state]);
+
+    // Track previous values for auto-recalculation
+    const prevCostsRef = useRef(state.costs);
+    const prevComplexityRef = useRef(state.complexity);
+    const prevTasksRef = useRef(state.tasks);
+    const prevHolidaysRef = useRef(state.holidays);
+    const prevLeavesRef = useRef(state.leaves);
+
+    // Auto-recalculate allocations when dependencies change
+    useEffect(() => {
+        if (!state.isLoaded || state.allocations.length === 0) return;
+
+        // Check if any relevant dependencies changed
+        const costsChanged = prevCostsRef.current !== state.costs;
+        const complexityChanged = prevComplexityRef.current !== state.complexity;
+        const tasksChanged = prevTasksRef.current !== state.tasks;
+        const holidaysChanged = prevHolidaysRef.current !== state.holidays;
+        const leavesChanged = prevLeavesRef.current !== state.leaves;
+
+        if (costsChanged || complexityChanged || tasksChanged || holidaysChanged || leavesChanged) {
+            // Update refs
+            prevCostsRef.current = state.costs;
+            prevComplexityRef.current = state.complexity;
+            prevTasksRef.current = state.tasks;
+            prevHolidaysRef.current = state.holidays;
+            prevLeavesRef.current = state.leaves;
+
+            // Recalculate all allocations
+            const updatedAllocations = recalculateAllocations(
+                state.allocations,
+                state.complexity,
+                state.costs,
+                state.tasks,
+                state.holidays,
+                state.leaves
+            );
+
+            // Only dispatch if there are actual changes
+            const hasChanges = updatedAllocations.some((updated, i) => {
+                const original = state.allocations[i];
+                return (
+                    updated.plan?.costProject !== original.plan?.costProject ||
+                    updated.plan?.costMonthly !== original.plan?.costMonthly ||
+                    updated.plan?.taskEnd !== original.plan?.taskEnd ||
+                    updated.workload !== original.workload
+                );
+            });
+
+            if (hasChanges) {
+                console.log('[AppContext] Auto-recalculating allocations due to dependency changes');
+                dispatch({ type: ACTIONS.SET_ALLOCATIONS, payload: updatedAllocations });
+            }
+        }
+    }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.allocations, state.isLoaded]);
 
     return (
         <AppContext.Provider value={{ state, dispatch, ACTIONS }}>

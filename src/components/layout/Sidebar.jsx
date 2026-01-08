@@ -116,9 +116,9 @@ const icons = {
     ),
 };
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
             <div className="sidebar-header">
                 <div className="logo">
                     <div className="logo-mark">W</div>
@@ -127,6 +127,12 @@ export default function Sidebar() {
                         <span className="logo-subtitle">Resource Management</span>
                     </div>
                 </div>
+                <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
             </div>
 
             <nav className="sidebar-nav">
@@ -155,7 +161,7 @@ export default function Sidebar() {
             <div className="sidebar-footer">
                 <div className="sidebar-footer-content">
                     <span className="version-label">Version</span>
-                    <span className="version-number">1.0.0</span>
+                    <span className="version-number">1.1.0</span>
                 </div>
             </div>
         </aside>

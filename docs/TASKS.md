@@ -26,7 +26,7 @@
 - [x] Implement useLocalStorage hook
 - [x] Create storage utility functions (save, load, export, import)
 - [x] Define initial state structure
-- [ ] Implement data migration/versioning
+- [x] Implement data migration/versioning
 
 ### 4. UI Component Library
 - [x] Button component (btn, btn-primary, btn-secondary, btn-icon)
@@ -59,7 +59,7 @@
 - [x] Add member modal form functionality
 - [x] Edit member functionality
 - [x] Delete member with confirmation
-- [ ] Link to resource cost tier
+- [x] Link to resource cost tier
 
 #### 6.2 Phases Page
 - [x] Create Phases.jsx page
@@ -80,7 +80,7 @@
 #### 6.4 Complexity Settings Page
 - [x] Create Complexity.jsx page
 - [x] Display Low/Medium/High settings with card layout
-- [x] Show days, hours, cycleActivity values
+- [x] Show days, hours, workload values
 - [x] Edit complexity settings
 - [ ] Color picker for complexity indicators
 
@@ -133,7 +133,7 @@
 
 #### 8.2 Auto-Calculations
 - [x] Implement calculatePlanEndDate() - WORKDAY formula
-- [x] Implement calculateProjectCost() - cycleActivity × hourlyRate
+- [x] Implement calculateProjectCost() - workload × hourlyRate
 - [x] Implement calculateMonthlyCost() - projectCost / months
 - [x] Implement calculateWorkloadPercentage() - XLOOKUP formula
 - [x] Create useCalculations hook (integrated in component)
@@ -142,7 +142,7 @@
 - [x] Add new allocation modal
 - [x] Edit allocation (modal)
 - [x] Delete allocation with confirmation
-- [ ] Bulk delete selected rows
+- [x] Bulk delete selected rows
 
 ---
 
@@ -179,10 +179,10 @@
 ---
 
 ### 11. Final Polish & Deployment
-- [ ] Responsive design testing
-- [ ] Cross-browser testing
-- [ ] Performance optimization
-- [ ] Error handling and validation
+- [x] Responsive design testing
+- [x] Cross-browser testing
+- [x] Performance optimization
+- [x] Error handling and validation
 - [ ] Build production bundle
 - [ ] Deploy to GitHub Pages
 - [ ] Verify deployed site functionality

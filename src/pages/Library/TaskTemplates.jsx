@@ -37,7 +37,20 @@ export default function TaskTemplates() {
     };
 
     const handleEdit = (task) => {
-        setFormData({ ...task });
+        // Merge with initial form state to ensure estimates structure exists
+        const mergedFormData = {
+            ...initialFormState,
+            ...task,
+            estimates: {
+                ...initialFormState.estimates,
+                ...task.estimates,
+                low: { ...initialFormState.estimates.low, ...task.estimates?.low },
+                medium: { ...initialFormState.estimates.medium, ...task.estimates?.medium },
+                high: { ...initialFormState.estimates.high, ...task.estimates?.high },
+                sophisticated: { ...initialFormState.estimates.sophisticated, ...task.estimates?.sophisticated },
+            },
+        };
+        setFormData(mergedFormData);
         setCurrentTask(task);
         setIsModalOpen(true);
     };
@@ -135,18 +148,18 @@ export default function TaskTemplates() {
                             <tr key={task.id}>
                                 <td className="cell-id">{task.id}</td>
                                 <td className="cell-name">{task.name}</td>
-                                <td>{task.estimates.low.days}</td>
-                                <td>{task.estimates.low.hours}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates.low.percentage)}</td>
-                                <td>{task.estimates.medium.days}</td>
-                                <td>{task.estimates.medium.hours}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates.medium.percentage)}</td>
-                                <td>{task.estimates.high.days}</td>
-                                <td>{task.estimates.high.hours}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates.high.percentage)}</td>
-                                <td>{task.estimates.sophisticated?.days || 0}</td>
-                                <td>{task.estimates.sophisticated?.hours || 0}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates.sophisticated?.percentage || 0)}</td>
+                                <td>{task.estimates?.low?.days ?? 0}</td>
+                                <td>{task.estimates?.low?.hours ?? 0}</td>
+                                <td className="cell-pct">{formatPercentage(task.estimates?.low?.percentage ?? 0)}</td>
+                                <td>{task.estimates?.medium?.days ?? 0}</td>
+                                <td>{task.estimates?.medium?.hours ?? 0}</td>
+                                <td className="cell-pct">{formatPercentage(task.estimates?.medium?.percentage ?? 0)}</td>
+                                <td>{task.estimates?.high?.days ?? 0}</td>
+                                <td>{task.estimates?.high?.hours ?? 0}</td>
+                                <td className="cell-pct">{formatPercentage(task.estimates?.high?.percentage ?? 0)}</td>
+                                <td>{task.estimates?.sophisticated?.days ?? 0}</td>
+                                <td>{task.estimates?.sophisticated?.hours ?? 0}</td>
+                                <td className="cell-pct">{formatPercentage(task.estimates?.sophisticated?.percentage ?? 0)}</td>
                                 <td className="cell-actions">
                                     <button className="btn-icon" onClick={() => handleEdit(task)} title="Edit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

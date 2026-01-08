@@ -48,8 +48,10 @@ export default function ResourceAllocation() {
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
     const [editingAllocation, setEditingAllocation] = useState(null);
     const [allocationToDelete, setAllocationToDelete] = useState(null);
+    const [selectedIds, setSelectedIds] = useState(new Set());
 
     // Form state
     const [formData, setFormData] = useState(emptyAllocation);
@@ -201,6 +203,42 @@ export default function ResourceAllocation() {
         setAllocationToDelete(null);
     };
 
+    // Selection handlers
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(new Set(allocations.map(a => a.id)));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+
+    const handleSelectRow = (id) => {
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    // Bulk delete handlers
+    const handleBulkDeleteClick = () => {
+        if (selectedIds.size > 0) {
+            setIsBulkDeleteOpen(true);
+        }
+    };
+
+    const handleBulkDeleteConfirm = () => {
+        selectedIds.forEach(id => {
+            dispatch({ type: ACTIONS.DELETE_ALLOCATION, payload: id });
+        });
+        setSelectedIds(new Set());
+        setIsBulkDeleteOpen(false);
+    };
+
     // Format date for display
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -218,19 +256,38 @@ export default function ResourceAllocation() {
                     <h2>Resource Allocation</h2>
                     <p className="page-subtitle">{allocations.length} allocations total</p>
                 </div>
-                <button className="btn btn-primary" onClick={handleAdd}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Add Allocation
-                </button>
+                <div className="header-actions">
+                    {selectedIds.size > 0 && (
+                        <button className="btn btn-danger" onClick={handleBulkDeleteClick}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            Delete ({selectedIds.size})
+                        </button>
+                    )}
+                    <button className="btn btn-primary" onClick={handleAdd}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Add Allocation
+                    </button>
+                </div>
             </div>
 
             <div className="allocation-table-container">
                 <table className="allocation-table">
                     <thead>
                         <tr>
+                            <th className="cell-checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={allocations.length > 0 && selectedIds.size === allocations.length}
+                                    onChange={handleSelectAll}
+                                    title="Select all"
+                                />
+                            </th>
                             <th>Activity</th>
                             <th>Resource</th>
                             <th>Category</th>
@@ -246,7 +303,7 @@ export default function ResourceAllocation() {
                     <tbody>
                         {allocations.length === 0 ? (
                             <tr>
-                                <td colSpan="10" className="empty-row">
+                                <td colSpan="11" className="empty-row">
                                     <div className="empty-state">
                                         <p>No allocations yet</p>
                                         <p className="empty-hint">Click "Add Allocation" to create your first task allocation</p>
@@ -255,7 +312,14 @@ export default function ResourceAllocation() {
                             </tr>
                         ) : (
                             allocations.map(allocation => (
-                                <tr key={allocation.id}>
+                                <tr key={allocation.id} className={selectedIds.has(allocation.id) ? 'selected' : ''}>
+                                    <td className="cell-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.has(allocation.id)}
+                                            onChange={() => handleSelectRow(allocation.id)}
+                                        />
+                                    </td>
                                     <td className="cell-name">{allocation.activityName}</td>
                                     <td>{allocation.resource}</td>
                                     <td>
@@ -421,6 +485,17 @@ export default function ResourceAllocation() {
                 title="Delete Allocation"
                 message={`Are you sure you want to delete "${allocationToDelete?.activityName}"? This action cannot be undone.`}
                 confirmText="Delete"
+                variant="danger"
+            />
+
+            {/* Bulk Delete Confirmation */}
+            <ConfirmDialog
+                isOpen={isBulkDeleteOpen}
+                onClose={() => setIsBulkDeleteOpen(false)}
+                onConfirm={handleBulkDeleteConfirm}
+                title="Delete Selected Allocations"
+                message={`Are you sure you want to delete ${selectedIds.size} selected allocation(s)? This action cannot be undone.`}
+                confirmText={`Delete ${selectedIds.size} Items`}
                 variant="danger"
             />
         </div>

@@ -50,8 +50,8 @@ export default function Complexity() {
         if (!formData.days || formData.days < 1) {
             newErrors.days = 'Days must be at least 1';
         }
-        if (!formData.cycleActivity || formData.cycleActivity <= 0) {
-            newErrors.cycleActivity = 'Cycle activity must be greater than 0';
+        if (!formData.workload || formData.workload <= 0) {
+            newErrors.workload = 'Workload must be greater than 0';
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -97,8 +97,8 @@ export default function Complexity() {
                                 <span className="stat-value">{level.hours}</span>
                             </div>
                             <div className="stat-row">
-                                <span className="stat-label">Cycle Activity</span>
-                                <span className="stat-value">{level.cycleActivity.toFixed(4)}</span>
+                                <span className="stat-label">Workload</span>
+                                <span className="stat-value">{level.workload.toFixed(4)}</span>
                             </div>
                         </div>
 
@@ -143,12 +143,12 @@ export default function Complexity() {
                     disabled
                 />
                 <FormInput
-                    label="Cycle Activity"
-                    name="cycleActivity"
+                    label="Workload"
+                    name="workload"
                     type="number"
-                    value={formData.cycleActivity}
+                    value={formData.workload}
                     onChange={handleChange}
-                    error={errors.cycleActivity}
+                    error={errors.workload}
                     required
                     min={0.0001}
                     step={0.0001}

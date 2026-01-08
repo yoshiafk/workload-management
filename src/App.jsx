@@ -5,6 +5,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { ErrorBoundary } from './components/ui';
 import Layout from './components/layout/Layout';
 
 // Pages
@@ -24,26 +25,28 @@ function App() {
   return (
     <AppProvider>
       <BrowserRouter basename="/workload-management">
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            {/* Dashboard */}
-            <Route index element={<WorkloadSummary />} />
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              {/* Dashboard */}
+              <Route index element={<WorkloadSummary />} />
 
-            {/* Management */}
-            <Route path="allocation" element={<ResourceAllocation />} />
-            <Route path="dates" element={<ImportantDates />} />
+              {/* Management */}
+              <Route path="allocation" element={<ResourceAllocation />} />
+              <Route path="dates" element={<ImportantDates />} />
 
-            {/* Library (Config) */}
-            <Route path="library/members" element={<TeamMembers />} />
-            <Route path="library/phases" element={<Phases />} />
-            <Route path="library/tasks" element={<TaskTemplates />} />
-            <Route path="library/complexity" element={<Complexity />} />
-            <Route path="library/costs" element={<ResourceCosts />} />
+              {/* Library (Config) */}
+              <Route path="library/members" element={<TeamMembers />} />
+              <Route path="library/phases" element={<Phases />} />
+              <Route path="library/tasks" element={<TaskTemplates />} />
+              <Route path="library/complexity" element={<Complexity />} />
+              <Route path="library/costs" element={<ResourceCosts />} />
 
-            {/* Settings */}
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
+              {/* Settings */}
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AppProvider>
   );

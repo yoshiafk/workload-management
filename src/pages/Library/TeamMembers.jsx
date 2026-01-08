@@ -17,6 +17,7 @@ const emptyMember = {
     name: '',
     type: 'BA',
     maxHoursPerWeek: 40,
+    costTierId: '',
     isActive: true,
 };
 
@@ -120,6 +121,7 @@ export default function TeamMembers() {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Role</th>
+                            <th>Cost Tier</th>
                             <th>Max Hours/Week</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -134,6 +136,12 @@ export default function TeamMembers() {
                                     <span className={`type-badge ${member.type.toLowerCase()}`}>
                                         {member.type === 'BA' ? 'Business Analyst' : 'Project Manager'}
                                     </span>
+                                </td>
+                                <td>
+                                    {(() => {
+                                        const costTier = state.costs.find(c => c.id === member.costTierId);
+                                        return costTier ? costTier.resourceName : <span className="text-muted">Not linked</span>;
+                                    })()}
                                 </td>
                                 <td>{member.maxHoursPerWeek}h</td>
                                 <td>
@@ -209,6 +217,21 @@ export default function TeamMembers() {
                     required
                     min={1}
                     max={168}
+                />
+                <FormInput
+                    label="Cost Tier"
+                    name="costTierId"
+                    type="select"
+                    value={formData.costTierId}
+                    onChange={handleChange}
+                    options={[
+                        { value: '', label: 'Select cost tier...' },
+                        ...state.costs.map(cost => ({
+                            value: cost.id,
+                            label: `${cost.resourceName} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
+                        }))
+                    ]}
+                    helpText="Link to resource cost for billing calculations"
                 />
                 <FormInput
                     label="Active"

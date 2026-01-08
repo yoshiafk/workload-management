@@ -90,6 +90,43 @@
     text-align: center;
 }
 
+/* Checkbox Column */
+.cell-checkbox {
+    width: 40px;
+    text-align: center;
+}
+
+.cell-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+/* Selected Row */
+.allocation-table tr.selected td {
+    background: var(--color-primary-light);
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+}
+
+/* Danger Button */
+.btn-danger {
+    background: var(--color-danger);
+    color: white;
+    border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+    background: var(--color-danger-hover, #dc2626);
+    border-color: var(--color-danger-hover, #dc2626);
+}
+
 .cell-actions {
     display: flex;
     gap: var(--spacing-1);

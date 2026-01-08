@@ -30,7 +30,7 @@ const pageDescriptions = {
     '/settings': 'Data management and application settings',
 };
 
-export default function Header() {
+export default function Header({ onMenuClick }) {
     const location = useLocation();
     const title = pageTitles[location.pathname] || 'Dashboard';
     const description = pageDescriptions[location.pathname] || '';
@@ -38,9 +38,18 @@ export default function Header() {
     return (
         <header className="header">
             <div className="header-content">
-                <div className="header-title-group">
-                    <h1 className="page-title">{title}</h1>
-                    {description && <p className="page-description">{description}</p>}
+                <div className="header-left">
+                    <button className="menu-toggle" onClick={onMenuClick} aria-label="Toggle menu">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <div className="header-title-group">
+                        <h1 className="page-title">{title}</h1>
+                        {description && <p className="page-description">{description}</p>}
+                    </div>
                 </div>
 
                 <div className="header-actions">
