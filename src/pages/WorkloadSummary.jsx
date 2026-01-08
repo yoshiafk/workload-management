@@ -383,8 +383,8 @@ export default function WorkloadSummary() {
                                         ></div>
                                     </div>
                                     <div className="capacity-stats">
-                                        <span>Current: {workload?.totalWorkload?.toFixed(2)}</span>
-                                        <span>Max: {workload?.maxCapacity?.toFixed(1)}</span>
+                                        <span>Current: {workload?.currentHours?.toFixed(1)}h</span>
+                                        <span>Max: {workload?.maxHours?.toFixed(1)}h</span>
                                     </div>
                                 </div>
 

@@ -182,7 +182,11 @@ export function countTasksByMember(taskName, memberName, allocations) {
  */
 export function getTotalWorkload(memberName, allocations) {
     return allocations
-        .filter(a => a.resource === memberName)
+        .filter(a =>
+            a.resource === memberName &&
+            a.taskName !== 'Completed' &&
+            a.taskName !== 'Idle'
+        )
         .reduce((sum, a) => sum + (a.workload || 0), 0);
 }
 
@@ -240,12 +244,18 @@ export function getTaskMatrix(allocations, teamMembers, taskTemplates) {
 export function getMemberWorkloads(allocations, teamMembers) {
     return teamMembers.map(member => {
         const totalWorkload = getTotalWorkload(member.name, allocations);
-        const maxCapacity = member.maxCapacity || 1.0; // Default to 1.0 (100%)
+        const maxCapacity = member.maxCapacity || 1.0;
+        const baseHours = member.maxHoursPerWeek || 40;
+
+        const currentHours = totalWorkload * baseHours;
+        const maxHours = maxCapacity * baseHours;
 
         return {
             name: member.name,
             totalWorkload,
             maxCapacity,
+            currentHours,
+            maxHours,
             percentage: maxCapacity > 0 ? (totalWorkload / maxCapacity) * 100 : 0,
             activeCount: allocations
                 .filter(a => a.resource === member.name && a.taskName !== 'Completed' && a.taskName !== 'Idle')
