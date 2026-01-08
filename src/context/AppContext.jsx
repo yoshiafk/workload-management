@@ -298,7 +298,8 @@ export function AppProvider({ children }) {
                         members,
                         phases: phases || defaultPhases,
                         tasks: tasks || defaultTaskTemplates,
-                        complexity: complexity || defaultComplexity,
+                        // Merge default complexity with stored to ensure new levels are included
+                        complexity: { ...defaultComplexity, ...complexity },
                         costs: costs || defaultResourceCosts,
                         holidays: fetchedHolidays,
                         leaves,

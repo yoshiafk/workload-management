@@ -18,6 +18,7 @@ const initialFormState = {
         low: { days: 2, hours: 1, percentage: 0.125 },
         medium: { days: 5, hours: 2, percentage: 0.25 },
         high: { days: 10, hours: 4, percentage: 0.5 },
+        sophisticated: { days: 20, hours: 6, percentage: 0.75 },
     },
 };
 
@@ -66,14 +67,22 @@ export default function TaskTemplates() {
     };
 
     const updateEstimate = (level, field, value) => {
+        const numValue = parseInt(value, 10) || 0;
+        const updatedEstimate = {
+            ...formData.estimates[level],
+            [field]: numValue,
+        };
+
+        // Auto-calculate workload percentage: hours / 8
+        if (field === 'hours') {
+            updatedEstimate.percentage = numValue / 8;
+        }
+
         setFormData({
             ...formData,
             estimates: {
                 ...formData.estimates,
-                [level]: {
-                    ...formData.estimates[level],
-                    [field]: field === 'percentage' ? parseFloat(value) : parseInt(value, 10) || 0,
-                },
+                [level]: updatedEstimate,
             },
         });
     };
@@ -100,11 +109,15 @@ export default function TaskTemplates() {
                             <th colSpan="3" className="complexity-header">Low</th>
                             <th colSpan="3" className="complexity-header">Medium</th>
                             <th colSpan="3" className="complexity-header">High</th>
+                            <th colSpan="3" className="complexity-header">Sophisticated</th>
                             <th>Actions</th>
                         </tr>
                         <tr className="sub-header">
                             <th></th>
                             <th></th>
+                            <th>Days</th>
+                            <th>Hours</th>
+                            <th>%</th>
                             <th>Days</th>
                             <th>Hours</th>
                             <th>%</th>
@@ -131,6 +144,9 @@ export default function TaskTemplates() {
                                 <td>{task.estimates.high.days}</td>
                                 <td>{task.estimates.high.hours}</td>
                                 <td className="cell-pct">{formatPercentage(task.estimates.high.percentage)}</td>
+                                <td>{task.estimates.sophisticated?.days || 0}</td>
+                                <td>{task.estimates.sophisticated?.hours || 0}</td>
+                                <td className="cell-pct">{formatPercentage(task.estimates.sophisticated?.percentage || 0)}</td>
                                 <td className="cell-actions">
                                     <button className="btn-icon" onClick={() => handleEdit(task)} title="Edit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -197,7 +213,7 @@ export default function TaskTemplates() {
 
                     <h4 className="section-title">Complexity Estimates</h4>
                     <div className="complexity-grid">
-                        {['low', 'medium', 'high'].map(level => (
+                        {['low', 'medium', 'high', 'sophisticated'].map(level => (
                             <div key={level} className="complexity-card">
                                 <h5 className="complexity-label">{level.charAt(0).toUpperCase() + level.slice(1)}</h5>
                                 <div className="form-row">
@@ -222,15 +238,13 @@ export default function TaskTemplates() {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Workload %</label>
+                                        <label>Workload</label>
                                         <input
-                                            type="number"
-                                            className="form-input"
-                                            value={formData.estimates[level].percentage}
-                                            onChange={(e) => updateEstimate(level, 'percentage', e.target.value)}
-                                            min="0"
-                                            max="1"
-                                            step="0.0625"
+                                            type="text"
+                                            className="form-input form-input-calc"
+                                            value={`${(formData.estimates[level].percentage * 100).toFixed(1)}%`}
+                                            readOnly
+                                            title="Auto-calculated: Hours / 8"
                                         />
                                     </div>
                                 </div>

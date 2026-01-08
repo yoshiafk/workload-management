@@ -13,6 +13,7 @@ export const defaultTaskTemplates = [
             low: { days: 2, hours: 1, percentage: 0.125 },
             medium: { days: 5, hours: 2, percentage: 0.25 },
             high: { days: 10, hours: 4, percentage: 0.5 },
+            sophisticated: { days: 15, hours: 6, percentage: 0.75 },
         },
     },
     {

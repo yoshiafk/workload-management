@@ -494,3 +494,11 @@
     background: var(--color-danger-light);
     color: var(--color-danger);
 }
+
+/* Calculated/Read-only inputs */
+.form-input-calc {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    cursor: default;
+    font-weight: var(--font-weight-medium);
+}

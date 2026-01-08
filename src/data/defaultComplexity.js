@@ -28,6 +28,15 @@ export const defaultComplexity = {
         cycleActivity: 19.125,
         color: '#f59e0b', // Orange/Amber
     },
+    sophisticated: {
+        level: 'sophisticated',
+        label: 'Sophisticated',
+        days: 150,
+        hours: 48,
+        cycleActivity: 45,
+        color: '#ef4444', // Red
+    },
 };
 
-export const complexityLevels = ['Low', 'Medium', 'High'];
+export const complexityLevels = ['Low', 'Medium', 'High', 'Sophisticated'];
+
