@@ -226,12 +226,14 @@ export default function TeamMembers() {
                     onChange={handleChange}
                     options={[
                         { value: '', label: 'Select cost tier...' },
-                        ...state.costs.map(cost => ({
-                            value: cost.id,
-                            label: `${cost.resourceName} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
-                        }))
+                        ...state.costs
+                            .filter(cost => cost.roleType === formData.type)
+                            .map(cost => ({
+                                value: cost.id,
+                                label: `${cost.resourceName} - Tier ${cost.tierLevel || 1} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
+                            }))
                     ]}
-                    helpText="Link to resource cost for billing calculations"
+                    helpText={`Showing ${formData.type} cost tiers only`}
                 />
                 <FormInput
                     label="Active"

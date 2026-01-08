@@ -8,6 +8,7 @@ export { defaultPhases } from './defaultPhases';
 export { defaultTaskTemplates } from './defaultTasks';
 export { defaultResourceCosts } from './defaultCosts';
 export { defaultComplexity, complexityLevels } from './defaultComplexity';
+export { defaultRoleTiers, getTierByRoleAndLevel, getTierOptionsForRole } from './defaultRoleTiers';
 
 /**
  * Initial application state with all default data

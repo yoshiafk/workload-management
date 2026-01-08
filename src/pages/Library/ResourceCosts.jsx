@@ -1,12 +1,14 @@
 /**
  * Resource Costs Page
  * Full CRUD functionality with modal forms
+ * Now includes role-based tiering with min/max cost ranges
  */
 
 import { useState } from 'react';
 import { useApp, ACTIONS } from '../../context/AppContext';
 import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
 import { formatCurrency } from '../../utils/calculations';
+import { defaultRoleTiers, getTierByRoleAndLevel } from '../../data';
 import './LibraryPage.css';
 
 // Generate unique ID
@@ -20,9 +22,19 @@ const WORKING_HOURS_PER_DAY = 8;
 const emptyCost = {
     id: '',
     resourceName: '',
-    monthlyCost: 0,
+    roleType: 'BA',
+    tierLevel: 1,
+    minMonthlyCost: 8000000,
+    maxMonthlyCost: 12000000,
+    monthlyCost: 10000000,
     perDayCost: 0,
     perHourCost: 0,
+};
+
+// Get tier name for display
+const getTierName = (roleType, level) => {
+    const tier = getTierByRoleAndLevel(roleType, level);
+    return tier ? tier.name : `Tier ${level}`;
 };
 
 export default function ResourceCosts() {
@@ -40,7 +52,17 @@ export default function ResourceCosts() {
 
     // Open add modal
     const handleAdd = () => {
-        setFormData({ ...emptyCost, id: generateId() });
+        const tier = getTierByRoleAndLevel('BA', 1);
+        setFormData({
+            ...emptyCost,
+            id: generateId(),
+            resourceName: tier?.name || 'Junior BA',
+            minMonthlyCost: tier?.minCost || 8000000,
+            maxMonthlyCost: tier?.maxCost || 12000000,
+            monthlyCost: tier?.midCost || 10000000,
+            perDayCost: Math.round((tier?.midCost || 10000000) / WORKING_DAYS_PER_MONTH),
+            perHourCost: Math.round((tier?.midCost || 10000000) / WORKING_DAYS_PER_MONTH / WORKING_HOURS_PER_DAY),
+        });
         setEditingCost(null);
         setErrors({});
         setIsFormOpen(true);
@@ -65,6 +87,23 @@ export default function ResourceCosts() {
         setFormData(prev => {
             const updated = { ...prev, [name]: value };
 
+            // When role type or tier level changes, update min/max and auto-set monthly cost
+            if (name === 'roleType' || name === 'tierLevel') {
+                const newRoleType = name === 'roleType' ? value : prev.roleType;
+                const newTierLevel = name === 'tierLevel' ? value : prev.tierLevel;
+                const tier = getTierByRoleAndLevel(newRoleType, newTierLevel);
+
+                if (tier) {
+                    updated.minMonthlyCost = tier.minCost;
+                    updated.maxMonthlyCost = tier.maxCost;
+                    updated.monthlyCost = tier.midCost;
+                    updated.resourceName = tier.name;
+                    // Auto-calculate rates
+                    updated.perDayCost = Math.round(tier.midCost / WORKING_DAYS_PER_MONTH);
+                    updated.perHourCost = Math.round(tier.midCost / WORKING_DAYS_PER_MONTH / WORKING_HOURS_PER_DAY);
+                }
+            }
+
             // Auto-calculate per day and per hour when monthly cost changes
             if (name === 'monthlyCost' && typeof value === 'number') {
                 updated.perDayCost = Math.round(value / WORKING_DAYS_PER_MONTH);
@@ -87,6 +126,13 @@ export default function ResourceCosts() {
         }
         if (!formData.monthlyCost || formData.monthlyCost < 0) {
             newErrors.monthlyCost = 'Monthly cost must be a positive number';
+        }
+        // Validate monthly cost within tier range
+        if (formData.monthlyCost < formData.minMonthlyCost) {
+            newErrors.monthlyCost = `Monthly cost must be at least ${formatCurrency(formData.minMonthlyCost)}`;
+        }
+        if (formData.monthlyCost > formData.maxMonthlyCost) {
+            newErrors.monthlyCost = `Monthly cost must not exceed ${formatCurrency(formData.maxMonthlyCost)}`;
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -112,6 +158,16 @@ export default function ResourceCosts() {
         setCostToDelete(null);
     };
 
+    // Generate tier level options based on role type
+    const getTierLevelOptions = (roleType) => {
+        const role = defaultRoleTiers[roleType];
+        if (!role) return [];
+        return role.tiers.map(tier => ({
+            value: tier.level,
+            label: `Tier ${tier.level}: ${tier.name}`
+        }));
+    };
+
     return (
         <div className="library-page">
             <div className="page-header">
@@ -130,8 +186,11 @@ export default function ResourceCosts() {
                     <thead>
                         <tr>
                             <th>Resource</th>
+                            <th>Role</th>
+                            <th>Tier</th>
+                            <th style={{ textAlign: 'right' }}>Min Cost</th>
                             <th style={{ textAlign: 'right' }}>Monthly Cost</th>
-                            <th style={{ textAlign: 'right' }}>Per Day</th>
+                            <th style={{ textAlign: 'right' }}>Max Cost</th>
                             <th style={{ textAlign: 'right' }}>Per Hour</th>
                             <th>Actions</th>
                         </tr>
@@ -140,8 +199,19 @@ export default function ResourceCosts() {
                         {state.costs.map(cost => (
                             <tr key={cost.id}>
                                 <td className="cell-name">{cost.resourceName}</td>
+                                <td>
+                                    <span className={`type-badge ${(cost.roleType || 'BA').toLowerCase()}`}>
+                                        {cost.roleType === 'PM' ? 'Project Manager' : 'Business Analyst'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span className="tier-badge">
+                                        Tier {cost.tierLevel || 1}
+                                    </span>
+                                </td>
+                                <td className="cell-currency cell-muted">{formatCurrency(cost.minMonthlyCost || 0)}</td>
                                 <td className="cell-currency">{formatCurrency(cost.monthlyCost)}</td>
-                                <td className="cell-currency">{formatCurrency(cost.perDayCost)}</td>
+                                <td className="cell-currency cell-muted">{formatCurrency(cost.maxMonthlyCost || 0)}</td>
                                 <td className="cell-currency">{formatCurrency(cost.perHourCost)}</td>
                                 <td className="cell-actions">
                                     <button
@@ -178,6 +248,29 @@ export default function ResourceCosts() {
                 title={editingCost ? 'Edit Cost Tier' : 'Add Cost Tier'}
                 size="md"
             >
+                <div className="form-row">
+                    <FormInput
+                        label="Role Type"
+                        name="roleType"
+                        type="select"
+                        value={formData.roleType}
+                        onChange={handleChange}
+                        required
+                        options={[
+                            { value: 'BA', label: 'Business Analyst' },
+                            { value: 'PM', label: 'Project Manager' },
+                        ]}
+                    />
+                    <FormInput
+                        label="Tier Level"
+                        name="tierLevel"
+                        type="select"
+                        value={formData.tierLevel}
+                        onChange={handleChange}
+                        required
+                        options={getTierLevelOptions(formData.roleType)}
+                    />
+                </div>
                 <FormInput
                     label="Resource Name"
                     name="resourceName"
@@ -185,9 +278,27 @@ export default function ResourceCosts() {
                     onChange={handleChange}
                     error={errors.resourceName}
                     required
-                    autoFocus
                     placeholder="e.g., Senior BA, Junior PM"
+                    helpText="Auto-populated from tier selection, can be customized"
                 />
+                <div className="form-row">
+                    <FormInput
+                        label="Min Cost (IDR)"
+                        name="minMonthlyCost"
+                        type="number"
+                        value={formData.minMonthlyCost}
+                        onChange={handleChange}
+                        disabled
+                    />
+                    <FormInput
+                        label="Max Cost (IDR)"
+                        name="maxMonthlyCost"
+                        type="number"
+                        value={formData.maxMonthlyCost}
+                        onChange={handleChange}
+                        disabled
+                    />
+                </div>
                 <FormInput
                     label="Monthly Cost (IDR)"
                     name="monthlyCost"
@@ -196,9 +307,10 @@ export default function ResourceCosts() {
                     onChange={handleChange}
                     error={errors.monthlyCost}
                     required
-                    min={0}
+                    min={formData.minMonthlyCost}
+                    max={formData.maxMonthlyCost}
                     step={100000}
-                    helpText="Per Day and Per Hour will be auto-calculated"
+                    helpText={`Must be between ${formatCurrency(formData.minMonthlyCost)} and ${formatCurrency(formData.maxMonthlyCost)}`}
                 />
                 <div className="form-row">
                     <FormInput
