@@ -10,10 +10,10 @@ export const defaultTaskTemplates = [
         name: 'Stakeholder Interviews',
         phaseId: 1,
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.125 },
-            medium: { days: 5, hours: 2, percentage: 0.25 },
-            high: { days: 10, hours: 4, percentage: 0.5 },
-            sophisticated: { days: 15, hours: 6, percentage: 0.75 },
+            low: { days: 2, hours: 1, percentage: 0.0625 },
+            medium: { days: 5, hours: 2, percentage: 0.05 },
+            high: { days: 10, hours: 4, percentage: 0.05 },
+            sophisticated: { days: 15, hours: 6, percentage: 0.05 },
         },
     },
     {
@@ -21,9 +21,9 @@ export const defaultTaskTemplates = [
         name: 'Requirements Documentation',
         phaseId: 1,
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.25 },
-            medium: { days: 6, hours: 3, percentage: 0.375 },
-            high: { days: 8, hours: 4, percentage: 0.5 },
+            low: { days: 4, hours: 2, percentage: 0.0625 },
+            medium: { days: 6, hours: 3, percentage: 0.0625 },
+            high: { days: 8, hours: 4, percentage: 0.0625 },
         },
     },
     {
@@ -31,9 +31,9 @@ export const defaultTaskTemplates = [
         name: 'UI/UX Design',
         phaseId: 2,
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.125 },
-            medium: { days: 4, hours: 2, percentage: 0.25 },
-            high: { days: 6, hours: 3, percentage: 0.375 },
+            low: { days: 2, hours: 1, percentage: 0.0625 },
+            medium: { days: 4, hours: 2, percentage: 0.0625 },
+            high: { days: 6, hours: 3, percentage: 0.0625 },
         },
     },
     {
@@ -41,9 +41,9 @@ export const defaultTaskTemplates = [
         name: 'System Functional Design',
         phaseId: 2,
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.125 },
-            medium: { days: 2, hours: 1, percentage: 0.125 },
-            high: { days: 4, hours: 2, percentage: 0.25 },
+            low: { days: 2, hours: 1, percentage: 0.0625 },
+            medium: { days: 2, hours: 1, percentage: 0.0625 },
+            high: { days: 4, hours: 2, percentage: 0.0625 },
         },
     },
     {
@@ -51,9 +51,9 @@ export const defaultTaskTemplates = [
         name: 'Test Case Creation',
         phaseId: 3,
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.25 },
-            medium: { days: 4, hours: 2, percentage: 0.25 },
-            high: { days: 8, hours: 4, percentage: 0.5 },
+            low: { days: 4, hours: 2, percentage: 0.0625 },
+            medium: { days: 4, hours: 2, percentage: 0.0625 },
+            high: { days: 8, hours: 4, percentage: 0.0625 },
         },
     },
     {
@@ -61,9 +61,9 @@ export const defaultTaskTemplates = [
         name: 'Frontend & Backend Development',
         phaseId: 3,
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.125 },
-            medium: { days: 2, hours: 1, percentage: 0.125 },
-            high: { days: 8, hours: 4, percentage: 0.5 },
+            low: { days: 2, hours: 1, percentage: 0.0625 },
+            medium: { days: 2, hours: 1, percentage: 0.0625 },
+            high: { days: 8, hours: 4, percentage: 0.0625 },
         },
     },
     {
@@ -71,9 +71,9 @@ export const defaultTaskTemplates = [
         name: 'Integration Testing',
         phaseId: 4,
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.25 },
-            medium: { days: 4, hours: 2, percentage: 0.25 },
-            high: { days: 6, hours: 3, percentage: 0.375 },
+            low: { days: 4, hours: 2, percentage: 0.0625 },
+            medium: { days: 4, hours: 2, percentage: 0.0625 },
+            high: { days: 6, hours: 3, percentage: 0.0625 },
         },
     },
     {
@@ -81,9 +81,9 @@ export const defaultTaskTemplates = [
         name: 'User Acceptance Test',
         phaseId: 4,
         estimates: {
-            low: { days: 6, hours: 3, percentage: 0.375 },
-            medium: { days: 6, hours: 3, percentage: 0.375 },
-            high: { days: 6, hours: 3, percentage: 0.375 },
+            low: { days: 6, hours: 3, percentage: 0.0625 },
+            medium: { days: 6, hours: 3, percentage: 0.0625 },
+            high: { days: 6, hours: 3, percentage: 0.0625 },
         },
     },
     {
@@ -91,9 +91,9 @@ export const defaultTaskTemplates = [
         name: 'Deployment to Production',
         phaseId: 5,
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.125 },
-            medium: { days: 4, hours: 2, percentage: 0.25 },
-            high: { days: 4, hours: 2, percentage: 0.25 },
+            low: { days: 2, hours: 1, percentage: 0.0625 },
+            medium: { days: 4, hours: 2, percentage: 0.0625 },
+            high: { days: 4, hours: 2, percentage: 0.0625 },
         },
     },
     {
@@ -102,8 +102,8 @@ export const defaultTaskTemplates = [
         phaseId: 6,
         estimates: {
             low: { days: 1, hours: 0.5, percentage: 0.0625 },
-            medium: { days: 2, hours: 1, percentage: 0.125 },
-            high: { days: 2, hours: 1, percentage: 0.125 },
+            medium: { days: 2, hours: 1, percentage: 0.0625 },
+            high: { days: 2, hours: 1, percentage: 0.0625 },
         },
     },
     {

@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useApp, ACTIONS } from '../../context/AppContext';
+import { formatPercentage } from '../../utils/calculations';
 import { Modal, ModalFooter, FormInput } from '../../components/ui';
 import './LibraryPage.css';
 
@@ -29,12 +30,12 @@ export default function Complexity() {
     // Handle form input change with auto-calculation
     const handleChange = (name, value) => {
         setFormData(prev => {
-            const updated = { ...prev, [name]: value };
+            const numValue = parseFloat(value) || 0;
+            const updated = { ...prev, [name]: numValue };
 
-            // Auto-calculate hours when days changes (8 hours per day)
-            if (name === 'days' && typeof value === 'number') {
-                updated.hours = value * 8;
-            }
+            // Recalculate workload: hours / 8 (Man-Days)
+            const hours = name === 'hours' ? numValue : prev.hours;
+            updated.workload = hours / 8;
 
             return updated;
         });
@@ -50,8 +51,8 @@ export default function Complexity() {
         if (!formData.days || formData.days < 1) {
             newErrors.days = 'Days must be at least 1';
         }
-        if (!formData.workload || formData.workload <= 0) {
-            newErrors.workload = 'Workload must be greater than 0';
+        if (formData.hours === undefined || formData.hours < 0) {
+            newErrors.hours = 'Hours must be at least 0';
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -97,7 +98,7 @@ export default function Complexity() {
                                 <span className="stat-value">{level.hours}</span>
                             </div>
                             <div className="stat-row">
-                                <span className="stat-label">Workload</span>
+                                <span className="stat-label">Effort (Man-Days)</span>
                                 <span className="stat-value">{level.workload.toFixed(4)}</span>
                             </div>
                         </div>
@@ -132,27 +133,25 @@ export default function Complexity() {
                     error={errors.days}
                     required
                     min={1}
-                    helpText="Hours will be auto-calculated (8h/day)"
                 />
                 <FormInput
-                    label="Duration (Hours)"
+                    label="Effort (Hours)"
                     name="hours"
                     type="number"
                     value={formData.hours}
                     onChange={handleChange}
-                    disabled
+                    error={errors.hours}
+                    required
+                    min={0}
                 />
                 <FormInput
-                    label="Workload"
+                    label="Effort (Man-Days)"
                     name="workload"
-                    type="number"
-                    value={formData.workload}
-                    onChange={handleChange}
-                    error={errors.workload}
-                    required
-                    min={0.0001}
-                    step={0.0001}
-                    helpText="Used for cost calculations"
+                    type="text"
+                    value={formData.workload?.toFixed(4)}
+                    readOnly
+                    className="form-input-calc"
+                    helpText="Auto-calculated: Hours / 8"
                 />
                 <ModalFooter>
                     <button className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>

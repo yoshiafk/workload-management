@@ -37,11 +37,18 @@ Distributes the total project cost across the duration of the plan.
 
 *   **Logic**: Calculates the difference in months between Start and End dates. If the task is less than 1 month, it defaults to a 1-month distribution.
 
-### 4. Member Workload Percentage
-Calculates how much of a person's total capacity is used by a specific task.
-**Formula:** `Workload % = Task Complexity Estimate %`
+### 4. Workload Calculations
+The application uses two different ways to represent workload depending on the context:
 
-*   **Example**: A "High" complexity "Requirement Gathering" task might be estimated at 50% workload.
+#### A. Complexity Effort (Man-Days)
+Used in **Library > Complexity** to show the total effort required for a project category.
+**Formula:** `Effort (Man-Days) = Total Hours / 8`
+*   *Example*: 14.5 hours = **1.8125 Man-Days**.
+
+#### B. Individual Task Workload (%)
+Used in **Resource Allocation** to calculate a person's daily utilization for a specific task.
+**Formula:** `Workload % = Effort Hours / (Duration Days × 8 Hours/Day)`
+*   *Example*: 10-day task with 4 hours of effort = **5.0%** daily utilization.
 
 ### 5. Capacity Utilization (Dashboard)
 Shows a member's total workload relative to their individual maximum capacity.

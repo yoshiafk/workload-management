@@ -86,9 +86,16 @@ export default function TaskTemplates() {
             [field]: numValue,
         };
 
-        // Auto-calculate workload percentage: hours / 8
-        if (field === 'hours') {
-            updatedEstimate.percentage = numValue / 8;
+        // Auto-calculate workload percentage: hours / (days * 8)
+        if (field === 'hours' || field === 'days') {
+            const hours = field === 'hours' ? numValue : formData.estimates[level].hours;
+            const days = field === 'days' ? numValue : formData.estimates[level].days;
+
+            if (days > 0) {
+                updatedEstimate.percentage = hours / (days * 8);
+            } else {
+                updatedEstimate.percentage = 0;
+            }
         }
 
         setFormData({
