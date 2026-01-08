@@ -51,22 +51,15 @@ export default function WorkloadSummary() {
     const activeCount = allocations.filter(a => a.taskName !== 'Completed' && a.taskName !== 'Idle').length;
     const completedCount = allocations.filter(a => a.taskName === 'Completed').length;
 
-    // Chart data: Workload by team member
+    // Chart data: Workload by team member (as % of capacity)
     const workloadChartData = useMemo(() => {
-        return members.map(member => {
-            const active = allocations.filter(a =>
-                a.resource === member.name && a.taskName !== 'Completed' && a.taskName !== 'Idle'
-            ).length;
-            const completed = allocations.filter(a =>
-                a.resource === member.name && a.taskName === 'Completed'
-            ).length;
-            return {
-                name: member.name,
-                active,
-                completed,
-            };
-        });
-    }, [members, allocations]);
+        return memberWorkloads.map(w => ({
+            name: w.name,
+            workload: parseFloat(w.percentage.toFixed(1)),
+            capacity: 100, // Reference line at 100%
+            color: w.percentage > 100 ? '#ef4444' : '#3b82f6'
+        }));
+    }, [memberWorkloads]);
 
     // Chart data: Allocation by category
     const categoryChartData = useMemo(() => {
@@ -161,9 +154,9 @@ export default function WorkloadSummary() {
 
                     <div className="stat-card">
                         <div className="stat-icon-wrapper green">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <line x1="12" y1="1" x2="12" y2="23" />
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" />
+                                <path d="M16 12h5" />
                             </svg>
                         </div>
                         <div className="stat-content">
@@ -180,9 +173,9 @@ export default function WorkloadSummary() {
                 <div className="charts-grid">
                     {/* Workload by Member */}
                     <div className="chart-card">
-                        <h3 className="chart-title">Workload by Team Member</h3>
+                        <h3 className="chart-title">Workload Capacity Utilization (%)</h3>
                         <div className="chart-container">
-                            {workloadChartData.some(d => d.active > 0 || d.completed > 0) ? (
+                            {workloadChartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart data={workloadChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <XAxis
@@ -195,9 +188,11 @@ export default function WorkloadSummary() {
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
-                                            allowDecimals={false}
+                                            domain={[0, (dataMax) => Math.max(100, dataMax + 20)]}
+                                            tickFormatter={(value) => `${value}%`}
                                         />
                                         <Tooltip
+                                            formatter={(value) => [`${value}%`, 'Workload']}
                                             contentStyle={{
                                                 background: 'var(--color-bg-card)',
                                                 border: '1px solid var(--color-border)',
@@ -205,8 +200,11 @@ export default function WorkloadSummary() {
                                                 fontSize: '12px',
                                             }}
                                         />
-                                        <Bar dataKey="active" name="Active" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="workload" name="Workload %" radius={[4, 4, 0, 0]}>
+                                            {workloadChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -372,8 +370,21 @@ export default function WorkloadSummary() {
                                         <span className="member-role">{member.type === 'BA' ? 'Business Analyst' : 'Project Manager'}</span>
                                     </div>
                                     <div className="member-badge">
-                                        <span className={`status-indicator ${workload?.activeCount > 0 ? 'active' : 'idle'}`}></span>
-                                        {workload?.activeCount || 0} tasks
+                                        <span className={`status-indicator ${workload?.percentage > 100 ? 'overloaded' : workload?.percentage > 0 ? 'active' : 'idle'}`}></span>
+                                        {workload?.percentage?.toFixed(0)}% Capacity
+                                    </div>
+                                </div>
+
+                                <div className="capacity-container">
+                                    <div className="capacity-bar-wrapper">
+                                        <div
+                                            className={`capacity-bar ${workload?.percentage > 100 ? 'overloaded' : ''}`}
+                                            style={{ width: `${Math.min(100, workload?.percentage || 0)}%` }}
+                                        ></div>
+                                    </div>
+                                    <div className="capacity-stats">
+                                        <span>Current: {workload?.totalWorkload?.toFixed(2)}</span>
+                                        <span>Max: {workload?.maxCapacity?.toFixed(1)}</span>
                                     </div>
                                 </div>
 

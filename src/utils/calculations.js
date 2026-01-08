@@ -99,17 +99,21 @@ export function calculatePlanEndDate(startDate, complexity, resourceName, holida
  * Excel formula: =XLOOKUP(Category, ComplexityLevel, Hours) × XLOOKUP(Resource, ResourceName, PerHourCost)
  * 
  * @param {string} complexity - Complexity level (low/medium/high)
- * @param {string} resourceName - Team member name
+ * @param {string} resourceReference - Team member name or cost tier ID
  * @param {Object} complexitySettings - Complexity settings
  * @param {Array} resourceCosts - Resource cost records
  * @returns {number} Project cost in IDR
  */
-export function calculateProjectCost(complexity, resourceName, complexitySettings, resourceCosts) {
+export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts) {
+    if (!complexity || !resourceReference) return 0;
+
     // Get hours (BA rate) from complexity settings - this is the multiplier
     const hours = complexitySettings[complexity.toLowerCase()]?.hours || 0;
 
+    // Try to find by ID first (preferred), then by name (legacy/fallback)
     const resource = resourceCosts.find(r =>
-        r.resourceName.toLowerCase() === resourceName.toLowerCase()
+        r.id === resourceReference ||
+        r.resourceName.toLowerCase() === resourceReference.toLowerCase()
     );
 
     if (!resource) return 0;
@@ -234,16 +238,23 @@ export function getTaskMatrix(allocations, teamMembers, taskTemplates) {
  * @returns {Array} Array of member workload objects
  */
 export function getMemberWorkloads(allocations, teamMembers) {
-    return teamMembers.map(member => ({
-        name: member.name,
-        totalWorkload: getTotalWorkload(member.name, allocations),
-        activeCount: allocations
-            .filter(a => a.resource === member.name && a.taskName !== 'Completed')
-            .length,
-        completedCount: allocations
-            .filter(a => a.resource === member.name && a.taskName === 'Completed')
-            .length,
-    }));
+    return teamMembers.map(member => {
+        const totalWorkload = getTotalWorkload(member.name, allocations);
+        const maxCapacity = member.maxCapacity || 1.0; // Default to 1.0 (100%)
+
+        return {
+            name: member.name,
+            totalWorkload,
+            maxCapacity,
+            percentage: maxCapacity > 0 ? (totalWorkload / maxCapacity) * 100 : 0,
+            activeCount: allocations
+                .filter(a => a.resource === member.name && a.taskName !== 'Completed' && a.taskName !== 'Idle')
+                .length,
+            completedCount: allocations
+                .filter(a => a.resource === member.name && a.taskName === 'Completed')
+                .length,
+        };
+    });
 }
 
 /**

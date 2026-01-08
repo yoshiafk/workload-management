@@ -349,6 +349,7 @@ export function AppProvider({ children }) {
     const prevTasksRef = useRef(state.tasks);
     const prevHolidaysRef = useRef(state.holidays);
     const prevLeavesRef = useRef(state.leaves);
+    const prevMembersRef = useRef(state.members);
 
     // Auto-recalculate allocations when dependencies change
     useEffect(() => {
@@ -360,14 +361,16 @@ export function AppProvider({ children }) {
         const tasksChanged = prevTasksRef.current !== state.tasks;
         const holidaysChanged = prevHolidaysRef.current !== state.holidays;
         const leavesChanged = prevLeavesRef.current !== state.leaves;
+        const membersChanged = prevMembersRef.current !== state.members;
 
-        if (costsChanged || complexityChanged || tasksChanged || holidaysChanged || leavesChanged) {
+        if (costsChanged || complexityChanged || tasksChanged || holidaysChanged || leavesChanged || membersChanged) {
             // Update refs
             prevCostsRef.current = state.costs;
             prevComplexityRef.current = state.complexity;
             prevTasksRef.current = state.tasks;
             prevHolidaysRef.current = state.holidays;
             prevLeavesRef.current = state.leaves;
+            prevMembersRef.current = state.members;
 
             // Recalculate all allocations
             const updatedAllocations = recalculateAllocations(
@@ -376,7 +379,8 @@ export function AppProvider({ children }) {
                 state.costs,
                 state.tasks,
                 state.holidays,
-                state.leaves
+                state.leaves,
+                state.members
             );
 
             // Only dispatch if there are actual changes
@@ -395,7 +399,7 @@ export function AppProvider({ children }) {
                 dispatch({ type: ACTIONS.SET_ALLOCATIONS, payload: updatedAllocations });
             }
         }
-    }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.allocations, state.isLoaded]);
+    }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.members, state.allocations, state.isLoaded]);
 
     return (
         <AppContext.Provider value={{ state, dispatch, ACTIONS }}>

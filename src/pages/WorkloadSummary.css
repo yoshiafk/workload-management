@@ -256,8 +256,44 @@
     background: var(--color-success);
 }
 
+.workload-summary .status-indicator.overloaded {
+    background: var(--color-danger);
+    box-shadow: 0 0 8px var(--color-danger-light);
+}
+
 .workload-summary .status-indicator.idle {
     background: var(--color-text-muted);
+}
+
+/* Capacity Progress Bars */
+.workload-summary .capacity-container {
+    margin-bottom: var(--spacing-4);
+}
+
+.workload-summary .capacity-bar-wrapper {
+    height: 8px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--spacing-2);
+}
+
+.workload-summary .capacity-bar {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-out;
+}
+
+.workload-summary .capacity-bar.overloaded {
+    background: var(--color-danger);
+}
+
+.workload-summary .capacity-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
 }
 
 /* Task List */

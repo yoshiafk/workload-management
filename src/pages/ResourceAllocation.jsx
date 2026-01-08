@@ -59,8 +59,16 @@ export default function ResourceAllocation() {
 
     // Dropdown options
     const memberOptions = members.map(m => ({ value: m.name, label: m.name }));
-    const phaseOptions = phases.filter(p => !p.isTerminal).map(p => ({ value: p.name, label: p.name }));
-    const taskOptions = tasks.filter(t => t.name !== 'Idle' && t.name !== 'Completed').map(t => ({ value: t.name, label: t.name }));
+    const phaseOptions = phases.map(p => ({ value: p.name, label: p.name }));
+
+    // Dynamically filter tasks based on selected phase
+    const taskOptions = useMemo(() => {
+        const selectedPhase = phases.find(p => p.name === formData.phase);
+        return tasks
+            .filter(t => !formData.phase || t.phaseId === selectedPhase?.id)
+            .map(t => ({ value: t.name, label: t.name }));
+    }, [tasks, formData.phase, phases]);
+
     const categoryOptions = [
         { value: 'low', label: 'Low' },
         { value: 'medium', label: 'Medium' },
@@ -73,6 +81,10 @@ export default function ResourceAllocation() {
             return { taskEnd: '', costProject: 0, costMonthly: 0 };
         }
 
+        // Find the member to get their costTierId
+        const member = state.members.find(m => m.name === formData.resource);
+        const costTierId = member?.costTierId;
+
         const taskEnd = calculatePlanEndDate(
             formData.plan.taskStart,
             formData.category,
@@ -84,7 +96,7 @@ export default function ResourceAllocation() {
 
         const costProject = calculateProjectCost(
             formData.category,
-            formData.resource,
+            costTierId || formData.resource, // Use ID if found, fallback to name
             complexity,
             costs
         );
@@ -100,7 +112,7 @@ export default function ResourceAllocation() {
             costProject,
             costMonthly,
         };
-    }, [formData.plan?.taskStart, formData.resource, formData.category, holidays, leaves, complexity, costs]);
+    }, [formData.plan?.taskStart, formData.resource, formData.category, holidays, leaves, complexity, costs, state.members]);
 
     // Open add modal
     const handleAdd = () => {
@@ -127,18 +139,39 @@ export default function ResourceAllocation() {
     // Handle form input change
     const handleChange = (name, value) => {
         setFormData(prev => {
+            let next = { ...prev };
+
             // Handle nested properties (plan.taskStart, actual.taskEnd, etc.)
             if (name.includes('.')) {
                 const [parent, child] = name.split('.');
-                return {
-                    ...prev,
-                    [parent]: {
-                        ...prev[parent],
-                        [child]: value,
-                    },
+                next[parent] = {
+                    ...prev[parent],
+                    [child]: value,
                 };
+            } else {
+                next[name] = value;
             }
-            return { ...prev, [name]: value };
+
+            // Task-Phase Mapping Logic
+            if (name === 'phase') {
+                const selectedPhase = phases.find(p => p.name === value);
+                const currentTask = tasks.find(t => t.name === prev.taskName);
+                // If a phase is selected and the current task doesn't belong to it, clear task
+                if (value && currentTask && currentTask.phaseId !== selectedPhase?.id) {
+                    next.taskName = '';
+                }
+            } else if (name === 'taskName') {
+                const selectedTask = tasks.find(t => t.name === value);
+                // If a task is selected, auto-select its phase
+                if (value && selectedTask) {
+                    const taskPhase = phases.find(p => p.id === selectedTask.phaseId);
+                    if (taskPhase && prev.phase !== taskPhase.name) {
+                        next.phase = taskPhase.name;
+                    }
+                }
+            }
+
+            return next;
         });
 
         if (errors[name]) {
