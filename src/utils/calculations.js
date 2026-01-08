@@ -351,3 +351,53 @@ export function calculateMonthlyTrend(allocations) {
         };
     });
 }
+
+/**
+ * Get member task availability information
+ * Each member can work on up to maxConcurrentTasks (default 5) concurrent tasks
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} teamMembers - Team member records
+ * @param {number} maxConcurrentTasks - Maximum concurrent tasks per member (default 5)
+ * @returns {Array} Array of member availability objects
+ */
+export function getMemberTaskAvailability(allocations, teamMembers, maxConcurrentTasks = 5) {
+    return teamMembers.map(member => {
+        // Get active tasks (not Completed or Idle), sorted by end date
+        const activeTasks = allocations
+            .filter(a =>
+                a.resource === member.name &&
+                a.taskName !== 'Completed' &&
+                a.taskName !== 'Idle'
+            )
+            .sort((a, b) => new Date(a.plan?.taskEnd) - new Date(b.plan?.taskEnd));
+
+        const currentTaskCount = activeTasks.length;
+        const hasCapacity = currentTaskCount < maxConcurrentTasks;
+
+        // The "Available From" date is the end date of the (maxConcurrentTasks)th task
+        // If under capacity, available now (null)
+        const fifthTask = activeTasks[maxConcurrentTasks - 1];
+        const availableFrom = hasCapacity ? null : fifthTask?.plan?.taskEnd;
+
+        // Determine status: green (0-2), amber (3-4), red (5+)
+        let status = 'available'; // green
+        if (currentTaskCount >= maxConcurrentTasks) {
+            status = 'at-capacity'; // red
+        } else if (currentTaskCount >= 3) {
+            status = 'limited'; // amber
+        }
+
+        return {
+            memberId: member.id,
+            memberName: member.name,
+            memberType: member.type,
+            activeTasks: activeTasks.slice(0, maxConcurrentTasks),
+            currentTaskCount,
+            maxConcurrentTasks,
+            hasCapacity,
+            availableFrom,
+            status,
+        };
+    });
+}

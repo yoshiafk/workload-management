@@ -83,3 +83,11 @@ Shows a member's total workload relative to their individual maximum capacity.
 - **Charts**: Recharts
 - **Date Logic**: date-fns
 - **State Management**: React Context API
+
+Next Adjustment
+- Task Name include new columen demand number
+- Role Tiering for Resource Cost
+-- Misal BA itu min 10 Max 12
+--- BA1 10 - 11
+--- BA2 11 - 13
+- Capture untuk Operation not just IT

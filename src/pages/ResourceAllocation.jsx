@@ -22,6 +22,7 @@ const generateId = () => `ALLOC-${Date.now().toString(36).toUpperCase()}`;
 // Empty allocation template
 const emptyAllocation = {
     id: '',
+    demandNumber: '',
     activityName: '',
     resource: '',
     category: 'medium',
@@ -320,6 +321,7 @@ export default function ResourceAllocation() {
                                     title="Select all"
                                 />
                             </th>
+                            <th>Demand #</th>
                             <th>Activity</th>
                             <th>Resource</th>
                             <th>Category</th>
@@ -335,7 +337,7 @@ export default function ResourceAllocation() {
                     <tbody>
                         {allocations.length === 0 ? (
                             <tr>
-                                <td colSpan="11" className="empty-row">
+                                <td colSpan="12" className="empty-row">
                                     <div className="empty-state">
                                         <p>No allocations yet</p>
                                         <p className="empty-hint">Click "Add Allocation" to create your first task allocation</p>
@@ -352,6 +354,7 @@ export default function ResourceAllocation() {
                                             onChange={() => handleSelectRow(allocation.id)}
                                         />
                                     </td>
+                                    <td className="cell-demand">{allocation.demandNumber || '—'}</td>
                                     <td className="cell-name">{allocation.activityName}</td>
                                     <td>{allocation.resource}</td>
                                     <td>
@@ -398,7 +401,6 @@ export default function ResourceAllocation() {
                 </table>
             </div>
 
-            {/* Add/Edit Modal */}
             <Modal
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
@@ -406,6 +408,14 @@ export default function ResourceAllocation() {
                 size="lg"
             >
                 <div className="form-row">
+                    <FormInput
+                        label="Demand Number"
+                        name="demandNumber"
+                        value={formData.demandNumber}
+                        onChange={handleChange}
+                        placeholder="DM-000001"
+                        pattern="DM-\d{6}"
+                    />
                     <FormInput
                         label="Activity Name"
                         name="activityName"
@@ -416,6 +426,9 @@ export default function ResourceAllocation() {
                         autoFocus
                         placeholder="e.g., Project X - Requirements"
                     />
+                </div>
+
+                <div className="form-row">
                     <FormInput
                         label="Resource"
                         name="resource"
@@ -426,9 +439,6 @@ export default function ResourceAllocation() {
                         required
                         options={memberOptions}
                     />
-                </div>
-
-                <div className="form-row">
                     <FormInput
                         label="Category (Complexity)"
                         name="category"
@@ -437,6 +447,9 @@ export default function ResourceAllocation() {
                         onChange={handleChange}
                         options={categoryOptions}
                     />
+                </div>
+
+                <div className="form-row">
                     <FormInput
                         label="Phase"
                         name="phase"
@@ -445,9 +458,6 @@ export default function ResourceAllocation() {
                         onChange={handleChange}
                         options={phaseOptions}
                     />
-                </div>
-
-                <div className="form-row">
                     <FormInput
                         label="Task"
                         name="taskName"
@@ -458,6 +468,9 @@ export default function ResourceAllocation() {
                         required
                         options={taskOptions}
                     />
+                </div>
+
+                <div className="form-row">
                     <FormInput
                         label="Plan Start Date"
                         name="plan.taskStart"

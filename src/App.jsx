@@ -17,6 +17,7 @@ import Phases from './pages/Library/Phases';
 import TaskTemplates from './pages/Library/TaskTemplates';
 import Complexity from './pages/Library/Complexity';
 import ResourceCosts from './pages/Library/ResourceCosts';
+import MemberTaskHistory from './pages/MemberTaskHistory';
 import Settings from './pages/Settings';
 
 import './index.css';
@@ -34,6 +35,7 @@ function App() {
               {/* Management */}
               <Route path="allocation" element={<ResourceAllocation />} />
               <Route path="dates" element={<ImportantDates />} />
+              <Route path="member/:memberId" element={<MemberTaskHistory />} />
 
               {/* Library (Config) */}
               <Route path="library/members" element={<TeamMembers />} />

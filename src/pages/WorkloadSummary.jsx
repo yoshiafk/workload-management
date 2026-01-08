@@ -4,8 +4,9 @@
  */
 
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend } from '../utils/calculations';
+import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend, getMemberTaskAvailability } from '../utils/calculations';
 import {
     BarChart,
     Bar,
@@ -28,9 +29,15 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function WorkloadSummary() {
     const { state } = useApp();
+    const navigate = useNavigate();
     const { members, allocations, tasks, costs, complexity } = state;
 
     const memberWorkloads = getMemberWorkloads(allocations, members);
+
+    // Calculate team task availability (max 5 concurrent tasks per member)
+    const taskAvailability = useMemo(() => {
+        return getMemberTaskAvailability(allocations, members, 5);
+    }, [allocations, members]);
 
     // Get top 5 tasks for each member (sorted by end date)
     const getTopTasks = (memberName) => {
@@ -352,20 +359,26 @@ export default function WorkloadSummary() {
                 </div>
             </section>
 
-            {/* Top Tasks per Member */}
+            {/* Team Overview with Task Availability */}
             <section className="section">
                 <div className="section-header">
                     <h2 className="section-title">Team Overview</h2>
-                    <p className="section-subtitle">Top upcoming tasks for each team member</p>
+                    <p className="section-subtitle">Task assignments and availability (max 5 concurrent tasks per member)</p>
                 </div>
 
                 <div className="member-grid">
                     {members.map(member => {
                         const topTasks = getTopTasks(member.name);
                         const workload = memberWorkloads.find(w => w.name === member.name);
+                        const availability = taskAvailability.find(a => a.memberName === member.name);
 
                         return (
-                            <div key={member.id} className="member-card">
+                            <div
+                                key={member.id}
+                                className={`member-card status-${availability?.status || 'available'} clickable`}
+                                onClick={() => navigate(`/member/${member.id}`)}
+                                title="Click to view task history"
+                            >
                                 <div className="member-header">
                                     <div className="member-avatar">
                                         {member.name.charAt(0).toUpperCase()}
@@ -374,9 +387,8 @@ export default function WorkloadSummary() {
                                         <h3 className="member-name">{member.name}</h3>
                                         <span className="member-role">{member.type === 'BA' ? 'Business Analyst' : 'Project Manager'}</span>
                                     </div>
-                                    <div className="member-badge">
-                                        <span className={`status-indicator ${workload?.percentage > 100 ? 'overloaded' : workload?.percentage > 0 ? 'active' : 'idle'}`}></span>
-                                        {workload?.percentage?.toFixed(0)}% Capacity
+                                    <div className={`task-count-badge ${availability?.status || 'available'}`}>
+                                        {availability?.currentTaskCount || 0}/{availability?.maxConcurrentTasks || 5}
                                     </div>
                                 </div>
 
@@ -397,7 +409,6 @@ export default function WorkloadSummary() {
                                     {topTasks.length > 0 ? (
                                         topTasks.map((task, index) => (
                                             <div key={task.id} className="task-item">
-                                                <span className="task-number">{index + 1}</span>
                                                 <div className="task-content">
                                                     <span className="task-name">{task.activityName}</span>
                                                     <span className="task-phase">{task.phase}</span>
@@ -414,6 +425,21 @@ export default function WorkloadSummary() {
                                         <div className="empty-state">
                                             <p>No active tasks</p>
                                         </div>
+                                    )}
+                                </div>
+
+                                {/* Availability Footer */}
+                                <div className="availability-footer">
+                                    <span className="availability-label">Available for new task:</span>
+                                    {availability?.hasCapacity ? (
+                                        <span className="available-now">Now</span>
+                                    ) : (
+                                        <span className="available-date">
+                                            {availability?.availableFrom
+                                                ? new Date(availability.availableFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                                : '—'
+                                            }
+                                        </span>
                                     )}
                                 </div>
                             </div>
