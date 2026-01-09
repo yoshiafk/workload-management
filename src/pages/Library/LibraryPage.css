@@ -159,8 +159,14 @@
 }
 
 .cell-actions {
-    display: flex;
+    text-align: center;
+}
+
+.actions-wrapper {
+    display: inline-flex;
     gap: var(--spacing-1);
+    justify-content: center;
+    align-items: center;
 }
 
 /* Badges */
@@ -181,6 +187,11 @@
 .type-badge.pm {
     background: #f3e8ff;
     color: #9333ea;
+}
+
+.type-badge.support {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
 }
 
 .status-badge {

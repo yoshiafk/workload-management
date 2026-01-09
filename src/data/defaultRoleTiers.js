@@ -1,13 +1,11 @@
 /**
  * Default Role Tiers
  * Role-based tiered cost structure with min/mid/max ranges
- * Based on Indonesian salary market data (2025)
  * 
- * Structure follows industry best practices:
- * - 5 tiers per role (Junior → Principal)
- * - 2M IDR increments between tier midpoints  
- * - Min/Mid/Max structure for salary bands
- * - ~10% spread within each tier
+ * Based on User requirement:
+ * - 10M total difference between Min and Max for each role
+ * - 5 tiers per role
+ * - 2M difference between each tier
  */
 
 export const defaultRoleTiers = {
@@ -18,37 +16,37 @@ export const defaultRoleTiers = {
             {
                 level: 1,
                 name: 'Junior BA',
-                minCost: 8000000,   // 8M
-                midCost: 10000000,  // 10M
-                maxCost: 12000000   // 12M
+                minCost: 10000000,   // 10M
+                midCost: 11000000,   // 11M
+                maxCost: 12000000    // 12M
             },
             {
                 level: 2,
                 name: 'BA',
-                minCost: 12000000,  // 12M
-                midCost: 14000000,  // 14M
-                maxCost: 16000000   // 16M
+                minCost: 12000000,   // 12M
+                midCost: 13000000,   // 13M
+                maxCost: 14000000    // 14M
             },
             {
                 level: 3,
                 name: 'Senior BA',
-                minCost: 16000000,  // 16M
-                midCost: 18000000,  // 18M
-                maxCost: 20000000   // 20M
+                minCost: 14000000,   // 14M
+                midCost: 15000000,   // 15M
+                maxCost: 16000000    // 16M
             },
             {
                 level: 4,
                 name: 'Lead BA',
-                minCost: 20000000,  // 20M
-                midCost: 22000000,  // 22M
-                maxCost: 24000000   // 24M
+                minCost: 16000000,   // 16M
+                midCost: 17000000,   // 17M
+                maxCost: 18000000    // 18M
             },
             {
                 level: 5,
                 name: 'Principal BA',
-                minCost: 24000000,  // 24M
-                midCost: 26000000,  // 26M
-                maxCost: 28000000   // 28M
+                minCost: 18000000,   // 18M
+                midCost: 19000000,   // 19M
+                maxCost: 20000000    // 20M
             },
         ]
     },
@@ -59,37 +57,37 @@ export const defaultRoleTiers = {
             {
                 level: 1,
                 name: 'Junior PM',
-                minCost: 10000000,  // 10M
-                midCost: 12000000,  // 12M
-                maxCost: 14000000   // 14M
+                minCost: 15000000,   // 15M
+                midCost: 16000000,   // 16M
+                maxCost: 17000000    // 17M
             },
             {
                 level: 2,
                 name: 'PM',
-                minCost: 14000000,  // 14M
-                midCost: 16000000,  // 16M
-                maxCost: 18000000   // 18M
+                minCost: 17000000,   // 17M
+                midCost: 18000000,   // 18M
+                maxCost: 19000000    // 19M
             },
             {
                 level: 3,
                 name: 'Senior PM',
-                minCost: 18000000,  // 18M
-                midCost: 20000000,  // 20M
-                maxCost: 22000000   // 22M
+                minCost: 19000000,   // 19M
+                midCost: 20000000,   // 20M
+                maxCost: 21000000    // 21M
             },
             {
                 level: 4,
                 name: 'Lead PM',
-                minCost: 22000000,  // 22M
-                midCost: 24000000,  // 24M
-                maxCost: 26000000   // 26M
+                minCost: 21000000,   // 21M
+                midCost: 22000000,   // 22M
+                maxCost: 23000000    // 23M
             },
             {
                 level: 5,
                 name: 'Principal PM',
-                minCost: 26000000,  // 26M
-                midCost: 28000000,  // 28M
-                maxCost: 30000000   // 30M
+                minCost: 23000000,   // 23M
+                midCost: 24000000,   // 24M
+                maxCost: 25000000    // 25M
             },
         ]
     }
@@ -104,7 +102,6 @@ export const defaultRoleTiers = {
 export function getTierByRoleAndLevel(roleType, level) {
     const role = defaultRoleTiers[roleType];
     if (!role) return null;
-    // Use == for comparison to handle string values from dropdowns
     return role.tiers.find(t => t.level == level) || null;
 }
 

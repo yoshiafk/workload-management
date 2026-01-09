@@ -1,9 +1,6 @@
 /**
  * Default Resource Costs
- * Pre-loaded from Excel prototype (Library sheet)
- * All costs in Indonesian Rupiah (IDR)
- * 
- * Now includes role type and tier level for structured cost management
+ * Adjusted to match the 10M spread / 2M per tier schema
  */
 
 // Working days per month and hours per day constants
@@ -22,15 +19,16 @@ function calculateRates(monthlyCost) {
 }
 
 export const defaultResourceCosts = [
+    // BA Tiers (10M - 20M range)
     {
         id: 'junior_ba_1',
         resourceName: 'Junior BA',
         roleType: 'BA',
         tierLevel: 1,
-        minMonthlyCost: 8000000,
+        minMonthlyCost: 10000000,
         maxMonthlyCost: 12000000,
-        monthlyCost: 10000000,
-        ...calculateRates(10000000),
+        monthlyCost: 11000000,
+        ...calculateRates(11000000),
         currency: 'IDR',
     },
     {
@@ -39,9 +37,9 @@ export const defaultResourceCosts = [
         roleType: 'BA',
         tierLevel: 2,
         minMonthlyCost: 12000000,
-        maxMonthlyCost: 16000000,
-        monthlyCost: 14000000,
-        ...calculateRates(14000000),
+        maxMonthlyCost: 14000000,
+        monthlyCost: 13000000,
+        ...calculateRates(13000000),
         currency: 'IDR',
     },
     {
@@ -49,10 +47,10 @@ export const defaultResourceCosts = [
         resourceName: 'Senior BA',
         roleType: 'BA',
         tierLevel: 3,
-        minMonthlyCost: 16000000,
-        maxMonthlyCost: 20000000,
-        monthlyCost: 18000000,
-        ...calculateRates(18000000),
+        minMonthlyCost: 14000000,
+        maxMonthlyCost: 16000000,
+        monthlyCost: 15000000,
+        ...calculateRates(15000000),
         currency: 'IDR',
     },
     {
@@ -60,10 +58,10 @@ export const defaultResourceCosts = [
         resourceName: 'Lead BA',
         roleType: 'BA',
         tierLevel: 4,
-        minMonthlyCost: 20000000,
-        maxMonthlyCost: 24000000,
-        monthlyCost: 22000000,
-        ...calculateRates(22000000),
+        minMonthlyCost: 16000000,
+        maxMonthlyCost: 18000000,
+        monthlyCost: 17000000,
+        ...calculateRates(17000000),
         currency: 'IDR',
     },
     {
@@ -71,21 +69,22 @@ export const defaultResourceCosts = [
         resourceName: 'Principal BA',
         roleType: 'BA',
         tierLevel: 5,
-        minMonthlyCost: 24000000,
-        maxMonthlyCost: 28000000,
-        monthlyCost: 26000000,
-        ...calculateRates(26000000),
+        minMonthlyCost: 18000000,
+        maxMonthlyCost: 20000000,
+        monthlyCost: 19000000,
+        ...calculateRates(19000000),
         currency: 'IDR',
     },
+    // PM Tiers (15M - 25M range)
     {
         id: 'junior_pm_1',
         resourceName: 'Junior PM',
         roleType: 'PM',
         tierLevel: 1,
-        minMonthlyCost: 10000000,
-        maxMonthlyCost: 14000000,
-        monthlyCost: 12000000,
-        ...calculateRates(12000000),
+        minMonthlyCost: 15000000,
+        maxMonthlyCost: 17000000,
+        monthlyCost: 16000000,
+        ...calculateRates(16000000),
         currency: 'IDR',
     },
     {
@@ -93,10 +92,10 @@ export const defaultResourceCosts = [
         resourceName: 'PM',
         roleType: 'PM',
         tierLevel: 2,
-        minMonthlyCost: 14000000,
-        maxMonthlyCost: 18000000,
-        monthlyCost: 16000000,
-        ...calculateRates(16000000),
+        minMonthlyCost: 17000000,
+        maxMonthlyCost: 19000000,
+        monthlyCost: 18000000,
+        ...calculateRates(18000000),
         currency: 'IDR',
     },
     {
@@ -104,8 +103,8 @@ export const defaultResourceCosts = [
         resourceName: 'Senior PM',
         roleType: 'PM',
         tierLevel: 3,
-        minMonthlyCost: 18000000,
-        maxMonthlyCost: 22000000,
+        minMonthlyCost: 19000000,
+        maxMonthlyCost: 21000000,
         monthlyCost: 20000000,
         ...calculateRates(20000000),
         currency: 'IDR',
@@ -115,10 +114,10 @@ export const defaultResourceCosts = [
         resourceName: 'Lead PM',
         roleType: 'PM',
         tierLevel: 4,
-        minMonthlyCost: 22000000,
-        maxMonthlyCost: 26000000,
-        monthlyCost: 24000000,
-        ...calculateRates(24000000),
+        minMonthlyCost: 21000000,
+        maxMonthlyCost: 23000000,
+        monthlyCost: 22000000,
+        ...calculateRates(22000000),
         currency: 'IDR',
     },
     {
@@ -126,10 +125,10 @@ export const defaultResourceCosts = [
         resourceName: 'Principal PM',
         roleType: 'PM',
         tierLevel: 5,
-        minMonthlyCost: 26000000,
-        maxMonthlyCost: 30000000,
-        monthlyCost: 28000000,
-        ...calculateRates(28000000),
+        minMonthlyCost: 23000000,
+        maxMonthlyCost: 25000000,
+        monthlyCost: 24000000,
+        ...calculateRates(24000000),
         currency: 'IDR',
     },
 ];

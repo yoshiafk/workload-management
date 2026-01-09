@@ -47,17 +47,24 @@ export const defaultPhases = [
         isTerminal: false,
     },
     {
+        id: 9,
+        name: 'IT Operations & Support',
+        tasks: ['T101', 'T102', 'T103'],
+        sortOrder: 7,
+        isTerminal: false,
+    },
+    {
         id: 7,
         name: 'Idle',
         tasks: ['T011'],
-        sortOrder: 7,
+        sortOrder: 8,
         isTerminal: true,
     },
     {
         id: 8,
         name: 'Completed',
         tasks: ['T012'],
-        sortOrder: 8,
+        sortOrder: 9,
         isTerminal: true,
     },
 ];

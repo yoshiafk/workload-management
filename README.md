@@ -91,3 +91,5 @@ Next Adjustment
 --- BA1 10 - 11
 --- BA2 11 - 13
 - Capture untuk Operation not just IT
+
+Then, after task created and working on it, usually we update it with the actual start and actual end date right? so by that flow we can calculated actual cost (if cost involved like for project) and close the open task, do research on best prctice to implement this

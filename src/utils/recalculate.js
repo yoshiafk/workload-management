@@ -26,7 +26,7 @@ import {
 export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = []) {
     return allocations.map(allocation => {
         // Skip if missing required fields
-        if (!allocation.plan?.taskStart || !allocation.resource || !allocation.category) {
+        if (!allocation.plan?.taskStart || !allocation.resource || !allocation.complexity) {
             return allocation;
         }
 
@@ -38,20 +38,21 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
             // Recalculate end date
             const taskEnd = calculatePlanEndDate(
                 allocation.plan.taskStart,
-                allocation.category,
+                allocation.complexity,
                 allocation.resource,
                 holidays,
                 leaves,
                 complexity
             );
 
-            // Recalculate project cost using costTierId
-            const costProject = calculateProjectCost(
-                allocation.category,
+            // Support tasks have zero cost
+            const isProject = allocation.category === 'Project';
+            const costProject = isProject ? calculateProjectCost(
+                allocation.complexity,
                 costTierId || allocation.resource, // Fallback to name if no ID (for legacy/custom)
                 complexity,
                 costs
-            );
+            ) : 0;
 
             // Recalculate monthly cost
             const costMonthly = calculateMonthlyCost(
@@ -63,7 +64,7 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
             // Recalculate workload percentage
             const workload = calculateWorkloadPercentage(
                 allocation.taskName,
-                allocation.category,
+                allocation.complexity,
                 tasks
             );
 

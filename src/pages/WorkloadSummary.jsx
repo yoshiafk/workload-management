@@ -68,17 +68,17 @@ export default function WorkloadSummary() {
         }));
     }, [memberWorkloads]);
 
-    // Chart data: Allocation by category
-    const categoryChartData = useMemo(() => {
+    // Chart data: Allocation by complexity (level)
+    const complexityChartData = useMemo(() => {
         const stats = {};
         Object.keys(complexity).forEach(key => {
             stats[key.toLowerCase()] = 0;
         });
 
         allocations.forEach(a => {
-            const cat = a.category?.toLowerCase();
-            if (cat && stats.hasOwnProperty(cat)) {
-                stats[cat]++;
+            const comp = a.complexity?.toLowerCase();
+            if (comp && stats.hasOwnProperty(comp)) {
+                stats[comp]++;
             }
         });
 
@@ -88,6 +88,23 @@ export default function WorkloadSummary() {
             color: level.color
         })).filter(d => d.value > 0);
     }, [allocations, complexity]);
+
+    // Chart data: Allocation by work category (Project/Support/Maintenance)
+    const workCategoryChartData = useMemo(() => {
+        const stats = { project: 0, support: 0, maintenance: 0 };
+        allocations.forEach(a => {
+            const cat = a.category?.toLowerCase() || 'project';
+            if (stats.hasOwnProperty(cat)) {
+                stats[cat]++;
+            }
+        });
+
+        return [
+            { name: 'Project', value: stats.project, color: '#3b82f6' },
+            { name: 'Support', value: stats.support, color: '#10b981' },
+            { name: 'Maintenance', value: stats.maintenance, color: '#f59e0b' }
+        ].filter(d => d.value > 0);
+    }, [allocations]);
 
     // Chart data: Cost Trend
     const costTrendData = useMemo(() => {
@@ -225,15 +242,15 @@ export default function WorkloadSummary() {
                         </div>
                     </div>
 
-                    {/* Allocation by Category */}
+                    {/* Allocation by Work Category */}
                     <div className="chart-card">
-                        <h3 className="chart-title">Allocation by Complexity</h3>
+                        <h3 className="chart-title">Work Category Distribution</h3>
                         <div className="chart-container">
-                            {categoryChartData.length > 0 ? (
+                            {workCategoryChartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie
-                                            data={categoryChartData}
+                                            data={workCategoryChartData}
                                             cx="50%"
                                             cy="50%"
                                             innerRadius={50}
@@ -241,7 +258,7 @@ export default function WorkloadSummary() {
                                             paddingAngle={3}
                                             dataKey="value"
                                         >
-                                            {categoryChartData.map((entry, index) => (
+                                            {workCategoryChartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -261,7 +278,48 @@ export default function WorkloadSummary() {
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No allocation data yet</div>
+                                <div className="chart-empty">No category data yet</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Allocation by Complexity */}
+                    <div className="chart-card">
+                        <h3 className="chart-title">Allocation by Complexity</h3>
+                        <div className="chart-container">
+                            {complexityChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie
+                                            data={complexityChartData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={80}
+                                            paddingAngle={3}
+                                            dataKey="value"
+                                        >
+                                            {complexityChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{
+                                                background: 'var(--color-bg-card)',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                            }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            formatter={(value) => <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>{value}</span>}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="chart-empty">No complexity data yet</div>
                             )}
                         </div>
                     </div>

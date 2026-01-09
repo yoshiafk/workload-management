@@ -114,10 +114,11 @@ export default function MemberTaskHistory() {
                         <thead>
                             <tr>
                                 <th>Demand #</th>
+                                <th>Type</th>
                                 <th>Activity</th>
                                 <th>Phase</th>
                                 <th>Task Type</th>
-                                <th>Category</th>
+                                <th>Complexity</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
                                 <th>Cost</th>
@@ -139,12 +140,17 @@ export default function MemberTaskHistory() {
                                     return (
                                         <tr key={allocation.id} className={isCompleted ? 'completed' : ''}>
                                             <td className="cell-demand">{allocation.demandNumber || '—'}</td>
+                                            <td>
+                                                <span className={`category-badge category-${allocation.category?.toLowerCase() || 'project'}`}>
+                                                    {allocation.category || 'Project'}
+                                                </span>
+                                            </td>
                                             <td className="cell-activity">{allocation.activityName}</td>
                                             <td>{allocation.phase || '—'}</td>
                                             <td>{allocation.taskName}</td>
                                             <td>
-                                                <span className={`category-badge category-${allocation.category}`}>
-                                                    {allocation.category}
+                                                <span className={`category-badge category-${allocation.complexity}`}>
+                                                    {allocation.complexity}
                                                 </span>
                                             </td>
                                             <td>{formatDate(allocation.plan?.taskStart)}</td>

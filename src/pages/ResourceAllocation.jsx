@@ -14,6 +14,7 @@ import {
     calculateMonthlyCost,
     calculateWorkloadPercentage,
 } from '../utils/calculations';
+import { calculateSLAStatus, getPriorityColor } from '../utils/supportCalculations';
 import './ResourceAllocation.css';
 
 // Generate unique ID
@@ -24,8 +25,13 @@ const emptyAllocation = {
     id: '',
     demandNumber: '',
     activityName: '',
+    category: 'Project', // Project, Support, Maintenance
     resource: '',
-    category: 'medium',
+    complexity: 'medium', // Renamed from category
+    priority: '',
+    ticketId: '',
+    slaDeadline: '',
+    slaStatus: 'Within SLA',
     phase: '',
     taskName: '',
     plan: {
@@ -70,14 +76,27 @@ export default function ResourceAllocation() {
             .map(t => ({ value: t.name, label: t.name }));
     }, [tasks, formData.phase, phases]);
 
-    const categoryOptions = Object.values(complexity).map(level => ({
+    const complexityOptions = Object.values(complexity).map(level => ({
         value: level.level.toLowerCase(),
         label: level.label
     }));
 
+    const workCategoryOptions = [
+        { value: 'Project', label: 'Project' },
+        { value: 'Support', label: 'Support' },
+        { value: 'Maintenance', label: 'Maintenance' },
+    ];
+
+    const priorityOptions = [
+        { value: 'P1', label: 'P1 - Critical' },
+        { value: 'P2', label: 'P2 - High' },
+        { value: 'P3', label: 'P3 - Medium' },
+        { value: 'P4', label: 'P4 - Low' },
+    ];
+
     // Calculate plan values when relevant form data changes
     const calculatedPlan = useMemo(() => {
-        if (!formData.plan?.taskStart || !formData.resource || !formData.category) {
+        if (!formData.plan?.taskStart || !formData.resource || !formData.complexity) {
             return { taskEnd: '', costProject: 0, costMonthly: 0 };
         }
 
@@ -87,19 +106,21 @@ export default function ResourceAllocation() {
 
         const taskEnd = calculatePlanEndDate(
             formData.plan.taskStart,
-            formData.category,
+            formData.complexity,
             formData.resource,
             holidays,
             leaves,
             complexity
         );
 
-        const costProject = calculateProjectCost(
-            formData.category,
-            costTierId || formData.resource, // Use ID if found, fallback to name
+        // Support tasks have zero cost
+        const isProject = formData.category === 'Project';
+        const costProject = isProject ? calculateProjectCost(
+            formData.complexity,
+            costTierId || formData.resource,
             complexity,
             costs
-        );
+        ) : 0;
 
         const costMonthly = calculateMonthlyCost(
             costProject,
@@ -112,7 +133,7 @@ export default function ResourceAllocation() {
             costProject,
             costMonthly,
         };
-    }, [formData.plan?.taskStart, formData.resource, formData.category, holidays, leaves, complexity, costs, state.members]);
+    }, [formData.plan?.taskStart, formData.resource, formData.complexity, formData.category, holidays, leaves, complexity, costs, state.members]);
 
     // Open add modal
     const handleAdd = () => {
@@ -152,6 +173,24 @@ export default function ResourceAllocation() {
                 next[name] = value;
             }
 
+            // Auto-select IT Operations phase for Support/Maintenance
+            if (name === 'category' && (value === 'Support' || value === 'Maintenance')) {
+                const itOpsPhase = phases.find(p => p.name === 'IT Operations & Support');
+                if (itOpsPhase) {
+                    next.phase = itOpsPhase.name;
+                    // Clear task if current task doesn't belong to IT Ops phase
+                    const currentTask = tasks.find(t => t.name === prev.taskName);
+                    if (currentTask && currentTask.phaseId !== itOpsPhase.id) {
+                        next.taskName = '';
+                    }
+                }
+                // Default plan start date to today if not set
+                if (!prev.plan?.taskStart) {
+                    const today = new Date().toISOString().split('T')[0];
+                    next.plan = { ...prev.plan, taskStart: today };
+                }
+            }
+
             // Task-Phase Mapping Logic
             if (name === 'phase') {
                 const selectedPhase = phases.find(p => p.name === value);
@@ -169,6 +208,10 @@ export default function ResourceAllocation() {
                         next.phase = taskPhase.name;
                     }
                 }
+            }
+
+            if (name === 'slaDeadline') {
+                next.slaStatus = calculateSLAStatus(value);
             }
 
             return next;
@@ -194,6 +237,11 @@ export default function ResourceAllocation() {
         if (!formData.plan?.taskStart) {
             newErrors['plan.taskStart'] = 'Start date is required';
         }
+        if (formData.category === 'Support') {
+            if (!formData.ticketId) newErrors.ticketId = 'Ticket ID is required';
+            if (!formData.priority) newErrors.priority = 'Priority is required';
+            if (!formData.slaDeadline) newErrors.slaDeadline = 'SLA Deadline is required';
+        }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -205,7 +253,7 @@ export default function ResourceAllocation() {
         // Calculate workload
         const workload = calculateWorkloadPercentage(
             formData.taskName,
-            formData.category,
+            formData.complexity,
             tasks
         );
 
@@ -299,7 +347,7 @@ export default function ResourceAllocation() {
                             Delete ({selectedIds.size})
                         </button>
                     )}
-                    <button className="btn btn-primary" onClick={handleAdd}>
+                    <button id="btn-add-allocation" className="btn btn-primary" onClick={handleAdd}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
@@ -322,11 +370,11 @@ export default function ResourceAllocation() {
                                 />
                             </th>
                             <th>Demand #</th>
-                            <th>Activity</th>
+                            <th>Type</th>
+                            <th>Activity / Ticket</th>
                             <th>Resource</th>
-                            <th>Category</th>
-                            <th>Phase</th>
-                            <th>Task</th>
+                            <th>Complexity</th>
+                            <th>SLA / Task</th>
                             <th>Plan Start</th>
                             <th>Plan End</th>
                             <th>Cost</th>
@@ -355,15 +403,43 @@ export default function ResourceAllocation() {
                                         />
                                     </td>
                                     <td className="cell-demand">{allocation.demandNumber || '—'}</td>
-                                    <td className="cell-name">{allocation.activityName}</td>
-                                    <td>{allocation.resource}</td>
                                     <td>
-                                        <span className={`category-badge category-${allocation.category}`}>
-                                            {allocation.category}
+                                        <span className={`category-badge category-${allocation.category?.toLowerCase() || 'project'}`}>
+                                            {allocation.category || 'Project'}
                                         </span>
                                     </td>
-                                    <td>{allocation.phase || '—'}</td>
-                                    <td>{allocation.taskName}</td>
+                                    <td className="cell-name">
+                                        <div className="activity-cell">
+                                            {allocation.category === 'Support' && (
+                                                <span className="ticket-id">{allocation.ticketId}</span>
+                                            )}
+                                            <span className="activity-name">{allocation.activityName}</span>
+                                        </div>
+                                    </td>
+                                    <td>{allocation.resource}</td>
+                                    <td>
+                                        <span className={`category-badge category-${allocation.complexity}`}>
+                                            {allocation.complexity}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div className="task-cell">
+                                            {allocation.category === 'Support' && (
+                                                <div className="support-meta">
+                                                    <span
+                                                        className="priority-badge"
+                                                        style={{ backgroundColor: getPriorityColor(allocation.priority) }}
+                                                    >
+                                                        {allocation.priority}
+                                                    </span>
+                                                    <span className={`sla-status sla-${allocation.slaStatus?.toLowerCase().replace(' ', '-')}`}>
+                                                        {allocation.slaStatus}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <span className="task-name">{allocation.taskName}</span>
+                                        </div>
+                                    </td>
                                     <td className="cell-date">{formatDate(allocation.plan?.taskStart)}</td>
                                     <td className="cell-date">{formatDate(allocation.plan?.taskEnd)}</td>
                                     <td className="cell-currency">{formatCurrency(allocation.plan?.costProject || 0)}</td>
@@ -373,26 +449,28 @@ export default function ResourceAllocation() {
                                         </span>
                                     </td>
                                     <td className="cell-actions">
-                                        <button
-                                            className="btn-icon"
-                                            title="Edit"
-                                            onClick={() => handleEdit(allocation)}
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            className="btn-icon btn-icon-danger"
-                                            title="Delete"
-                                            onClick={() => handleDeleteClick(allocation)}
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                            </svg>
-                                        </button>
+                                        <div className="actions-wrapper">
+                                            <button
+                                                className="btn-icon"
+                                                title="Edit"
+                                                onClick={() => handleEdit(allocation)}
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                className="btn-icon btn-icon-danger"
+                                                title="Delete"
+                                                onClick={() => handleDeleteClick(allocation)}
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -414,19 +492,72 @@ export default function ResourceAllocation() {
                         value={formData.demandNumber}
                         onChange={handleChange}
                         placeholder="DM-000001"
-                        pattern="DM-\d{6}"
                     />
                     <FormInput
-                        label="Activity Name"
+                        label="Work Category"
+                        name="category"
+                        type="select"
+                        value={formData.category}
+                        onChange={handleChange}
+                        options={workCategoryOptions}
+                        required
+                    />
+                </div>
+
+                <div className="form-row">
+                    <FormInput
+                        label={formData.category === 'Support' ? "Incident/Request Name" : "Activity Name"}
                         name="activityName"
                         value={formData.activityName}
                         onChange={handleChange}
                         error={errors.activityName}
                         required
                         autoFocus
-                        placeholder="e.g., Project X - Requirements"
+                        placeholder={formData.category === 'Support' ? "e.g., Mail Server Issue" : "e.g., Requirements Gathering"}
+                    />
+                    <FormInput
+                        label="Complexity"
+                        name="complexity"
+                        type="select"
+                        value={formData.complexity}
+                        onChange={handleChange}
+                        options={complexityOptions}
+                        required
                     />
                 </div>
+
+                {formData.category === 'Support' && (
+                    <div className="form-row">
+                        <FormInput
+                            label="Ticket ID"
+                            name="ticketId"
+                            value={formData.ticketId}
+                            onChange={handleChange}
+                            error={errors.ticketId}
+                            placeholder="INC-001"
+                            required
+                        />
+                        <FormInput
+                            label="Priority"
+                            name="priority"
+                            type="select"
+                            value={formData.priority}
+                            onChange={handleChange}
+                            error={errors.priority}
+                            options={priorityOptions}
+                            required
+                        />
+                        <FormInput
+                            label="SLA Deadline"
+                            name="slaDeadline"
+                            type="datetime-local"
+                            value={formData.slaDeadline}
+                            onChange={handleChange}
+                            error={errors.slaDeadline}
+                            required
+                        />
+                    </div>
+                )}
 
                 <div className="form-row">
                     <FormInput
@@ -439,25 +570,19 @@ export default function ResourceAllocation() {
                         required
                         options={memberOptions}
                     />
-                    <FormInput
-                        label="Category (Complexity)"
-                        name="category"
-                        type="select"
-                        value={formData.category}
-                        onChange={handleChange}
-                        options={categoryOptions}
-                    />
+                    {formData.category === 'Project' && (
+                        <FormInput
+                            label="Phase"
+                            name="phase"
+                            type="select"
+                            value={formData.phase}
+                            onChange={handleChange}
+                            options={phaseOptions}
+                        />
+                    )}
                 </div>
 
                 <div className="form-row">
-                    <FormInput
-                        label="Phase"
-                        name="phase"
-                        type="select"
-                        value={formData.phase}
-                        onChange={handleChange}
-                        options={phaseOptions}
-                    />
                     <FormInput
                         label="Task"
                         name="taskName"
@@ -468,9 +593,6 @@ export default function ResourceAllocation() {
                         required
                         options={taskOptions}
                     />
-                </div>
-
-                <div className="form-row">
                     <FormInput
                         label="Plan Start Date"
                         name="plan.taskStart"
@@ -516,7 +638,7 @@ export default function ResourceAllocation() {
                     <button className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>
                         Cancel
                     </button>
-                    <button className="btn btn-primary" onClick={handleSubmit}>
+                    <button id="btn-save-allocation" className="btn btn-primary" onClick={handleSubmit}>
                         {editingAllocation ? 'Update' : 'Add'} Allocation
                     </button>
                 </ModalFooter>

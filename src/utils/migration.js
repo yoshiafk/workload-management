@@ -7,7 +7,7 @@ import { loadFromStorage, saveToStorage } from './storage';
 import { defaultComplexity } from '../data';
 
 // Current data version - increment when schema changes
-export const CURRENT_VERSION = '1.1.0';
+export const CURRENT_VERSION = '1.2.0';
 
 /**
  * Migration functions - each migrates from previous version to target version
@@ -34,6 +34,21 @@ const migrations = {
         }
         return data;
     },
+    // Migration from 1.1.0 to 1.2.0: allocation.category renamed to complexity, new category field for work type
+    '1.1.0_1.2.0': (data) => {
+        if (data.allocations) {
+            data.allocations = data.allocations.map(a => {
+                const isLegacyComplexity = ['low', 'medium', 'high', 'sophisticated'].includes(a.category?.toLowerCase());
+                return {
+                    ...a,
+                    complexity: isLegacyComplexity ? a.category : 'medium',
+                    category: isLegacyComplexity ? 'Project' : (a.category || 'Project'),
+                    slaStatus: a.slaStatus || 'Within SLA'
+                };
+            });
+        }
+        return data;
+    },
 };
 
 /**
@@ -49,7 +64,7 @@ function parseVersion(version) {
  */
 function getMigrationPath(fromVersion, toVersion) {
     const path = [];
-    const allVersions = ['1.0.0', '1.1.0']; // Add new versions here in order
+    const allVersions = ['1.0.0', '1.1.0', '1.2.0']; // Add new versions here in order
 
     const fromIndex = allVersions.indexOf(fromVersion);
     const toIndex = allVersions.indexOf(toVersion);

@@ -107,6 +107,39 @@ export const defaultTaskTemplates = [
         },
     },
     {
+        id: 'T101',
+        name: 'Incident Resolution (Critical/High)',
+        phaseId: 9,
+        category: 'Support',
+        estimates: {
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 4, percentage: 0.25 },
+            high: { days: 3, hours: 8, percentage: 0.33 },
+        },
+    },
+    {
+        id: 'T102',
+        name: 'Application Support / Requests',
+        phaseId: 9,
+        category: 'Support',
+        estimates: {
+            low: { days: 1, hours: 1, percentage: 0.125 },
+            medium: { days: 3, hours: 2, percentage: 0.08 },
+            high: { days: 5, hours: 4, percentage: 0.1 },
+        },
+    },
+    {
+        id: 'T103',
+        name: 'Periodic Health Check & Monitoring',
+        phaseId: 9,
+        category: 'Maintenance',
+        estimates: {
+            low: { days: 1, hours: 0.5, percentage: 0.0625 },
+            medium: { days: 1, hours: 1, percentage: 0.125 },
+            high: { days: 1, hours: 2, percentage: 0.25 },
+        },
+    },
+    {
         id: 'T011',
         name: 'Idle',
         phaseId: 7,
