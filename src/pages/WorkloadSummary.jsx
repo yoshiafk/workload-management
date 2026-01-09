@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend, getMemberTaskAvailability } from '../utils/calculations';
+import { defaultRoleTiers } from '../data';
 import {
     BarChart,
     Bar,
@@ -133,6 +134,34 @@ export default function WorkloadSummary() {
         return allocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
     }, [allocations]);
 
+    // Team Availability Summary
+    const availabilitySummary = useMemo(() => {
+        const now = new Date();
+        let availableNow = 0;
+        let fullyBooked = 0;
+        let nextAvailable = null;
+
+        taskAvailability.forEach(member => {
+            if (member.hasCapacity) {
+                availableNow++;
+            } else {
+                fullyBooked++;
+                // Track next available date
+                if (member.availableFrom) {
+                    const availDate = new Date(member.availableFrom);
+                    if (!nextAvailable || availDate < nextAvailable.date) {
+                        nextAvailable = {
+                            name: member.memberName,
+                            date: availDate,
+                        };
+                    }
+                }
+            }
+        });
+
+        return { availableNow, fullyBooked, nextAvailable };
+    }, [taskAvailability]);
+
     return (
         <div className="workload-summary">
             {/* Stats Overview */}
@@ -192,6 +221,38 @@ export default function WorkloadSummary() {
                             <span className="stat-label">Total Cost</span>
                             <div className="stat-value">{formatCurrency(totalCost)}</div>
                             <div className="stat-footer">Project costs</div>
+                        </div>
+                    </div>
+
+                    {/* Team Availability Summary Card */}
+                    <div className="stat-card availability-card">
+                        <div className="stat-icon-wrapper cyan">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                            </svg>
+                        </div>
+                        <div className="stat-content">
+                            <span className="stat-label">Team Availability</span>
+                            <div className="availability-details">
+                                <div className="availability-row available">
+                                    <span className="availability-dot"></span>
+                                    <span>{availabilitySummary.availableNow} Available Now</span>
+                                </div>
+                                <div className="availability-row booked">
+                                    <span className="availability-dot"></span>
+                                    <span>{availabilitySummary.fullyBooked} Fully Booked</span>
+                                </div>
+                                {availabilitySummary.nextAvailable && (
+                                    <div className="availability-row next">
+                                        <span className="availability-label">Next:</span>
+                                        <span>{availabilitySummary.nextAvailable.name}</span>
+                                        <span className="availability-date">
+                                            {availabilitySummary.nextAvailable.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -443,7 +504,7 @@ export default function WorkloadSummary() {
                                     </div>
                                     <div className="member-info">
                                         <h3 className="member-name">{member.name}</h3>
-                                        <span className="member-role">{member.type === 'BA' ? 'Business Analyst' : 'Project Manager'}</span>
+                                        <span className="member-role">{defaultRoleTiers[member.type]?.name || member.type}</span>
                                     </div>
                                     <div className={`task-count-badge ${availability?.status || 'available'}`}>
                                         {availability?.currentTaskCount || 0}/{availability?.maxConcurrentTasks || 5}

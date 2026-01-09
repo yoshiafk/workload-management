@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import { useApp, ACTIONS } from '../context/AppContext';
-import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../components/ui';
+import { Modal, ModalFooter, FormInput, ConfirmDialog, RichTextEditor } from '../components/ui';
 import {
     formatCurrency,
     formatPercentage,
@@ -15,6 +15,8 @@ import {
     calculateWorkloadPercentage,
 } from '../utils/calculations';
 import { calculateSLAStatus, getPriorityColor } from '../utils/supportCalculations';
+import { defaultStatuses, getStatusOptions, getDefaultStatus } from '../data/defaultStatuses';
+import { defaultTags, getTagOptions } from '../data/defaultTags';
 import './ResourceAllocation.css';
 
 // Generate unique ID
@@ -27,13 +29,16 @@ const emptyAllocation = {
     activityName: '',
     category: 'Project', // Project, Support, Maintenance
     resource: '',
-    complexity: 'medium', // Renamed from category
+    complexity: 'medium',
     priority: '',
     ticketId: '',
     slaDeadline: '',
     slaStatus: 'Within SLA',
     phase: '',
     taskName: '',
+    status: 'open', // Task status
+    tags: [], // Task tags
+    description: '', // Rich text description
     plan: {
         taskStart: '',
         taskEnd: '',
@@ -43,6 +48,11 @@ const emptyAllocation = {
     actual: {
         taskStart: '',
         taskEnd: '',
+        costProject: 0, // Actual cost (calculated from actual duration)
+    },
+    variance: {
+        scheduleDays: 0, // Actual - Planned days (negative = early)
+        costAmount: 0,   // Actual - Planned cost (negative = under budget)
     },
     workload: 0,
     remarks: '',
@@ -63,6 +73,30 @@ export default function ResourceAllocation() {
     // Form state
     const [formData, setFormData] = useState(emptyAllocation);
     const [errors, setErrors] = useState({});
+
+    // Filter states
+    const [filterResource, setFilterResource] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [searchText, setSearchText] = useState('');
+
+    // Filtered allocations
+    const filteredAllocations = useMemo(() => {
+        return allocations.filter(a => {
+            // Resource filter
+            if (filterResource && a.resource !== filterResource) return false;
+            // Status filter
+            if (filterStatus && a.status !== filterStatus) return false;
+            // Search text (activity name, demand number)
+            if (searchText) {
+                const search = searchText.toLowerCase();
+                const matchActivity = a.activityName?.toLowerCase().includes(search);
+                const matchDemand = a.demandNumber?.toLowerCase().includes(search);
+                const matchPhase = a.phase?.toLowerCase().includes(search);
+                if (!matchActivity && !matchDemand && !matchPhase) return false;
+            }
+            return true;
+        });
+    }, [allocations, filterResource, filterStatus, searchText]);
 
     // Dropdown options
     const memberOptions = members.map(m => ({ value: m.name, label: m.name }));
@@ -357,6 +391,58 @@ export default function ResourceAllocation() {
                 </div>
             </div>
 
+            {/* Filter Controls */}
+            <div className="filter-bar">
+                <div className="filter-group">
+                    <input
+                        type="text"
+                        className="filter-search"
+                        placeholder="Search activity, demand #, phase..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                </div>
+                <div className="filter-group">
+                    <select
+                        className="filter-select"
+                        value={filterResource}
+                        onChange={(e) => setFilterResource(e.target.value)}
+                    >
+                        <option value="">All Resources</option>
+                        {members.map(m => (
+                            <option key={m.id} value={m.name}>{m.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="filter-group">
+                    <select
+                        className="filter-select"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="">All Statuses</option>
+                        {getStatusOptions().map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
+                {(searchText || filterResource || filterStatus) && (
+                    <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => {
+                            setSearchText('');
+                            setFilterResource('');
+                            setFilterStatus('');
+                        }}
+                    >
+                        Clear Filters
+                    </button>
+                )}
+                <span className="filter-count">
+                    {filteredAllocations.length} of {allocations.length}
+                </span>
+            </div>
+
             <div className="allocation-table-container">
                 <table className="allocation-table">
                     <thead>
@@ -383,17 +469,21 @@ export default function ResourceAllocation() {
                         </tr>
                     </thead>
                     <tbody>
-                        {allocations.length === 0 ? (
+                        {filteredAllocations.length === 0 ? (
                             <tr>
                                 <td colSpan="12" className="empty-row">
                                     <div className="empty-state">
-                                        <p>No allocations yet</p>
-                                        <p className="empty-hint">Click "Add Allocation" to create your first task allocation</p>
+                                        <p>{allocations.length === 0 ? 'No allocations yet' : 'No matching allocations'}</p>
+                                        <p className="empty-hint">
+                                            {allocations.length === 0
+                                                ? 'Click "Add Allocation" to create your first task allocation'
+                                                : 'Try adjusting your filters'}
+                                        </p>
                                     </div>
                                 </td>
                             </tr>
                         ) : (
-                            allocations.map(allocation => (
+                            filteredAllocations.map(allocation => (
                                 <tr key={allocation.id} className={selectedIds.has(allocation.id) ? 'selected' : ''}>
                                     <td className="cell-checkbox">
                                         <input
@@ -623,6 +713,64 @@ export default function ResourceAllocation() {
                         </div>
                     </div>
                 </div>
+
+                {/* Status and Tags */}
+                <div className="form-row">
+                    <FormInput
+                        label="Status"
+                        name="status"
+                        type="select"
+                        value={formData.status}
+                        onChange={handleChange}
+                        options={getStatusOptions()}
+                    />
+                    <FormInput
+                        label="Tags"
+                        name="tags"
+                        type="select"
+                        value={formData.tags?.[0] || ''}
+                        onChange={(name, value) => handleChange('tags', value ? [value] : [])}
+                        options={[
+                            { value: '', label: 'Select tag...' },
+                            ...getTagOptions()
+                        ]}
+                    />
+                </div>
+
+                {/* Actual Dates - shown when task is in progress or beyond */}
+                {formData.status !== 'open' && (
+                    <div className="actual-dates-section">
+                        <h4>Actual Progress</h4>
+                        <div className="form-row">
+                            <FormInput
+                                label="Actual Start Date"
+                                name="actual.taskStart"
+                                type="date"
+                                value={formData.actual?.taskStart || ''}
+                                onChange={handleChange}
+                                helpText="When work actually began"
+                            />
+                            {(formData.status === 'completed' || formData.status === 'under-review') && (
+                                <FormInput
+                                    label="Actual End Date"
+                                    name="actual.taskEnd"
+                                    type="date"
+                                    value={formData.actual?.taskEnd || ''}
+                                    onChange={handleChange}
+                                    helpText="When work was completed"
+                                />
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Description */}
+                <RichTextEditor
+                    label="Description"
+                    value={formData.description}
+                    onChange={(value) => handleChange('description', value)}
+                    placeholder="Enter task description..."
+                />
 
                 <FormInput
                     label="Remarks"

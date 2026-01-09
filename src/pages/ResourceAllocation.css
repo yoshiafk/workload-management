@@ -25,6 +25,71 @@
     margin: var(--spacing-1) 0 0 0;
 }
 
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-4);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+}
+
+.filter-search {
+    width: 280px;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    transition: border-color var(--transition-fast);
+}
+
+.filter-search::placeholder {
+    color: var(--color-text-muted);
+}
+
+.filter-search:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.filter-select {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.filter-count {
+    margin-left: auto;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.btn-sm {
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+}
+
 /* Table Container */
 .allocation-table-container {
     background: var(--color-bg-card);
@@ -377,6 +442,35 @@
 .btn-icon-danger:hover {
     background: var(--color-danger-light);
     color: var(--color-danger);
+}
+
+/* Actual Dates Section */
+.actual-dates-section {
+    margin-top: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.actual-dates-section h4 {
+    margin: 0 0 var(--spacing-3) 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+}
+
+/* Variance Indicators */
+.variance-positive {
+    color: var(--color-success);
+}
+
+.variance-negative {
+    color: var(--color-danger);
+}
+
+.variance-neutral {
+    color: var(--color-text-secondary);
 }
 
 /* Responsive */

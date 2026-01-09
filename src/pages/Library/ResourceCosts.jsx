@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useApp, ACTIONS } from '../../context/AppContext';
 import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
 import { formatCurrency } from '../../utils/calculations';
-import { defaultRoleTiers, getTierByRoleAndLevel } from '../../data';
+import { defaultRoleTiers, getTierByRoleAndLevel, getRoleOptions } from '../../data';
 import './LibraryPage.css';
 
 // Generate unique ID
@@ -22,7 +22,7 @@ const WORKING_HOURS_PER_DAY = 8;
 const emptyCost = {
     id: '',
     resourceName: '',
-    roleType: 'BA',
+    roleType: 'FULLSTACK',
     tierLevel: 1,
     minMonthlyCost: 8000000,
     maxMonthlyCost: 12000000,
@@ -52,11 +52,11 @@ export default function ResourceCosts() {
 
     // Open add modal
     const handleAdd = () => {
-        const tier = getTierByRoleAndLevel('BA', 1);
+        const tier = getTierByRoleAndLevel('FULLSTACK', 1);
         setFormData({
             ...emptyCost,
             id: generateId(),
-            resourceName: tier?.name || 'Junior BA',
+            resourceName: tier?.name || 'Junior Fullstack',
             minMonthlyCost: tier?.minCost || 8000000,
             maxMonthlyCost: tier?.maxCost || 12000000,
             monthlyCost: tier?.midCost || 10000000,
@@ -200,8 +200,8 @@ export default function ResourceCosts() {
                             <tr key={cost.id}>
                                 <td className="cell-name">{cost.resourceName}</td>
                                 <td>
-                                    <span className={`type-badge ${(cost.roleType || 'BA').toLowerCase()}`}>
-                                        {cost.roleType === 'PM' ? 'Project Manager' : 'Business Analyst'}
+                                    <span className={`type-badge ${(cost.roleType || 'FULLSTACK').toLowerCase()}`}>
+                                        {defaultRoleTiers[cost.roleType]?.name || cost.roleType}
                                     </span>
                                 </td>
                                 <td>
@@ -256,10 +256,7 @@ export default function ResourceCosts() {
                         value={formData.roleType}
                         onChange={handleChange}
                         required
-                        options={[
-                            { value: 'BA', label: 'Business Analyst' },
-                            { value: 'PM', label: 'Project Manager' },
-                        ]}
+                        options={getRoleOptions()}
                     />
                     <FormInput
                         label="Tier Level"

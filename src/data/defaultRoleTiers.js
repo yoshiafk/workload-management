@@ -1,101 +1,127 @@
 /**
  * Default Role Tiers
- * Role-based tiered cost structure with min/mid/max ranges
+ * Role-based tiered cost structure for IT roles
+ * Based on Indonesian IT market salary data (2025)
  * 
- * Based on User requirement:
- * - 10M total difference between Min and Max for each role
- * - 5 tiers per role
- * - 2M difference between each tier
+ * Each role has:
+ * - 5 tiers (Junior → Mid → Senior → Lead → Principal)
+ * - hasCostTracking flag to enable/disable cost calculations
+ * - min/mid/max monthly costs in IDR
  */
 
 export const defaultRoleTiers = {
-    BA: {
-        name: 'Business Analyst',
-        description: 'Business Analysis and Requirements roles',
+    FULLSTACK: {
+        name: 'Fullstack Engineer',
+        description: 'Full-stack web and application development',
+        hasCostTracking: true,
         tiers: [
-            {
-                level: 1,
-                name: 'Junior BA',
-                minCost: 10000000,   // 10M
-                midCost: 11000000,   // 11M
-                maxCost: 12000000    // 12M
-            },
-            {
-                level: 2,
-                name: 'BA',
-                minCost: 12000000,   // 12M
-                midCost: 13000000,   // 13M
-                maxCost: 14000000    // 14M
-            },
-            {
-                level: 3,
-                name: 'Senior BA',
-                minCost: 14000000,   // 14M
-                midCost: 15000000,   // 15M
-                maxCost: 16000000    // 16M
-            },
-            {
-                level: 4,
-                name: 'Lead BA',
-                minCost: 16000000,   // 16M
-                midCost: 17000000,   // 17M
-                maxCost: 18000000    // 18M
-            },
-            {
-                level: 5,
-                name: 'Principal BA',
-                minCost: 18000000,   // 18M
-                midCost: 19000000,   // 19M
-                maxCost: 20000000    // 20M
-            },
+            { level: 1, name: 'Junior Fullstack', minCost: 8000000, midCost: 10000000, maxCost: 12000000 },
+            { level: 2, name: 'Fullstack Engineer', minCost: 12000000, midCost: 14000000, maxCost: 16000000 },
+            { level: 3, name: 'Senior Fullstack', minCost: 16000000, midCost: 18000000, maxCost: 20000000 },
+            { level: 4, name: 'Lead Fullstack', minCost: 18000000, midCost: 20000000, maxCost: 22000000 },
+            { level: 5, name: 'Principal Fullstack', minCost: 20000000, midCost: 22000000, maxCost: 25000000 },
         ]
     },
-    PM: {
-        name: 'Project Manager',
-        description: 'Project Management and Coordination roles',
+    DEVOPS: {
+        name: 'DevOps Engineer',
+        description: 'CI/CD, infrastructure automation, and deployment',
+        hasCostTracking: true,
         tiers: [
-            {
-                level: 1,
-                name: 'Junior PM',
-                minCost: 15000000,   // 15M
-                midCost: 16000000,   // 16M
-                maxCost: 17000000    // 17M
-            },
-            {
-                level: 2,
-                name: 'PM',
-                minCost: 17000000,   // 17M
-                midCost: 18000000,   // 18M
-                maxCost: 19000000    // 19M
-            },
-            {
-                level: 3,
-                name: 'Senior PM',
-                minCost: 19000000,   // 19M
-                midCost: 20000000,   // 20M
-                maxCost: 21000000    // 21M
-            },
-            {
-                level: 4,
-                name: 'Lead PM',
-                minCost: 21000000,   // 21M
-                midCost: 22000000,   // 22M
-                maxCost: 23000000    // 23M
-            },
-            {
-                level: 5,
-                name: 'Principal PM',
-                minCost: 23000000,   // 23M
-                midCost: 24000000,   // 24M
-                maxCost: 25000000    // 25M
-            },
+            { level: 1, name: 'Junior DevOps', minCost: 10000000, midCost: 12000000, maxCost: 14000000 },
+            { level: 2, name: 'DevOps Engineer', minCost: 14000000, midCost: 16000000, maxCost: 18000000 },
+            { level: 3, name: 'Senior DevOps', minCost: 18000000, midCost: 20000000, maxCost: 22000000 },
+            { level: 4, name: 'Lead DevOps', minCost: 20000000, midCost: 23000000, maxCost: 25000000 },
+            { level: 5, name: 'Principal DevOps', minCost: 22000000, midCost: 25000000, maxCost: 28000000 },
+        ]
+    },
+    FINOPS: {
+        name: 'FinOps Engineer',
+        description: 'Cloud cost management and optimization',
+        hasCostTracking: true,
+        tiers: [
+            { level: 1, name: 'Junior FinOps', minCost: 12000000, midCost: 14000000, maxCost: 16000000 },
+            { level: 2, name: 'FinOps Engineer', minCost: 16000000, midCost: 18000000, maxCost: 20000000 },
+            { level: 3, name: 'Senior FinOps', minCost: 18000000, midCost: 20000000, maxCost: 22000000 },
+            { level: 4, name: 'Lead FinOps', minCost: 20000000, midCost: 22000000, maxCost: 24000000 },
+            { level: 5, name: 'Principal FinOps', minCost: 22000000, midCost: 24000000, maxCost: 26000000 },
+        ]
+    },
+    ARCHITECT: {
+        name: 'Solution Architect',
+        description: 'System design and technical architecture',
+        hasCostTracking: true,
+        tiers: [
+            { level: 1, name: 'Junior Architect', minCost: 25000000, midCost: 28000000, maxCost: 30000000 },
+            { level: 2, name: 'Solution Architect', minCost: 30000000, midCost: 33000000, maxCost: 35000000 },
+            { level: 3, name: 'Senior Architect', minCost: 35000000, midCost: 38000000, maxCost: 40000000 },
+            { level: 4, name: 'Lead Architect', minCost: 38000000, midCost: 42000000, maxCost: 45000000 },
+            { level: 5, name: 'Principal Architect', minCost: 42000000, midCost: 47000000, maxCost: 50000000 },
+        ]
+    },
+    CLOUD: {
+        name: 'Cloud Engineer',
+        description: 'Cloud infrastructure and services management',
+        hasCostTracking: true,
+        tiers: [
+            { level: 1, name: 'Junior Cloud Engineer', minCost: 15000000, midCost: 17000000, maxCost: 20000000 },
+            { level: 2, name: 'Cloud Engineer', minCost: 20000000, midCost: 23000000, maxCost: 25000000 },
+            { level: 3, name: 'Senior Cloud Engineer', minCost: 25000000, midCost: 28000000, maxCost: 30000000 },
+            { level: 4, name: 'Lead Cloud Engineer', minCost: 28000000, midCost: 32000000, maxCost: 35000000 },
+            { level: 5, name: 'Principal Cloud Engineer', minCost: 32000000, midCost: 37000000, maxCost: 40000000 },
+        ]
+    },
+    DBA: {
+        name: 'Database Administrator',
+        description: 'Database management, optimization, and maintenance',
+        hasCostTracking: true,
+        tiers: [
+            { level: 1, name: 'Junior DBA', minCost: 12000000, midCost: 14000000, maxCost: 16000000 },
+            { level: 2, name: 'DBA', minCost: 16000000, midCost: 18000000, maxCost: 20000000 },
+            { level: 3, name: 'Senior DBA', minCost: 20000000, midCost: 23000000, maxCost: 25000000 },
+            { level: 4, name: 'Lead DBA', minCost: 24000000, midCost: 27000000, maxCost: 30000000 },
+            { level: 5, name: 'Principal DBA', minCost: 28000000, midCost: 32000000, maxCost: 35000000 },
+        ]
+    },
+    APPSUPPORT: {
+        name: 'Application Support',
+        description: 'Application monitoring, troubleshooting, and user support',
+        hasCostTracking: false,
+        tiers: [
+            { level: 1, name: 'Junior App Support', minCost: 6000000, midCost: 7000000, maxCost: 8000000 },
+            { level: 2, name: 'App Support', minCost: 8000000, midCost: 9000000, maxCost: 10000000 },
+            { level: 3, name: 'Senior App Support', minCost: 10000000, midCost: 12000000, maxCost: 13000000 },
+            { level: 4, name: 'Lead App Support', minCost: 12000000, midCost: 14000000, maxCost: 15000000 },
+            { level: 5, name: 'Principal App Support', minCost: 14000000, midCost: 16000000, maxCost: 18000000 },
+        ]
+    },
+    HELPDESK: {
+        name: 'Helpdesk Management',
+        description: 'IT helpdesk and end-user support coordination',
+        hasCostTracking: false,
+        tiers: [
+            { level: 1, name: 'Helpdesk Agent', minCost: 5000000, midCost: 6000000, maxCost: 7000000 },
+            { level: 2, name: 'Helpdesk Specialist', minCost: 7000000, midCost: 8000000, maxCost: 9000000 },
+            { level: 3, name: 'Senior Helpdesk', minCost: 9000000, midCost: 10000000, maxCost: 11000000 },
+            { level: 4, name: 'Helpdesk Supervisor', minCost: 10000000, midCost: 11000000, maxCost: 12000000 },
+            { level: 5, name: 'Helpdesk Manager', minCost: 11000000, midCost: 13000000, maxCost: 15000000 },
         ]
     }
 };
 
 /**
+ * Get all role types as options for dropdowns
+ * @returns {array} Array of { value, label } objects
+ */
+export function getRoleOptions() {
+    return Object.entries(defaultRoleTiers).map(([code, role]) => ({
+        value: code,
+        label: role.name
+    }));
+}
+
+/**
  * Helper function to get tier by role and level
- * @param {string} roleType - 'BA' or 'PM'
+ * @param {string} roleType - Role code (e.g., 'FULLSTACK')
  * @param {number} level - 1 to 5
  * @returns {object|null} Tier object or null if not found
  */
@@ -107,7 +133,7 @@ export function getTierByRoleAndLevel(roleType, level) {
 
 /**
  * Get all tier options for a specific role type
- * @param {string} roleType - 'BA' or 'PM'
+ * @param {string} roleType - Role code (e.g., 'FULLSTACK')
  * @returns {array} Array of tier options for dropdowns
  */
 export function getTierOptionsForRole(roleType) {
@@ -117,6 +143,16 @@ export function getTierOptionsForRole(roleType) {
         value: tier.level,
         label: `${tier.name} (${formatRupiah(tier.minCost)} - ${formatRupiah(tier.maxCost)})`
     }));
+}
+
+/**
+ * Check if a role has cost tracking enabled
+ * @param {string} roleType - Role code
+ * @returns {boolean} True if cost tracking is enabled
+ */
+export function roleHasCostTracking(roleType) {
+    const role = defaultRoleTiers[roleType];
+    return role?.hasCostTracking ?? false;
 }
 
 /**

@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useApp, ACTIONS } from '../../context/AppContext';
 import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
+import { defaultRoleTiers, getRoleOptions, roleHasCostTracking } from '../../data/defaultRoleTiers';
 import './LibraryPage.css';
 
 // Generate unique ID
@@ -15,7 +16,7 @@ const generateId = () => `MEM-${Date.now().toString(36).toUpperCase()}`;
 const emptyMember = {
     id: '',
     name: '',
-    type: 'BA',
+    type: 'FULLSTACK',
     maxHoursPerWeek: 40,
     costTierId: '',
     isActive: true,
@@ -134,9 +135,7 @@ export default function TeamMembers() {
                                 <td className="cell-name">{member.name}</td>
                                 <td>
                                     <span className={`type-badge ${member.type.toLowerCase()}`}>
-                                        {member.type === 'BA' ? 'Business Analyst' :
-                                            member.type === 'PM' ? 'Project Manager' :
-                                                member.type === 'SUPPORT' ? 'Operation Support' : member.type}
+                                        {defaultRoleTiers[member.type]?.name || member.type}
                                     </span>
                                 </td>
                                 <td>
@@ -206,11 +205,7 @@ export default function TeamMembers() {
                     onChange={handleChange}
                     error={errors.type}
                     required
-                    options={[
-                        { value: 'BA', label: 'Business Analyst' },
-                        { value: 'PM', label: 'Project Manager' },
-                        { value: 'SUPPORT', label: 'Operation Support' },
-                    ]}
+                    options={getRoleOptions()}
                 />
                 <FormInput
                     label="Max Hours per Week"
@@ -223,23 +218,30 @@ export default function TeamMembers() {
                     min={1}
                     max={168}
                 />
-                <FormInput
-                    label="Cost Tier"
-                    name="costTierId"
-                    type="select"
-                    value={formData.costTierId}
-                    onChange={handleChange}
-                    options={[
-                        { value: '', label: 'Select cost tier...' },
-                        ...state.costs
-                            .filter(cost => cost.roleType === formData.type)
-                            .map(cost => ({
-                                value: cost.id,
-                                label: `${cost.resourceName} - Tier ${cost.tierLevel || 1} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
-                            }))
-                    ]}
-                    helpText={`Showing ${formData.type} cost tiers only`}
-                />
+                {roleHasCostTracking(formData.type) && (
+                    <FormInput
+                        label="Cost Tier"
+                        name="costTierId"
+                        type="select"
+                        value={formData.costTierId}
+                        onChange={handleChange}
+                        options={[
+                            { value: '', label: 'Select cost tier...' },
+                            ...state.costs
+                                .filter(cost => cost.roleType === formData.type)
+                                .map(cost => ({
+                                    value: cost.id,
+                                    label: `${cost.resourceName} - Tier ${cost.tierLevel || 1} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
+                                }))
+                        ]}
+                        helpText={`Showing ${defaultRoleTiers[formData.type]?.name || formData.type} cost tiers only`}
+                    />
+                )}
+                {!roleHasCostTracking(formData.type) && (
+                    <div className="form-note">
+                        <span className="text-muted">Cost tracking is not enabled for {defaultRoleTiers[formData.type]?.name || formData.type}</span>
+                    </div>
+                )}
                 <FormInput
                     label="Active"
                     name="isActive"

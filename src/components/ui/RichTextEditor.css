@@ -1,0 +1,47 @@
+/**
+ * Rich Text Editor Styles
+ */
+
+.rich-text-editor {
+    margin-bottom: var(--spacing-4);
+}
+
+.rich-text-editor .form-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-2);
+}
+
+.rich-text-editor .ql-container {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-sm);
+    min-height: 120px;
+    border-color: var(--color-border);
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+}
+
+.rich-text-editor .ql-toolbar {
+    border-color: var(--color-border);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+}
+
+.rich-text-editor .ql-editor {
+    min-height: 100px;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+    font-style: normal;
+    color: var(--color-text-muted);
+}
+
+.rich-text-editor .form-error {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
+    margin-top: var(--spacing-1);
+}

@@ -179,19 +179,44 @@
     border-radius: var(--radius-full);
 }
 
-.type-badge.ba {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
+.type-badge.fullstack {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
 }
 
-.type-badge.pm {
-    background: #f3e8ff;
-    color: #9333ea;
+.type-badge.devops {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
 }
 
-.type-badge.support {
+.type-badge.finops {
     background: rgba(16, 185, 129, 0.1);
     color: #10b981;
+}
+
+.type-badge.architect {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.type-badge.cloud {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+.type-badge.dba {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.type-badge.appsupport {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.type-badge.helpdesk {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
 }
 
 .status-badge {

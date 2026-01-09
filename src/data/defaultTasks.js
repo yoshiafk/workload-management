@@ -1,162 +1,261 @@
 /**
  * Default Task Templates
- * Pre-loaded from Excel prototype (Library sheet)
- * Each task has estimates for Low, Medium, and High complexity
+ * Task types aligned with new SDLC phases
+ * Each task has estimates for Low, Medium, High, and Sophisticated complexity
  */
 
 export const defaultTaskTemplates = [
+    // === INITIATION PHASE ===
     {
         id: 'T001',
-        name: 'Stakeholder Interviews',
+        name: 'Project Charter',
         phaseId: 1,
+        category: 'Project',
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.0625 },
-            medium: { days: 5, hours: 2, percentage: 0.05 },
-            high: { days: 10, hours: 4, percentage: 0.05 },
-            sophisticated: { days: 15, hours: 6, percentage: 0.05 },
+            low: { days: 2, hours: 2, percentage: 0.125 },
+            medium: { days: 4, hours: 3, percentage: 0.09 },
+            high: { days: 6, hours: 4, percentage: 0.08 },
+            sophisticated: { days: 10, hours: 5, percentage: 0.06 },
         },
     },
     {
         id: 'T002',
-        name: 'Requirements Documentation',
+        name: 'Stakeholder Analysis',
         phaseId: 1,
+        category: 'Project',
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.0625 },
-            medium: { days: 6, hours: 3, percentage: 0.0625 },
-            high: { days: 8, hours: 4, percentage: 0.0625 },
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 3, hours: 3, percentage: 0.125 },
+            high: { days: 5, hours: 4, percentage: 0.1 },
+            sophisticated: { days: 8, hours: 5, percentage: 0.08 },
         },
     },
+
+    // === PLANNING PHASE ===
     {
         id: 'T003',
-        name: 'UI/UX Design',
+        name: 'Requirements Gathering',
         phaseId: 2,
+        category: 'Project',
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.0625 },
-            medium: { days: 4, hours: 2, percentage: 0.0625 },
-            high: { days: 6, hours: 3, percentage: 0.0625 },
+            low: { days: 3, hours: 3, percentage: 0.125 },
+            medium: { days: 6, hours: 4, percentage: 0.08 },
+            high: { days: 10, hours: 5, percentage: 0.0625 },
+            sophisticated: { days: 15, hours: 6, percentage: 0.05 },
         },
     },
     {
         id: 'T004',
-        name: 'System Functional Design',
+        name: 'Technical Design',
         phaseId: 2,
+        category: 'Project',
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.0625 },
-            medium: { days: 2, hours: 1, percentage: 0.0625 },
-            high: { days: 4, hours: 2, percentage: 0.0625 },
+            low: { days: 2, hours: 2, percentage: 0.125 },
+            medium: { days: 5, hours: 4, percentage: 0.1 },
+            high: { days: 8, hours: 5, percentage: 0.08 },
+            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
         },
     },
     {
         id: 'T005',
-        name: 'Test Case Creation',
-        phaseId: 3,
+        name: 'Sprint Planning',
+        phaseId: 2,
+        category: 'Project',
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.0625 },
-            medium: { days: 4, hours: 2, percentage: 0.0625 },
-            high: { days: 8, hours: 4, percentage: 0.0625 },
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 3, percentage: 0.19 },
+            high: { days: 3, hours: 4, percentage: 0.17 },
+            sophisticated: { days: 4, hours: 4, percentage: 0.125 },
         },
     },
+
+    // === EXECUTION PHASE ===
     {
         id: 'T006',
-        name: 'Frontend & Backend Development',
+        name: 'Bug Fix',
         phaseId: 3,
+        category: 'Project',
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.0625 },
-            medium: { days: 2, hours: 1, percentage: 0.0625 },
-            high: { days: 8, hours: 4, percentage: 0.0625 },
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 4, percentage: 0.25 },
+            high: { days: 4, hours: 6, percentage: 0.19 },
+            sophisticated: { days: 6, hours: 8, percentage: 0.17 },
         },
     },
     {
         id: 'T007',
-        name: 'Integration Testing',
-        phaseId: 4,
+        name: 'Feature Development',
+        phaseId: 3,
+        category: 'Project',
         estimates: {
-            low: { days: 4, hours: 2, percentage: 0.0625 },
-            medium: { days: 4, hours: 2, percentage: 0.0625 },
-            high: { days: 6, hours: 3, percentage: 0.0625 },
+            low: { days: 3, hours: 4, percentage: 0.17 },
+            medium: { days: 7, hours: 5, percentage: 0.09 },
+            high: { days: 14, hours: 6, percentage: 0.05 },
+            sophisticated: { days: 21, hours: 7, percentage: 0.04 },
         },
     },
     {
         id: 'T008',
-        name: 'User Acceptance Test',
-        phaseId: 4,
+        name: 'Infrastructure Setup',
+        phaseId: 3,
+        category: 'Project',
         estimates: {
-            low: { days: 6, hours: 3, percentage: 0.0625 },
-            medium: { days: 6, hours: 3, percentage: 0.0625 },
-            high: { days: 6, hours: 3, percentage: 0.0625 },
+            low: { days: 2, hours: 3, percentage: 0.19 },
+            medium: { days: 5, hours: 4, percentage: 0.1 },
+            high: { days: 8, hours: 5, percentage: 0.08 },
+            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
         },
     },
     {
         id: 'T009',
-        name: 'Deployment to Production',
-        phaseId: 5,
+        name: 'Security Audit',
+        phaseId: 3,
+        category: 'Project',
         estimates: {
-            low: { days: 2, hours: 1, percentage: 0.0625 },
-            medium: { days: 4, hours: 2, percentage: 0.0625 },
-            high: { days: 4, hours: 2, percentage: 0.0625 },
+            low: { days: 2, hours: 2, percentage: 0.125 },
+            medium: { days: 4, hours: 3, percentage: 0.09 },
+            high: { days: 7, hours: 4, percentage: 0.07 },
+            sophisticated: { days: 10, hours: 5, percentage: 0.0625 },
         },
     },
+
+    // === MONITORING & CONTROLLING PHASE ===
     {
         id: 'T010',
-        name: 'Post-Deployment Support',
-        phaseId: 6,
-        estimates: {
-            low: { days: 1, hours: 0.5, percentage: 0.0625 },
-            medium: { days: 2, hours: 1, percentage: 0.0625 },
-            high: { days: 2, hours: 1, percentage: 0.0625 },
-        },
-    },
-    {
-        id: 'T101',
-        name: 'Incident Resolution (Critical/High)',
-        phaseId: 9,
-        category: 'Support',
+        name: 'Code Review',
+        phaseId: 4,
+        category: 'Project',
         estimates: {
             low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 4, percentage: 0.25 },
-            high: { days: 3, hours: 8, percentage: 0.33 },
-        },
-    },
-    {
-        id: 'T102',
-        name: 'Application Support / Requests',
-        phaseId: 9,
-        category: 'Support',
-        estimates: {
-            low: { days: 1, hours: 1, percentage: 0.125 },
-            medium: { days: 3, hours: 2, percentage: 0.08 },
-            high: { days: 5, hours: 4, percentage: 0.1 },
-        },
-    },
-    {
-        id: 'T103',
-        name: 'Periodic Health Check & Monitoring',
-        phaseId: 9,
-        category: 'Maintenance',
-        estimates: {
-            low: { days: 1, hours: 0.5, percentage: 0.0625 },
-            medium: { days: 1, hours: 1, percentage: 0.125 },
-            high: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 3, percentage: 0.19 },
+            high: { days: 3, hours: 4, percentage: 0.17 },
+            sophisticated: { days: 5, hours: 5, percentage: 0.125 },
         },
     },
     {
         id: 'T011',
-        name: 'Idle',
-        phaseId: 7,
+        name: 'Integration Testing',
+        phaseId: 4,
+        category: 'Project',
         estimates: {
-            low: { days: 0, hours: 0, percentage: 0 },
-            medium: { days: 0, hours: 0, percentage: 0 },
-            high: { days: 0, hours: 0, percentage: 0 },
+            low: { days: 2, hours: 3, percentage: 0.19 },
+            medium: { days: 4, hours: 4, percentage: 0.125 },
+            high: { days: 6, hours: 5, percentage: 0.1 },
+            sophisticated: { days: 10, hours: 6, percentage: 0.075 },
         },
     },
     {
         id: 'T012',
-        name: 'Completed',
-        phaseId: 8,
+        name: 'User Acceptance Testing',
+        phaseId: 4,
+        category: 'Project',
+        estimates: {
+            low: { days: 3, hours: 3, percentage: 0.125 },
+            medium: { days: 5, hours: 4, percentage: 0.1 },
+            high: { days: 8, hours: 5, percentage: 0.08 },
+            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
+        },
+    },
+
+    // === CLOSING PHASE ===
+    {
+        id: 'T013',
+        name: 'Deployment',
+        phaseId: 5,
+        category: 'Project',
+        estimates: {
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 4, percentage: 0.25 },
+            high: { days: 4, hours: 5, percentage: 0.16 },
+            sophisticated: { days: 6, hours: 6, percentage: 0.125 },
+        },
+    },
+    {
+        id: 'T014',
+        name: 'Documentation',
+        phaseId: 5,
+        category: 'Project',
+        estimates: {
+            low: { days: 2, hours: 2, percentage: 0.125 },
+            medium: { days: 4, hours: 3, percentage: 0.09 },
+            high: { days: 6, hours: 4, percentage: 0.08 },
+            sophisticated: { days: 8, hours: 5, percentage: 0.08 },
+        },
+    },
+    {
+        id: 'T015',
+        name: 'Knowledge Transfer',
+        phaseId: 5,
+        category: 'Project',
+        estimates: {
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 3, percentage: 0.19 },
+            high: { days: 3, hours: 4, percentage: 0.17 },
+            sophisticated: { days: 5, hours: 5, percentage: 0.125 },
+        },
+    },
+
+    // === SUPPORT PHASE ===
+    {
+        id: 'T101',
+        name: 'Incident Resolution',
+        phaseId: 6,
+        category: 'Support',
+        estimates: {
+            low: { days: 1, hours: 2, percentage: 0.25 },
+            medium: { days: 2, hours: 4, percentage: 0.25 },
+            high: { days: 3, hours: 6, percentage: 0.25 },
+            sophisticated: { days: 5, hours: 8, percentage: 0.2 },
+        },
+    },
+    {
+        id: 'T102',
+        name: 'Service Request',
+        phaseId: 6,
+        category: 'Support',
+        estimates: {
+            low: { days: 1, hours: 1, percentage: 0.125 },
+            medium: { days: 2, hours: 2, percentage: 0.125 },
+            high: { days: 4, hours: 3, percentage: 0.09 },
+            sophisticated: { days: 6, hours: 4, percentage: 0.08 },
+        },
+    },
+    {
+        id: 'T103',
+        name: 'System Monitoring',
+        phaseId: 6,
+        category: 'Support',
+        estimates: {
+            low: { days: 1, hours: 1, percentage: 0.125 },
+            medium: { days: 1, hours: 2, percentage: 0.25 },
+            high: { days: 2, hours: 3, percentage: 0.19 },
+            sophisticated: { days: 3, hours: 4, percentage: 0.17 },
+        },
+    },
+
+    // === TERMINAL PHASES ===
+    {
+        id: 'T901',
+        name: 'Idle',
+        phaseId: 7,
+        category: 'Terminal',
         estimates: {
             low: { days: 0, hours: 0, percentage: 0 },
             medium: { days: 0, hours: 0, percentage: 0 },
             high: { days: 0, hours: 0, percentage: 0 },
+            sophisticated: { days: 0, hours: 0, percentage: 0 },
+        },
+    },
+    {
+        id: 'T902',
+        name: 'Completed',
+        phaseId: 8,
+        category: 'Terminal',
+        estimates: {
+            low: { days: 0, hours: 0, percentage: 0 },
+            medium: { days: 0, hours: 0, percentage: 0 },
+            high: { days: 0, hours: 0, percentage: 0 },
+            sophisticated: { days: 0, hours: 0, percentage: 0 },
         },
     },
 ];

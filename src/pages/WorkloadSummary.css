@@ -80,6 +80,56 @@
     color: var(--color-success);
 }
 
+.workload-summary .stat-icon-wrapper.cyan {
+    background: #e0f7fa;
+    color: #0891b2;
+}
+
+/* Availability Summary Card */
+.workload-summary .availability-card .stat-content {
+    flex: 1;
+}
+
+.workload-summary .availability-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.workload-summary .availability-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+}
+
+.workload-summary .availability-row .availability-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+.workload-summary .availability-row.available .availability-dot {
+    background: var(--color-success);
+}
+
+.workload-summary .availability-row.booked .availability-dot {
+    background: var(--color-danger);
+}
+
+.workload-summary .availability-row.next {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+}
+
+.workload-summary .availability-row.next .availability-date {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+    margin-left: auto;
+}
+
 .workload-summary .stat-content {
     flex: 1;
     min-width: 0;
