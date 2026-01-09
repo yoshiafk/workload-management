@@ -84,12 +84,49 @@ Shows a member's total workload relative to their individual maximum capacity.
 - **Date Logic**: date-fns
 - **State Management**: React Context API
 
-Next Adjustment
-- Task Name include new columen demand number
-- Role Tiering for Resource Cost
--- Misal BA itu min 10 Max 12
---- BA1 10 - 11
---- BA2 11 - 13
-- Capture untuk Operation not just IT
+Follow Up Task
 
 Then, after task created and working on it, usually we update it with the actual start and actual end date right? so by that flow we can calculated actual cost (if cost involved like for project) and close the open task, do research on best prctice to implement this
+
+Final Update Task Management
+-- Role
+--- Fullstack Developer - Include Cost Calculation
+--- DevOps
+--- FinOps
+--- Solution Architect
+--- DB Admin
+--- Application Support
+--- Helpdesk Management
+--- Cloud Engineer
+-- Phase
+--- Initiation
+--- Planning
+--- Execution
+--- Monitoring & Controlling
+--- Closing
+-- Task Type
+--- Bug Fix
+--- Feature Development
+--- Infrastructure Setup
+--- Security Audit
+-- Task Priority
+--- Low
+--- Medium
+--- High
+--- Critical
+-- Task Status
+--- Open
+--- In Progress
+--- Under Review
+--- Completed
+--- On Hold
+-- Task Tags
+--- UI/UX
+--- Backend
+--- Database
+--- API
+--- Testing
+--- Documentation
+-- Task Description - Rich Text Editor
+-- Actual Start Date
+-- Actual End Date
