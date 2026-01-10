@@ -257,6 +257,19 @@
     font-size: var(--font-size-xs);
 }
 
+/* Muted link style */
+.link-muted {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    transition: color var(--transition-fast);
+}
+
+.link-muted:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
 /* Phases List */
 .phases-list {
     display: flex;
@@ -556,4 +569,95 @@
     color: var(--color-text-secondary);
     cursor: default;
     font-weight: var(--font-weight-medium);
+}
+
+/* Cost Tracking Settings */
+.cost-tracking-settings {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-5);
+}
+
+.settings-card-header {
+    margin-bottom: var(--spacing-4);
+}
+
+.settings-card-header h3 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-1) 0;
+}
+
+.settings-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.cost-tracking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.cost-tracking-item {
+    display: flex;
+    align-items: center;
+}
+
+/* Toggle Switch */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-checkbox {
+    display: none;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-fast);
+}
+
+.toggle-checkbox:checked+.toggle-switch {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.toggle-checkbox:checked+.toggle-switch::after {
+    left: 20px;
+}
+
+.toggle-text {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.toggle-checkbox:not(:checked)~.toggle-text {
+    color: var(--color-text-muted);
 }

@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp, ACTIONS } from '../../context/AppContext';
 import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
 import { defaultRoleTiers, getRoleOptions, roleHasCostTracking } from '../../data/defaultRoleTiers';
@@ -141,7 +142,7 @@ export default function TeamMembers() {
                                 <td>
                                     {(() => {
                                         const costTier = state.costs.find(c => c.id === member.costTierId);
-                                        return costTier ? costTier.resourceName : <span className="text-muted">Not linked</span>;
+                                        return costTier ? costTier.resourceName : <Link to="/workload-management/library/costs" className="link-muted">Not linked →</Link>;
                                     })()}
                                 </td>
                                 <td>{member.maxHoursPerWeek}h</td>

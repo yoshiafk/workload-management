@@ -3,7 +3,8 @@
  * Full table with CRUD and auto-calculations
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useApp, ACTIONS } from '../context/AppContext';
 import { Modal, ModalFooter, FormInput, ConfirmDialog, RichTextEditor } from '../components/ui';
 import {
@@ -61,6 +62,7 @@ const emptyAllocation = {
 export default function ResourceAllocation() {
     const { state, dispatch } = useApp();
     const { members, phases, tasks, allocations, holidays, leaves, complexity, costs } = state;
+    const [searchParams] = useSearchParams();
 
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -77,7 +79,22 @@ export default function ResourceAllocation() {
     // Filter states
     const [filterResource, setFilterResource] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterComplexity, setFilterComplexity] = useState('');
     const [searchText, setSearchText] = useState('');
+
+    // Read URL query parameters on mount
+    useEffect(() => {
+        const resource = searchParams.get('resource');
+        const category = searchParams.get('category');
+        const complexityParam = searchParams.get('complexity');
+        const status = searchParams.get('status');
+
+        if (resource) setFilterResource(resource);
+        if (category) setFilterCategory(category);
+        if (complexityParam) setFilterComplexity(complexityParam);
+        if (status) setFilterStatus(status);
+    }, [searchParams]);
 
     // Filtered allocations
     const filteredAllocations = useMemo(() => {
@@ -86,6 +103,10 @@ export default function ResourceAllocation() {
             if (filterResource && a.resource !== filterResource) return false;
             // Status filter
             if (filterStatus && a.status !== filterStatus) return false;
+            // Category filter
+            if (filterCategory && a.category?.toLowerCase() !== filterCategory.toLowerCase()) return false;
+            // Complexity filter
+            if (filterComplexity && a.complexity?.toLowerCase() !== filterComplexity.toLowerCase()) return false;
             // Search text (activity name, demand number)
             if (searchText) {
                 const search = searchText.toLowerCase();
@@ -96,7 +117,7 @@ export default function ResourceAllocation() {
             }
             return true;
         });
-    }, [allocations, filterResource, filterStatus, searchText]);
+    }, [allocations, filterResource, filterStatus, filterCategory, filterComplexity, searchText]);
 
     // Dropdown options
     const memberOptions = members.map(m => ({ value: m.name, label: m.name }));
@@ -426,21 +447,25 @@ export default function ResourceAllocation() {
                         ))}
                     </select>
                 </div>
-                {(searchText || filterResource || filterStatus) && (
+                {(searchText || filterResource || filterStatus || filterCategory || filterComplexity) && (
                     <button
                         className="btn btn-secondary btn-sm"
                         onClick={() => {
                             setSearchText('');
                             setFilterResource('');
                             setFilterStatus('');
+                            setFilterCategory('');
+                            setFilterComplexity('');
                         }}
                     >
                         Clear Filters
                     </button>
                 )}
-                <span className="filter-count">
-                    {filteredAllocations.length} of {allocations.length}
-                </span>
+                {(allocations.length > 0 || searchText || filterResource || filterStatus || filterCategory || filterComplexity) && (
+                    <span className="filter-count">
+                        {filteredAllocations.length} of {allocations.length}
+                    </span>
+                )}
             </div>
 
             <div className="allocation-table-container">

@@ -89,6 +89,16 @@ const initialState = {
     settings: {
         currency: 'IDR',
         theme: 'dark',
+        costTrackingByRole: {
+            BA: true,
+            PM: true,
+            FULLSTACK: true,
+            BACKEND: true,
+            FRONTEND: true,
+            QA: true,
+            DEVOPS: false,
+            UIUX: false,
+        },
     },
     isLoaded: false,
 };
@@ -294,7 +304,7 @@ export function AppProvider({ children }) {
             const holidays = loadFromStorage('holidays', null);
             const leaves = loadFromStorage('leaves', []);
             const allocations = loadFromStorage('allocations', []);
-            const settings = loadFromStorage('settings', { currency: 'IDR', theme: 'dark' });
+            const settings = loadFromStorage('settings', initialState.settings);
 
             // Fetch holidays from API (with cache and fallback)
             const fetchedHolidays = await getHolidaysWithFallback();

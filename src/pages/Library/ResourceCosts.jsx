@@ -181,6 +181,43 @@ export default function ResourceCosts() {
                 </button>
             </div>
 
+            {/* Cost Tracking Settings Section */}
+            <div className="settings-card cost-tracking-settings">
+                <div className="settings-card-header">
+                    <h3>Cost Tracking by Role</h3>
+                    <span className="settings-hint">Toggle which roles should be included in cost calculations</span>
+                </div>
+                <div className="cost-tracking-grid">
+                    {Object.entries(defaultRoleTiers).map(([roleKey, role]) => {
+                        const isEnabled = state.settings?.costTrackingByRole?.[roleKey] ?? role.hasCostTracking;
+                        return (
+                            <div key={roleKey} className="cost-tracking-item">
+                                <label className="toggle-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={isEnabled}
+                                        onChange={(e) => {
+                                            dispatch({
+                                                type: ACTIONS.UPDATE_SETTINGS,
+                                                payload: {
+                                                    costTrackingByRole: {
+                                                        ...state.settings?.costTrackingByRole,
+                                                        [roleKey]: e.target.checked
+                                                    }
+                                                }
+                                            });
+                                        }}
+                                        className="toggle-checkbox"
+                                    />
+                                    <span className="toggle-switch"></span>
+                                    <span className="toggle-text">{role.name}</span>
+                                </label>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div className="data-table-container">
                 <table className="data-table">
                     <thead>

@@ -3,7 +3,7 @@
  * Dashboard with statistics, team overview, charts, and task matrix
  */
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend, getMemberTaskAvailability } from '../utils/calculations';
@@ -31,9 +31,33 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 export default function WorkloadSummary() {
     const { state } = useApp();
     const navigate = useNavigate();
-    const { members, allocations, tasks, costs, complexity } = state;
+    const { members, allocations, tasks, costs, complexity, leaves } = state;
 
-    const memberWorkloads = getMemberWorkloads(allocations, members);
+    // Date range filter state
+    const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+
+    // Filter allocations by date range
+    const filteredAllocations = useMemo(() => {
+        if (!dateFilter.start && !dateFilter.end) return allocations;
+
+        return allocations.filter(a => {
+            const taskStart = a.plan?.taskStart ? new Date(a.plan.taskStart) : null;
+            const taskEnd = a.plan?.taskEnd ? new Date(a.plan.taskEnd) : null;
+
+            if (!taskStart || !taskEnd) return false;
+
+            const filterStart = dateFilter.start ? new Date(dateFilter.start) : null;
+            const filterEnd = dateFilter.end ? new Date(dateFilter.end) : null;
+
+            // Task overlaps with filter range
+            if (filterStart && taskEnd < filterStart) return false;
+            if (filterEnd && taskStart > filterEnd) return false;
+
+            return true;
+        });
+    }, [allocations, dateFilter]);
+
+    const memberWorkloads = getMemberWorkloads(filteredAllocations, members);
 
     // Calculate team task availability (max 5 concurrent tasks per member)
     const taskAvailability = useMemo(() => {
@@ -76,7 +100,7 @@ export default function WorkloadSummary() {
             stats[key.toLowerCase()] = 0;
         });
 
-        allocations.forEach(a => {
+        filteredAllocations.forEach(a => {
             const comp = a.complexity?.toLowerCase();
             if (comp && stats.hasOwnProperty(comp)) {
                 stats[comp]++;
@@ -88,12 +112,12 @@ export default function WorkloadSummary() {
             value: stats[level.level.toLowerCase()] || 0,
             color: level.color
         })).filter(d => d.value > 0);
-    }, [allocations, complexity]);
+    }, [filteredAllocations, complexity]);
 
     // Chart data: Allocation by work category (Project/Support/Maintenance)
     const workCategoryChartData = useMemo(() => {
         const stats = { project: 0, support: 0, maintenance: 0 };
-        allocations.forEach(a => {
+        filteredAllocations.forEach(a => {
             const cat = a.category?.toLowerCase() || 'project';
             if (stats.hasOwnProperty(cat)) {
                 stats[cat]++;
@@ -105,17 +129,17 @@ export default function WorkloadSummary() {
             { name: 'Support', value: stats.support, color: '#10b981' },
             { name: 'Maintenance', value: stats.maintenance, color: '#f59e0b' }
         ].filter(d => d.value > 0);
-    }, [allocations]);
+    }, [filteredAllocations]);
 
     // Chart data: Cost Trend
     const costTrendData = useMemo(() => {
-        return calculateMonthlyTrend(allocations);
-    }, [allocations]);
+        return calculateMonthlyTrend(filteredAllocations);
+    }, [filteredAllocations]);
 
     // Chart data: Allocation by Phase
     const phaseChartData = useMemo(() => {
         const phases = {};
-        allocations.forEach(a => {
+        filteredAllocations.forEach(a => {
             const phase = a.phase || 'Unspecified';
             phases[phase] = (phases[phase] || 0) + 1;
         });
@@ -127,7 +151,77 @@ export default function WorkloadSummary() {
                 color: COLORS[index % COLORS.length]
             }))
             .filter(d => d.value > 0);
-    }, [allocations]);
+    }, [filteredAllocations]);
+
+    // Capacity Heatmap Data - next 7 days
+    const heatmapData = useMemo(() => {
+        const days = [];
+        const today = new Date();
+
+        // Generate next 7 days
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            days.push({
+                date: date,
+                label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+            });
+        }
+
+        // Calculate load per member per day
+        return members.slice(0, 5).map(member => {
+            const memberAllocations = allocations.filter(a => a.resource === member.name);
+
+            // Get member's leaves
+            const memberLeaves = (leaves || []).filter(l => l.memberName === member.name);
+
+            const daysData = days.map(day => {
+                // Check if member is on leave this day
+                const isOnLeave = memberLeaves.some(l => {
+                    const start = l.startDate ? new Date(l.startDate) : null;
+                    const end = l.endDate ? new Date(l.endDate) : null;
+                    if (!start || !end) return false;
+                    const dayOnly = new Date(day.date.getFullYear(), day.date.getMonth(), day.date.getDate());
+                    const startOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                    const endOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                    return dayOnly >= startOnly && dayOnly <= endOnly;
+                });
+
+                if (isOnLeave) {
+                    return {
+                        date: day.label,
+                        count: 0,
+                        status: 'leave'
+                    };
+                }
+
+                // Count active allocations on this day
+                const activeCount = memberAllocations.filter(a => {
+                    const start = a.plan?.taskStart ? new Date(a.plan.taskStart) : null;
+                    const end = a.plan?.taskEnd ? new Date(a.plan.taskEnd) : null;
+                    if (!start || !end) return false;
+                    return day.date >= start && day.date <= end;
+                }).length;
+
+                // Determine status
+                let status = 'available';
+                if (activeCount >= 5) status = 'at-capacity';
+                else if (activeCount >= 3) status = 'limited';
+                else if (activeCount >= 1) status = 'busy';
+
+                return {
+                    date: day.label,
+                    count: activeCount,
+                    status
+                };
+            });
+
+            return {
+                member: member.name,
+                days: daysData
+            };
+        });
+    }, [members, allocations, leaves]);
 
     // Total project cost
     const totalCost = useMemo(() => {
@@ -162,8 +256,78 @@ export default function WorkloadSummary() {
         return { availableNow, fullyBooked, nextAvailable };
     }, [taskAvailability]);
 
+    // Chart click handlers - navigate to filtered allocation view
+    const handleCategoryClick = (data) => {
+        if (data && data.name) {
+            navigate(`/workload-management/allocation?category=${data.name.toLowerCase()}`);
+        }
+    };
+
+    const handleComplexityClick = (data) => {
+        if (data && data.name) {
+            navigate(`/workload-management/allocation?complexity=${data.name.toLowerCase()}`);
+        }
+    };
+
+    const handleMemberClick = (data) => {
+        if (data && data.name) {
+            navigate(`/workload-management/allocation?resource=${encodeURIComponent(data.name)}`);
+        }
+    };
+
     return (
         <div className="workload-summary">
+            {/* Quick Actions Bar */}
+            <div className="quick-actions-bar">
+                <div className="quick-actions-left">
+                    <h2 className="page-title">Dashboard</h2>
+                    <span className="page-subtitle">Overview of team workload and resource utilization</span>
+                </div>
+                <div className="quick-actions-center">
+                    <div className="date-filter">
+                        <label className="date-filter-label">Date Range:</label>
+                        <input
+                            type="date"
+                            className="date-input"
+                            value={dateFilter.start}
+                            onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
+                        />
+                        <span className="date-separator">to</span>
+                        <input
+                            type="date"
+                            className="date-input"
+                            value={dateFilter.end}
+                            onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
+                        />
+                        {(dateFilter.start || dateFilter.end) && (
+                            <button
+                                className="date-clear-btn"
+                                onClick={() => setDateFilter({ start: '', end: '' })}
+                                title="Clear dates"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div className="quick-actions-right">
+                    <a href="/workload-management/allocation" className="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M3 9h18" />
+                        </svg>
+                        View All Tasks
+                    </a>
+                    <a href="/workload-management/allocation?action=add" className="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Add Allocation
+                    </a>
+                </div>
+            </div>
+
             {/* Stats Overview */}
             <section className="stats-section">
                 <div className="stats-grid">
@@ -258,6 +422,46 @@ export default function WorkloadSummary() {
                 </div>
             </section>
 
+            {/* Capacity Heatmap Section */}
+            <section className="heatmap-section">
+                <div className="heatmap-card">
+                    <div className="heatmap-header">
+                        <h3 className="heatmap-title">Team Capacity - Next 7 Days</h3>
+                        <div className="heatmap-legend">
+                            <span className="legend-item"><span className="legend-dot available"></span> Available</span>
+                            <span className="legend-item"><span className="legend-dot busy"></span> Busy</span>
+                            <span className="legend-item"><span className="legend-dot limited"></span> Limited</span>
+                            <span className="legend-item"><span className="legend-dot at-capacity"></span> At Capacity</span>
+                            <span className="legend-item"><span className="legend-dot leave"></span> Leave</span>
+                        </div>
+                    </div>
+                    <div className="heatmap-grid">
+                        <div className="heatmap-row heatmap-header-row">
+                            <div className="heatmap-cell heatmap-member-cell">Member</div>
+                            {heatmapData[0]?.days.map((day, idx) => (
+                                <div key={idx} className="heatmap-cell heatmap-day-header">
+                                    {day.date}
+                                </div>
+                            ))}
+                        </div>
+                        {heatmapData.map((row, idx) => (
+                            <div key={idx} className="heatmap-row">
+                                <div className="heatmap-cell heatmap-member-cell">{row.member}</div>
+                                {row.days.map((day, dayIdx) => (
+                                    <div
+                                        key={dayIdx}
+                                        className={`heatmap-cell heatmap-status-cell ${day.status}`}
+                                        title={`${row.member}: ${day.count} tasks on ${day.date}`}
+                                    >
+                                        {day.count > 0 ? day.count : ''}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Charts Section */}
             <section className="section charts-section">
                 <div className="charts-grid">
@@ -290,7 +494,7 @@ export default function WorkloadSummary() {
                                                 fontSize: '12px',
                                             }}
                                         />
-                                        <Bar dataKey="workload" name="Workload %" radius={[4, 4, 0, 0]}>
+                                        <Bar dataKey="workload" name="Workload %" radius={[4, 4, 0, 0]} onClick={handleMemberClick} style={{ cursor: 'pointer' }}>
                                             {workloadChartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
@@ -298,7 +502,16 @@ export default function WorkloadSummary() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No allocation data yet</div>
+                                <div className="chart-empty">
+                                    <div className="chart-empty-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                            <circle cx="9" cy="7" r="4" />
+                                        </svg>
+                                    </div>
+                                    <p className="chart-empty-text">No team workload data yet</p>
+                                    <a href="/workload-management/allocation" className="chart-empty-cta">+ Add Allocation</a>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -318,6 +531,8 @@ export default function WorkloadSummary() {
                                             outerRadius={80}
                                             paddingAngle={3}
                                             dataKey="value"
+                                            onClick={handleCategoryClick}
+                                            style={{ cursor: 'pointer' }}
                                         >
                                             {workCategoryChartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -339,7 +554,17 @@ export default function WorkloadSummary() {
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No category data yet</div>
+                                <div className="chart-empty">
+                                    <div className="chart-empty-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <rect x="3" y="3" width="7" height="7" />
+                                            <rect x="14" y="3" width="7" height="7" />
+                                            <rect x="14" y="14" width="7" height="7" />
+                                            <rect x="3" y="14" width="7" height="7" />
+                                        </svg>
+                                    </div>
+                                    <p className="chart-empty-text">No category data yet</p>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -359,6 +584,8 @@ export default function WorkloadSummary() {
                                             outerRadius={80}
                                             paddingAngle={3}
                                             dataKey="value"
+                                            onClick={handleComplexityClick}
+                                            style={{ cursor: 'pointer' }}
                                         >
                                             {complexityChartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -380,7 +607,14 @@ export default function WorkloadSummary() {
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No complexity data yet</div>
+                                <div className="chart-empty">
+                                    <div className="chart-empty-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                        </svg>
+                                    </div>
+                                    <p className="chart-empty-text">No complexity data yet</p>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -430,7 +664,16 @@ export default function WorkloadSummary() {
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No cost data available</div>
+                                <div className="chart-empty">
+                                    <div className="chart-empty-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <line x1="12" y1="1" x2="12" y2="23" />
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                        </svg>
+                                    </div>
+                                    <p className="chart-empty-text">No cost data available</p>
+                                    <a href="/workload-management/library/costs" className="chart-empty-cta">Setup Costs</a>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -471,7 +714,14 @@ export default function WorkloadSummary() {
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty">No phase data available</div>
+                                <div className="chart-empty">
+                                    <div className="chart-empty-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                        </svg>
+                                    </div>
+                                    <p className="chart-empty-text">No phase data available</p>
+                                </div>
                             )}
                         </div>
                     </div>
