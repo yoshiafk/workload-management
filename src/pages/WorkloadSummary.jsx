@@ -72,13 +72,6 @@ export default function WorkloadSummary() {
             .slice(0, 5);
     };
 
-    // Count tasks by member for matrix
-    const getTaskCount = (taskName, memberName) => {
-        return allocations.filter(a =>
-            a.taskName === taskName && a.resource === memberName
-        ).length;
-    };
-
     // Calculate stats
     const activeCount = allocations.filter(a => a.taskName !== 'Completed' && a.taskName !== 'Idle').length;
     const completedCount = allocations.filter(a => a.taskName === 'Completed').length;
@@ -153,7 +146,7 @@ export default function WorkloadSummary() {
             .filter(d => d.value > 0);
     }, [filteredAllocations]);
 
-    // Capacity Heatmap Data - next 7 days
+    // Capacity Heatmap Data - next 7 days (for all members)
     const heatmapData = useMemo(() => {
         const days = [];
         const today = new Date();
@@ -164,12 +157,13 @@ export default function WorkloadSummary() {
             date.setDate(today.getDate() + i);
             days.push({
                 date: date,
-                label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+                shortLabel: date.toLocaleDateString('en-US', { weekday: 'narrow' })
             });
         }
 
-        // Calculate load per member per day
-        return members.slice(0, 5).map(member => {
+        // Calculate load per member per day (all members now)
+        return members.map(member => {
             const memberAllocations = allocations.filter(a => a.resource === member.name);
 
             // Get member's leaves
@@ -467,25 +461,32 @@ export default function WorkloadSummary() {
             {/* Charts Section */}
             <section className="section charts-section">
                 <div className="charts-grid">
-                    {/* Workload by Member */}
+                    {/* Workload by Member - Horizontal Bar Chart */}
                     <div className="chart-card">
                         <h3 className="chart-title">Workload Capacity Utilization (%)</h3>
-                        <div className="chart-container">
+                        <div className="chart-container chart-container-tall">
                             {workloadChartData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={workloadChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <ResponsiveContainer width="100%" height={Math.max(250, workloadChartData.length * 36)}>
+                                    <BarChart
+                                        data={workloadChartData}
+                                        layout="vertical"
+                                        margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                                    >
                                         <XAxis
-                                            dataKey="name"
-                                            fontSize={12}
+                                            type="number"
+                                            fontSize={11}
                                             tickLine={false}
                                             axisLine={false}
+                                            domain={[0, (dataMax) => Math.max(100, dataMax + 10)]}
+                                            tickFormatter={(value) => `${value}%`}
                                         />
                                         <YAxis
-                                            fontSize={12}
+                                            type="category"
+                                            dataKey="name"
+                                            fontSize={11}
                                             tickLine={false}
                                             axisLine={false}
-                                            domain={[0, (dataMax) => Math.max(100, dataMax + 20)]}
-                                            tickFormatter={(value) => `${value}%`}
+                                            width={75}
                                         />
                                         <Tooltip
                                             formatter={(value) => [`${value}%`, 'Workload']}
@@ -496,7 +497,14 @@ export default function WorkloadSummary() {
                                                 fontSize: '12px',
                                             }}
                                         />
-                                        <Bar dataKey="workload" name="Workload %" radius={[4, 4, 0, 0]} onClick={handleMemberClick} style={{ cursor: 'pointer' }}>
+                                        <Bar
+                                            dataKey="workload"
+                                            name="Workload %"
+                                            radius={[0, 4, 4, 0]}
+                                            onClick={handleMemberClick}
+                                            style={{ cursor: 'pointer' }}
+                                            barSize={20}
+                                        >
                                             {workloadChartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
@@ -642,10 +650,17 @@ export default function WorkloadSummary() {
                                             axisLine={false}
                                         />
                                         <YAxis
-                                            fontSize={12}
+                                            fontSize={11}
                                             tickLine={false}
                                             axisLine={false}
-                                            tickFormatter={(value) => `${value / 1000000}M`}
+                                            tickFormatter={(value) => {
+                                                if (value === 0) return 'Rp 0';
+                                                if (value >= 1000000000) return `Rp ${(value / 1000000000).toFixed(1)}M`;
+                                                if (value >= 1000000) return `Rp ${(value / 1000000).toFixed(0)}Jt`;
+                                                if (value >= 1000) return `Rp ${(value / 1000).toFixed(0)}Rb`;
+                                                return `Rp ${value}`;
+                                            }}
+                                            width={70}
                                         />
                                         <Tooltip
                                             formatter={(value) => formatCurrency(value)}
@@ -730,142 +745,80 @@ export default function WorkloadSummary() {
                 </div>
             </section>
 
-            {/* Team Overview with Task Availability */}
-            <section className="section">
+            {/* Team Overview - Compact Heatmap Cards */}
+            <section className="section team-overview-section">
                 <div className="section-header">
                     <h2 className="section-title">Team Overview</h2>
-                    <p className="section-subtitle">Task assignments and availability (max 5 concurrent tasks per member)</p>
+                    <p className="section-subtitle">7-day availability at a glance (max 5 concurrent tasks per member)</p>
                 </div>
 
-                <div className="member-grid">
+                <div className="member-grid compact">
                     {members.map(member => {
-                        const topTasks = getTopTasks(member.name);
                         const workload = memberWorkloads.find(w => w.name === member.name);
                         const availability = taskAvailability.find(a => a.memberName === member.name);
+                        const memberHeatmap = heatmapData.find(h => h.member === member.name);
 
                         return (
                             <div
                                 key={member.id}
-                                className={`member-card status-${availability?.status || 'available'} clickable`}
+                                className={`member-card-compact status-${availability?.status || 'available'}`}
                                 onClick={() => navigate(`/member/${member.id}`)}
                                 title="Click to view task history"
                             >
-                                <div className="member-header">
-                                    <div className="member-avatar">
+                                {/* Header: Avatar, Name, Status Badge */}
+                                <div className="card-header-compact">
+                                    <div className="member-avatar-compact">
                                         {member.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <div className="member-info">
-                                        <h3 className="member-name">{member.name}</h3>
-                                        <span className="member-role">{defaultRoleTiers[member.type]?.name || member.type}</span>
-                                    </div>
-                                    <div className={`task-count-badge ${availability?.status || 'available'}`}>
-                                        {availability?.currentTaskCount || 0}/{availability?.maxConcurrentTasks || 5}
-                                    </div>
-                                </div>
-
-                                <div className="capacity-container">
-                                    <div className="capacity-header">
-                                        <span className={`utilization-badge ${workload?.percentage > 100 ? 'overloaded' : workload?.percentage > 80 ? 'high' : ''}`}>
-                                            {workload?.percentage?.toFixed(0) || 0}% Utilized
-                                            {workload?.percentage > 100 && (
-                                                <svg className="overload-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                                </svg>
-                                            )}
+                                    <div className="member-info-compact">
+                                        <h3 className="member-name-compact">{member.name}</h3>
+                                        <span className="member-role-compact">
+                                            {defaultRoleTiers[member.type]?.name || member.type}
                                         </span>
                                     </div>
-                                    <div className="capacity-bar-wrapper">
-                                        <div
-                                            className={`capacity-bar ${workload?.percentage > 100 ? 'overloaded' : ''}`}
-                                            style={{ width: `${Math.min(100, workload?.percentage || 0)}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="capacity-stats">
-                                        <span>Current: {workload?.currentHours?.toFixed(1)}h</span>
-                                        <span>Max: {workload?.maxHours?.toFixed(1)}h</span>
+                                    <div className={`status-badge-compact ${availability?.status || 'available'}`}>
+                                        {availability?.hasCapacity ? 'Available' : 'Busy'}
                                     </div>
                                 </div>
 
-                                <div className="task-list">
-                                    {topTasks.length > 0 ? (
-                                        topTasks.map((task, index) => (
-                                            <div key={task.id} className="task-item">
-                                                <div className="task-content">
-                                                    <span className="task-name">{task.activityName}</span>
-                                                    <span className="task-phase">{task.phase}</span>
-                                                </div>
-                                                <span className="task-date">
-                                                    {task.plan?.taskEnd
-                                                        ? new Date(task.plan.taskEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                                        : '—'
-                                                    }
-                                                </span>
+                                {/* Mini Heatmap - 7 days */}
+                                <div className="mini-heatmap">
+                                    <span className="heatmap-label">Next 7 days:</span>
+                                    <div className="heatmap-cells">
+                                        {memberHeatmap?.days.map((day, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`heatmap-cell-mini ${day.status}`}
+                                                title={`${day.date}: ${day.count} task${day.count !== 1 ? 's' : ''}`}
+                                            >
+                                                {day.status === 'leave' ? '—' : (day.count > 0 ? day.count : '')}
                                             </div>
-                                        ))
-                                    ) : (
-                                        <div className="empty-state">
-                                            <p>No active tasks</p>
-                                        </div>
-                                    )}
+                                        ))}
+                                    </div>
+                                    <div className="heatmap-days-labels">
+                                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].slice(0, memberHeatmap?.days.length || 0).map((d, i) => (
+                                            <span key={i} className="day-label">{memberHeatmap?.days[i]?.shortLabel || d}</span>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                {/* Availability Footer */}
-                                <div className="availability-footer">
-                                    <span className="availability-label">Available for new task:</span>
-                                    {availability?.hasCapacity ? (
-                                        <span className="available-now">Now</span>
-                                    ) : (
-                                        <span className="available-date">
-                                            {availability?.availableFrom
-                                                ? new Date(availability.availableFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                                                : '—'
-                                            }
+                                {/* Stats Row */}
+                                <div className="stats-row-compact">
+                                    <div className="stat-item-compact">
+                                        <span className="stat-value-compact">{availability?.currentTaskCount || 0}/{availability?.maxConcurrentTasks || 5}</span>
+                                        <span className="stat-label-compact">tasks</span>
+                                    </div>
+                                    <div className="stat-divider"></div>
+                                    <div className="stat-item-compact">
+                                        <span className={`stat-value-compact ${workload?.percentage > 100 ? 'overloaded' : workload?.percentage > 80 ? 'high' : ''}`}>
+                                            {workload?.percentage?.toFixed(0) || 0}%
                                         </span>
-                                    )}
+                                        <span className="stat-label-compact">utilized</span>
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
-                </div>
-            </section>
-
-            {/* Task Allocation Matrix */}
-            <section className="section">
-                <div className="section-header">
-                    <h2 className="section-title">Task Distribution</h2>
-                    <p className="section-subtitle">Allocation count by task type and team member</p>
-                </div>
-
-                <div className="table-container">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th className="th-task">Task Type</th>
-                                {members.map(member => (
-                                    <th key={member.id} className="th-member">{member.name}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tasks.filter(t => t.name !== 'Idle' && t.name !== 'Completed').map(task => (
-                                <tr key={task.id}>
-                                    <td className="td-task">{task.name}</td>
-                                    {members.map(member => {
-                                        const count = getTaskCount(task.name, member.name);
-                                        return (
-                                            <td key={member.id} className="td-count">
-                                                {count > 0 ? (
-                                                    <span className="count-badge">{count}</span>
-                                                ) : (
-                                                    <span className="count-empty">—</span>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
             </section>
         </div>

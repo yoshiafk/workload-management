@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { defaultRoleTiers } from '../data';
 import './TimelineView.css';
 
 // Get date range for the timeline
@@ -42,7 +43,7 @@ const isToday = (date) => {
 
 export default function TimelineView() {
     const { state } = useApp();
-    const { members, allocations, leaves } = state;
+    const { members, allocations, leaves, holidays } = state;
 
     // View state
     const [viewDays, setViewDays] = useState(14); // 14 days by default
@@ -74,6 +75,12 @@ export default function TimelineView() {
 
             return dateOnly >= startOnly && dateOnly <= endOnly;
         });
+    };
+
+    // Check if date is a holiday
+    const getHoliday = (date) => {
+        const dateString = date.toISOString().split('T')[0];
+        return (holidays || []).find(h => h.date === dateString);
     };
 
     // Check if member is on leave
@@ -170,15 +177,19 @@ export default function TimelineView() {
                     {/* Header Row - Dates */}
                     <div className="timeline-row timeline-header-row">
                         <div className="timeline-member-cell">Team Member</div>
-                        {dateRange.map((date, idx) => (
-                            <div
-                                key={idx}
-                                className={`timeline-date-cell ${isWeekend(date) ? 'weekend' : ''} ${isToday(date) ? 'today' : ''}`}
-                            >
-                                <span className="date-day">{formatDayShort(date)}</span>
-                                <span className="date-num">{date.getDate()}</span>
-                            </div>
-                        ))}
+                        {dateRange.map((date, idx) => {
+                            const holiday = getHoliday(date);
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`timeline-date-cell ${isWeekend(date) ? 'weekend' : ''} ${isToday(date) ? 'today' : ''} ${holiday ? 'holiday' : ''}`}
+                                    title={holiday ? holiday.name : undefined}
+                                >
+                                    <span className="date-day">{formatDayShort(date)}</span>
+                                    <span className="date-num">{date.getDate()}</span>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* Member Rows */}
@@ -191,7 +202,7 @@ export default function TimelineView() {
                                 <div className="member-info-compact">
                                     <span className="member-name-text">{member.name}</span>
                                     <span className="member-role-text">
-                                        {(member.skills || []).slice(0, 2).join(', ') || 'No skills'}
+                                        {defaultRoleTiers[member.type]?.name || member.type}
                                     </span>
                                 </div>
                             </div>
@@ -199,11 +210,13 @@ export default function TimelineView() {
                             {dateRange.map((date, idx) => {
                                 const tasks = getMemberTasks(member.name, date);
                                 const onLeave = isOnLeave(member.name, date);
+                                const holiday = getHoliday(date);
                                 const taskCount = tasks.length;
 
                                 let cellClass = 'timeline-task-cell';
                                 if (isWeekend(date)) cellClass += ' weekend';
                                 if (isToday(date)) cellClass += ' today';
+                                if (holiday) cellClass += ' holiday';
                                 if (onLeave) cellClass += ' leave';
                                 else if (taskCount >= 5) cellClass += ' overloaded';
                                 else if (taskCount >= 3) cellClass += ' busy';
@@ -214,11 +227,13 @@ export default function TimelineView() {
                                         key={idx}
                                         className={cellClass}
                                         title={
-                                            onLeave
-                                                ? `${member.name}: On leave`
-                                                : tasks.length > 0
-                                                    ? `${member.name}: ${tasks.length} task(s)\n${tasks.map(t => t.activityName).join('\n')}`
-                                                    : `${member.name}: Available`
+                                            holiday
+                                                ? `Holiday: ${holiday.name}`
+                                                : onLeave
+                                                    ? `${member.name}: On leave`
+                                                    : tasks.length > 0
+                                                        ? `${member.name}: ${tasks.length} task(s)\n${tasks.map(t => t.activityName).join('\n')}`
+                                                        : `${member.name}: Available`
                                         }
                                     >
                                         {onLeave ? (
@@ -268,6 +283,10 @@ export default function TimelineView() {
                 <div className="legend-item">
                     <span className="legend-dot leave"></span>
                     <span>On Leave</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-dot holiday"></span>
+                    <span>Holiday</span>
                 </div>
             </div>
         </div>

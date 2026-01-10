@@ -127,6 +127,9 @@
 /* Member Cell */
 .timeline-member-cell {
     flex: 0 0 200px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
     padding: var(--spacing-3) var(--spacing-4);
     display: flex;
     align-items: center;
@@ -136,6 +139,7 @@
     left: 0;
     background: inherit;
     z-index: 10;
+    overflow: hidden;
 }
 
 .timeline-header-row .timeline-member-cell {
@@ -164,6 +168,7 @@
     flex-direction: column;
     gap: 1px;
     min-width: 0;
+    overflow: hidden;
 }
 
 .member-name-text {
@@ -192,6 +197,11 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    border-right: 1px solid var(--color-border);
+}
+
+.timeline-date-cell:last-child {
+    border-right: none;
 }
 
 .date-day {
@@ -224,12 +234,22 @@
     color: var(--color-primary);
 }
 
+.timeline-task-cell.holiday,
+.timeline-date-cell.holiday {
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.timeline-date-cell.holiday .date-num {
+    color: var(--color-danger);
+    font-weight: var(--font-weight-bold);
+}
+
 /* Task Cell */
 .timeline-task-cell {
     flex: 1;
     min-width: 50px;
     min-height: 48px;
-    padding: var(--spacing-1);
+    padding: var(--spacing-2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -264,10 +284,12 @@
 
 .timeline-task-cell.leave {
     background: repeating-linear-gradient(45deg,
-            #e5e7eb,
-            #e5e7eb 4px,
-            #d1d5db 4px,
-            #d1d5db 8px);
+            rgba(239, 68, 68, 0.05),
+            rgba(239, 68, 68, 0.05) 5px,
+            rgba(239, 68, 68, 0.08) 5px,
+            rgba(239, 68, 68, 0.08) 10px);
+    border-right-color: rgba(239, 68, 68, 0.2);
+    z-index: 1;
 }
 
 .leave-text {
@@ -348,11 +370,16 @@
 
 .legend-dot.leave {
     background: repeating-linear-gradient(45deg,
-            #e5e7eb,
-            #e5e7eb 3px,
-            #d1d5db 3px,
-            #d1d5db 6px);
-    border: 1px solid #9ca3af;
+            rgba(239, 68, 68, 0.2),
+            rgba(239, 68, 68, 0.2) 2px,
+            rgba(239, 68, 68, 0.4) 2px,
+            rgba(239, 68, 68, 0.4) 4px);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.legend-dot.holiday {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Responsive */

@@ -47,9 +47,10 @@ export default function FormInput({
 
         switch (type) {
             case 'select':
+                const hasEmptyOption = options.some(opt => opt.value === '');
                 return (
                     <select {...commonProps} className="form-select">
-                        <option value="">Select...</option>
+                        {!hasEmptyOption && <option value="">Select...</option>}
                         {options.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                                 {opt.label}

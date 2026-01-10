@@ -10,13 +10,6 @@ import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/u
 import { defaultRoleTiers, getRoleOptions, roleHasCostTracking } from '../../data/defaultRoleTiers';
 import './LibraryPage.css';
 
-// Common skill suggestions
-const SKILL_SUGGESTIONS = [
-    'React', 'Node.js', 'Python', 'Java', 'SQL', 'AWS', 'Docker', 'Kubernetes',
-    'TypeScript', 'JavaScript', 'API Design', 'System Design', 'DevOps', 'CI/CD',
-    'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API', 'Agile', 'Scrum'
-];
-
 // Generate unique ID
 const generateId = () => `MEM-${Date.now().toString(36).toUpperCase()}`;
 
@@ -28,7 +21,6 @@ const emptyMember = {
     maxHoursPerWeek: 40,
     costTierId: '',
     isActive: true,
-    skills: [],
 };
 
 export default function TeamMembers() {
@@ -43,30 +35,6 @@ export default function TeamMembers() {
     // Form state
     const [formData, setFormData] = useState(emptyMember);
     const [errors, setErrors] = useState({});
-    const [skillInput, setSkillInput] = useState('');
-
-    // Skill handlers
-    const handleAddSkill = (skill) => {
-        const trimmed = skill.trim();
-        if (trimmed && !formData.skills.includes(trimmed)) {
-            setFormData(prev => ({ ...prev, skills: [...prev.skills, trimmed] }));
-        }
-        setSkillInput('');
-    };
-
-    const handleRemoveSkill = (skillToRemove) => {
-        setFormData(prev => ({
-            ...prev,
-            skills: prev.skills.filter(s => s !== skillToRemove)
-        }));
-    };
-
-    const handleSkillKeyDown = (e) => {
-        if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            handleAddSkill(skillInput);
-        }
-    };
 
     // Open add modal
     const handleAdd = () => {
@@ -156,7 +124,6 @@ export default function TeamMembers() {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Role</th>
-                            <th>Skills</th>
                             <th>Cost Tier</th>
                             <th>Max Hours/Week</th>
                             <th>Status</th>
@@ -172,16 +139,6 @@ export default function TeamMembers() {
                                     <span className={`type-badge ${member.type.toLowerCase()}`}>
                                         {defaultRoleTiers[member.type]?.name || member.type}
                                     </span>
-                                </td>
-                                <td className="cell-skills">
-                                    <div className="skill-tags-inline">
-                                        {(member.skills || []).slice(0, 3).map(skill => (
-                                            <span key={skill} className="skill-tag-mini">{skill}</span>
-                                        ))}
-                                        {(member.skills || []).length > 3 && (
-                                            <span className="skill-tag-more">+{member.skills.length - 3}</span>
-                                        )}
-                                    </div>
                                 </td>
                                 <td>
                                     {(() => {
@@ -287,49 +244,6 @@ export default function TeamMembers() {
                         <span className="text-muted">Cost tracking is not enabled for {defaultRoleTiers[formData.type]?.name || formData.type}</span>
                     </div>
                 )}
-                {/* Skills Input */}
-                <div className="form-group">
-                    <label className="form-label">Skills</label>
-                    <div className="skill-input-container">
-                        <div className="skill-tags-display">
-                            {formData.skills.map(skill => (
-                                <span key={skill} className="skill-tag">
-                                    {skill}
-                                    <button
-                                        type="button"
-                                        className="skill-tag-remove"
-                                        onClick={() => handleRemoveSkill(skill)}
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                        <input
-                            type="text"
-                            className="form-input skill-input"
-                            value={skillInput}
-                            onChange={(e) => setSkillInput(e.target.value)}
-                            onKeyDown={handleSkillKeyDown}
-                            placeholder="Type skill and press Enter"
-                        />
-                        <div className="skill-suggestions">
-                            {SKILL_SUGGESTIONS
-                                .filter(s => !formData.skills.includes(s))
-                                .slice(0, 6)
-                                .map(skill => (
-                                    <button
-                                        key={skill}
-                                        type="button"
-                                        className="skill-suggestion"
-                                        onClick={() => handleAddSkill(skill)}
-                                    >
-                                        + {skill}
-                                    </button>
-                                ))}
-                        </div>
-                    </div>
-                </div>
                 <FormInput
                     label="Active"
                     name="isActive"

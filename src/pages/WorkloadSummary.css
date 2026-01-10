@@ -461,7 +461,6 @@
 
 .workload-summary .heatmap-status-cell {
     font-weight: var(--font-weight-semibold);
-    cursor: help;
     transition: transform var(--transition-fast);
 }
 
@@ -539,6 +538,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Tall chart container for horizontal bar charts */
+.workload-summary .chart-container-tall {
+    height: auto;
+    min-height: 250px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .workload-summary .chart-empty {
@@ -1071,7 +1078,6 @@
     width: 12px;
     height: 12px;
     border-radius: var(--radius-full);
-    cursor: help;
 }
 
 .workload-summary .status-dot.available {
@@ -1172,4 +1178,240 @@
 
 .workload-summary .availability-row.status-at-capacity td:first-child {
     border-left-color: var(--color-danger);
+}
+
+/* ========================================
+   COMPACT HEATMAP TEAM MEMBER CARDS
+   ======================================== */
+
+.workload-summary .member-grid.compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-4);
+}
+
+@media (max-width: 640px) {
+    .workload-summary .member-grid.compact {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Compact Card Container */
+.workload-summary .member-card-compact {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.workload-summary .member-card-compact:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Card Header */
+.workload-summary .card-header-compact {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.workload-summary .member-avatar-compact {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: white;
+    flex-shrink: 0;
+}
+
+.workload-summary .member-info-compact {
+    flex: 1;
+    min-width: 0;
+}
+
+.workload-summary .member-name-compact {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.workload-summary .member-role-compact {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Status Badge */
+.workload-summary .status-badge-compact {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.workload-summary .status-badge-compact.available {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.workload-summary .status-badge-compact.limited {
+    background: var(--color-warning-light);
+    color: #b45309;
+}
+
+.workload-summary .status-badge-compact.at-capacity {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* Mini Heatmap */
+.workload-summary .mini-heatmap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--spacing-3);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.workload-summary .heatmap-label {
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.workload-summary .heatmap-cells {
+    display: flex;
+    gap: 4px;
+}
+
+.workload-summary .heatmap-cell-mini {
+    flex: 1;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    transition: transform 0.15s ease;
+    min-width: 28px;
+    max-width: 36px;
+}
+
+.workload-summary .heatmap-cell-mini:hover {
+    transform: scale(1.1);
+}
+
+.workload-summary .heatmap-cell-mini.available {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.workload-summary .heatmap-cell-mini.busy {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.workload-summary .heatmap-cell-mini.limited {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.workload-summary .heatmap-cell-mini.at-capacity {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.workload-summary .heatmap-cell-mini.leave {
+    background: repeating-linear-gradient(45deg,
+            #e5e7eb,
+            #e5e7eb 3px,
+            #d1d5db 3px,
+            #d1d5db 6px);
+    color: #6b7280;
+    font-size: 10px;
+}
+
+.workload-summary .heatmap-days-labels {
+    display: flex;
+    gap: 4px;
+}
+
+.workload-summary .day-label {
+    flex: 1;
+    text-align: center;
+    font-size: 9px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    min-width: 28px;
+    max-width: 36px;
+}
+
+/* Compact Stats Row */
+.workload-summary .stats-row-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-4);
+    padding-top: var(--spacing-2);
+    border-top: 1px solid var(--color-border);
+}
+
+.workload-summary .stat-item-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.workload-summary .stat-value-compact {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: 1;
+}
+
+.workload-summary .stat-value-compact.high {
+    color: var(--color-warning);
+}
+
+.workload-summary .stat-value-compact.overloaded {
+    color: var(--color-danger);
+}
+
+.workload-summary .stat-label-compact {
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.workload-summary .stat-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--color-border);
 }
