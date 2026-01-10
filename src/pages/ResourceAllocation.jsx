@@ -375,6 +375,22 @@ export default function ResourceAllocation() {
         setIsBulkDeleteOpen(false);
     };
 
+    // Bulk status update handler
+    const handleBulkStatusChange = (newStatus) => {
+        if (selectedIds.size === 0 || !newStatus) return;
+
+        selectedIds.forEach(id => {
+            const allocation = allocations.find(a => a.id === id);
+            if (allocation) {
+                dispatch({
+                    type: ACTIONS.UPDATE_ALLOCATION,
+                    payload: { ...allocation, status: newStatus }
+                });
+            }
+        });
+        setSelectedIds(new Set());
+    };
+
     // Format date for display
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -394,13 +410,28 @@ export default function ResourceAllocation() {
                 </div>
                 <div className="header-actions">
                     {selectedIds.size > 0 && (
-                        <button className="btn btn-danger" onClick={handleBulkDeleteClick}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                            Delete ({selectedIds.size})
-                        </button>
+                        <>
+                            <div className="bulk-actions-group">
+                                <span className="bulk-label">{selectedIds.size} selected:</span>
+                                <select
+                                    className="bulk-status-select"
+                                    onChange={(e) => handleBulkStatusChange(e.target.value)}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Change Status...</option>
+                                    {getStatusOptions().map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button className="btn btn-danger" onClick={handleBulkDeleteClick}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                                Delete
+                            </button>
+                        </>
                     )}
                     <button id="btn-add-allocation" className="btn btn-primary" onClick={handleAdd}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -461,7 +492,8 @@ export default function ResourceAllocation() {
                         Clear Filters
                     </button>
                 )}
-                {(allocations.length > 0 || searchText || filterResource || filterStatus || filterCategory || filterComplexity) && (
+                {/* Only show count when filters are active OR there are allocations */}
+                {allocations.length > 0 && (
                     <span className="filter-count">
                         {filteredAllocations.length} of {allocations.length}
                     </span>

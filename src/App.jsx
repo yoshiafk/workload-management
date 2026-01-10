@@ -1,24 +1,26 @@
 /**
  * Main Application Component
- * Sets up routing and global providers
+ * Sets up routing and global providers with lazy-loaded pages
  */
 
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
-import { ErrorBoundary } from './components/ui';
+import { ErrorBoundary, PageLoader } from './components/ui';
 import Layout from './components/layout/Layout';
 
-// Pages
-import WorkloadSummary from './pages/WorkloadSummary';
-import ResourceAllocation from './pages/ResourceAllocation';
-import ImportantDates from './pages/ImportantDates';
-import TeamMembers from './pages/Library/TeamMembers';
-import Phases from './pages/Library/Phases';
-import TaskTemplates from './pages/Library/TaskTemplates';
-import Complexity from './pages/Library/Complexity';
-import ResourceCosts from './pages/Library/ResourceCosts';
-import MemberTaskHistory from './pages/MemberTaskHistory';
-import Settings from './pages/Settings';
+// Lazy-loaded Pages - reduces initial bundle size
+const WorkloadSummary = lazy(() => import('./pages/WorkloadSummary'));
+const ResourceAllocation = lazy(() => import('./pages/ResourceAllocation'));
+const ImportantDates = lazy(() => import('./pages/ImportantDates'));
+const TimelineView = lazy(() => import('./pages/TimelineView'));
+const TeamMembers = lazy(() => import('./pages/Library/TeamMembers'));
+const Phases = lazy(() => import('./pages/Library/Phases'));
+const TaskTemplates = lazy(() => import('./pages/Library/TaskTemplates'));
+const Complexity = lazy(() => import('./pages/Library/Complexity'));
+const ResourceCosts = lazy(() => import('./pages/Library/ResourceCosts'));
+const MemberTaskHistory = lazy(() => import('./pages/MemberTaskHistory'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 import './index.css';
 
@@ -27,27 +29,30 @@ function App() {
     <AppProvider>
       <BrowserRouter basename="/workload-management">
         <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* Dashboard */}
-              <Route index element={<WorkloadSummary />} />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                {/* Dashboard */}
+                <Route index element={<WorkloadSummary />} />
 
-              {/* Management */}
-              <Route path="allocation" element={<ResourceAllocation />} />
-              <Route path="dates" element={<ImportantDates />} />
-              <Route path="member/:memberId" element={<MemberTaskHistory />} />
+                {/* Management */}
+                <Route path="allocation" element={<ResourceAllocation />} />
+                <Route path="timeline" element={<TimelineView />} />
+                <Route path="dates" element={<ImportantDates />} />
+                <Route path="member/:memberId" element={<MemberTaskHistory />} />
 
-              {/* Library (Config) */}
-              <Route path="library/members" element={<TeamMembers />} />
-              <Route path="library/phases" element={<Phases />} />
-              <Route path="library/tasks" element={<TaskTemplates />} />
-              <Route path="library/complexity" element={<Complexity />} />
-              <Route path="library/costs" element={<ResourceCosts />} />
+                {/* Library (Config) */}
+                <Route path="library/members" element={<TeamMembers />} />
+                <Route path="library/phases" element={<Phases />} />
+                <Route path="library/tasks" element={<TaskTemplates />} />
+                <Route path="library/complexity" element={<Complexity />} />
+                <Route path="library/costs" element={<ResourceCosts />} />
 
-              {/* Settings */}
-              <Route path="settings" element={<Settings />} />
-            </Route>
-          </Routes>
+                {/* Settings */}
+                <Route path="settings" element={<Settings />} />
+              </Route>
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </BrowserRouter>
     </AppProvider>

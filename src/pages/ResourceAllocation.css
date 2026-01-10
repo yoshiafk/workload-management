@@ -108,8 +108,8 @@
     text-align: left;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
     color: var(--color-text-secondary);
     padding: var(--spacing-3) var(--spacing-4);
     background: var(--color-bg-tertiary);
@@ -178,6 +178,40 @@
     display: flex;
     gap: var(--spacing-2);
     align-items: center;
+}
+
+/* Bulk Actions */
+.bulk-actions-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.bulk-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.bulk-status-select {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.bulk-status-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
 }
 
 /* Danger Button */

@@ -17,6 +17,7 @@ const navItems = [
         title: 'Management',
         items: [
             { path: '/allocation', label: 'Resource Allocation', icon: 'assignment' },
+            { path: '/timeline', label: 'Timeline', icon: 'timeline' },
             { path: '/dates', label: 'Important Dates', icon: 'calendar' },
         ],
     },
@@ -106,6 +107,16 @@ const icons = {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
             <line x1="1" y1="10" x2="23" y2="10" />
+        </svg>
+    ),
+    timeline: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <rect x="5" y="4" width="8" height="4" rx="1" fill="currentColor" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <rect x="8" y="10" width="10" height="4" rx="1" fill="currentColor" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+            <rect x="4" y="16" width="6" height="4" rx="1" fill="currentColor" />
         </svg>
     ),
     settings: (

@@ -344,7 +344,7 @@
 
 .workload-summary .stat-footer {
     font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
+    color: var(--color-text-secondary);
 }
 
 /* Capacity Heatmap Section */
@@ -490,9 +490,15 @@
 }
 
 .workload-summary .heatmap-status-cell.leave {
-    background: #e5e7eb;
-    color: #9ca3af;
+    background: repeating-linear-gradient(45deg,
+            #e5e7eb,
+            #e5e7eb 4px,
+            #d1d5db 4px,
+            #d1d5db 8px);
+    color: #6b7280;
     font-style: italic;
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
 }
 
 /* Charts Section */
@@ -741,6 +747,51 @@
 /* Capacity Progress Bars */
 .workload-summary .capacity-container {
     margin-bottom: var(--spacing-4);
+}
+
+.workload-summary .capacity-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--spacing-2);
+}
+
+.workload-summary .utilization-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-sm);
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.workload-summary .utilization-badge.high {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.workload-summary .utilization-badge.overloaded {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+    animation: pulse-warning 2s infinite;
+}
+
+.workload-summary .overload-icon {
+    flex-shrink: 0;
+}
+
+@keyframes pulse-warning {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .workload-summary .capacity-bar-wrapper {

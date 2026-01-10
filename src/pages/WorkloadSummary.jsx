@@ -451,9 +451,11 @@ export default function WorkloadSummary() {
                                     <div
                                         key={dayIdx}
                                         className={`heatmap-cell heatmap-status-cell ${day.status}`}
-                                        title={`${row.member}: ${day.count} tasks on ${day.date}`}
+                                        title={day.status === 'leave'
+                                            ? `${row.member}: On leave - ${day.date}`
+                                            : `${row.member}: ${day.count} tasks on ${day.date}`}
                                     >
-                                        {day.count > 0 ? day.count : ''}
+                                        {day.status === 'leave' ? 'Leave' : (day.count > 0 ? day.count : '')}
                                     </div>
                                 ))}
                             </div>
@@ -762,6 +764,16 @@ export default function WorkloadSummary() {
                                 </div>
 
                                 <div className="capacity-container">
+                                    <div className="capacity-header">
+                                        <span className={`utilization-badge ${workload?.percentage > 100 ? 'overloaded' : workload?.percentage > 80 ? 'high' : ''}`}>
+                                            {workload?.percentage?.toFixed(0) || 0}% Utilized
+                                            {workload?.percentage > 100 && (
+                                                <svg className="overload-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                                </svg>
+                                            )}
+                                        </span>
+                                    </div>
                                     <div className="capacity-bar-wrapper">
                                         <div
                                             className={`capacity-bar ${workload?.percentage > 100 ? 'overloaded' : ''}`}

@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/calculations';
+import { defaultRoleTiers } from '../data';
 import './MemberTaskHistory.css';
 
 export default function MemberTaskHistory() {
@@ -80,7 +81,7 @@ export default function MemberTaskHistory() {
                     <div className="member-details">
                         <h1>{member.name}</h1>
                         <span className="member-role">
-                            {member.type === 'BA' ? 'Business Analyst' : 'Project Manager'}
+                            {defaultRoleTiers[member.type]?.name || member.type}
                         </span>
                     </div>
                 </div>
