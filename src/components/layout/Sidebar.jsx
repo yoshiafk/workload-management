@@ -4,6 +4,7 @@
  */
 
 import { NavLink } from 'react-router-dom';
+import logo from '../../assets/logo.svg';
 import './Sidebar.css';
 
 const navItems = [
@@ -132,11 +133,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <aside className={`sidebar glass-nav ${isOpen ? 'sidebar--open' : ''}`}>
             <div className="sidebar-header">
                 <div className="logo">
-                    <div className="logo-mark">W</div>
-                    <div className="logo-content">
-                        <span className="logo-text">Workload</span>
-                        <span className="logo-subtitle">Resource Management</span>
-                    </div>
+                    <img src={logo} alt="Workload" className="h-8 w-auto" />
                 </div>
                 <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

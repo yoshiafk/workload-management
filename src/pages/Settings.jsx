@@ -24,6 +24,7 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
     Download,
     Upload,
