@@ -129,7 +129,7 @@ const icons = {
 
 export default function Sidebar({ isOpen, onClose }) {
     return (
-        <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+        <aside className={`sidebar glass-nav ${isOpen ? 'sidebar--open' : ''}`}>
             <div className="sidebar-header">
                 <div className="logo">
                     <div className="logo-mark">W</div>

@@ -1,8 +1,3 @@
-/**
- * Workload Summary Page
- * Dashboard with statistics, team overview, charts, and task matrix
- */
-
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -25,14 +20,24 @@ import {
 } from 'recharts';
 import './WorkloadSummary.css';
 
-// Chart colors
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Plus, LayoutDashboard, Calendar, Users, ListPlus, Activity, TrendingUp, Clock } from "lucide-react"
+
+// Chart colors - Indigo, Emerald, Amber, Rose, Sky, Slate
+const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#64748b', '#8b5cf6'];
 
 export default function WorkloadSummary() {
     const { state } = useApp();
     const navigate = useNavigate();
     const { members, allocations, tasks, costs, complexity, leaves } = state;
-
     // Date range filter state
     const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
 
@@ -82,7 +87,7 @@ export default function WorkloadSummary() {
             name: w.name,
             workload: parseFloat(w.percentage.toFixed(1)),
             capacity: 100, // Reference line at 100%
-            color: w.percentage > 100 ? '#ef4444' : '#3b82f6'
+            color: w.percentage > 100 ? '#f43f5e' : '#4f46e5'
         }));
     }, [memberWorkloads]);
 
@@ -118,7 +123,7 @@ export default function WorkloadSummary() {
         });
 
         return [
-            { name: 'Project', value: stats.project, color: '#3b82f6' },
+            { name: 'Project', value: stats.project, color: '#4f46e5' },
             { name: 'Support', value: stats.support, color: '#10b981' },
             { name: 'Maintenance', value: stats.maintenance, color: '#f59e0b' }
         ].filter(d => d.value > 0);
@@ -270,151 +275,118 @@ export default function WorkloadSummary() {
     };
 
     return (
-        <div className="workload-summary">
-            {/* Quick Actions Bar */}
-            <div className="quick-actions-bar">
-                <div className="quick-actions-left">
-                    <h2 className="page-title">Dashboard</h2>
-                    <span className="page-subtitle">Overview of team workload and resource utilization</span>
+        <div className="workload-summary space-y-8 animate-in fade-in duration-500">
+            {/* Action Bar */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-4 px-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4 text-indigo-500" />
+                    <span className="text-sm rounded-full bg-indigo-50 px-2.5 py-0.5 font-semibold text-indigo-600 border border-indigo-100">Analytical Overview</span>
                 </div>
-                <div className="quick-actions-center">
-                    <div className="date-filter">
-                        <label className="date-filter-label">Date Range:</label>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+                        <label className="text-xs font-bold text-slate-400 px-2 uppercase tracking-tight">Period:</label>
                         <input
                             type="date"
-                            className="date-input"
+                            className="bg-white border border-slate-200 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-slate-600"
                             value={dateFilter.start}
                             onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
                         />
-                        <span className="date-separator">to</span>
+                        <span className="text-slate-400 text-[10px] font-bold">TO</span>
                         <input
                             type="date"
-                            className="date-input"
+                            className="bg-white border border-slate-200 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-slate-600"
                             value={dateFilter.end}
                             onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
                         />
-                        {(dateFilter.start || dateFilter.end) && (
-                            <button
-                                className="date-clear-btn"
-                                onClick={() => setDateFilter({ start: '', end: '' })}
-                                title="Clear dates"
-                            >
-                                ×
-                            </button>
-                        )}
                     </div>
+                    {(dateFilter.start || dateFilter.end) && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 rounded-full"
+                            onClick={() => setDateFilter({ start: '', end: '' })}
+                        >
+                            <span className="text-lg leading-none">×</span>
+                        </Button>
+                    )}
                 </div>
-                <div className="quick-actions-right">
-                    <a href="/workload-management/allocation" className="btn btn-secondary">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                            <path d="M3 9h18" />
-                        </svg>
-                        View All Tasks
-                    </a>
-                    <a href="/workload-management/allocation?action=add" className="btn btn-primary">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        Add Allocation
-                    </a>
+
+                <div className="flex gap-2">
+                    <Button variant="outline" className="rounded-xl shadow-sm border-slate-200" onClick={() => navigate('/allocation')}>
+                        <LayoutDashboard className="mr-2 h-4 w-4 text-indigo-500" />
+                        View tasks
+                    </Button>
+                    <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-100" onClick={() => navigate('/allocation?action=add')}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add allocation
+                    </Button>
                 </div>
             </div>
 
             {/* Stats Overview */}
-            <section className="stats-section">
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper blue">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Team Members</span>
-                            <div className="stat-value">{members.length}</div>
-                            <div className="stat-footer">Active resources</div>
-                        </div>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <Card className="border-none shadow-md shadow-blue-100/50 bg-white/70 backdrop-blur-md">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-500">Team Members</CardTitle>
+                        <Users className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{members.length}</div>
+                        <p className="text-xs text-slate-400 mt-1">Active resources</p>
+                    </CardContent>
+                </Card>
 
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper purple">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                                <rect x="8" y="2" width="8" height="4" rx="1" />
-                            </svg>
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Total Allocations</span>
-                            <div className="stat-value">{allocations.length}</div>
-                            <div className="stat-footer">Task assignments</div>
-                        </div>
-                    </div>
+                <Card className="border-none shadow-md shadow-purple-100/50 bg-white/70 backdrop-blur-md">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-500">Allocations</CardTitle>
+                        <ListPlus className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{allocations.length}</div>
+                        <p className="text-xs text-slate-400 mt-1">Task assignments</p>
+                    </CardContent>
+                </Card>
 
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper amber">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">In Progress</span>
-                            <div className="stat-value">{activeCount}</div>
-                            <div className="stat-footer">Active tasks</div>
-                        </div>
-                    </div>
+                <Card className="border-none shadow-md shadow-amber-100/50 bg-white/70 backdrop-blur-md">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-500">In Progress</CardTitle>
+                        <Activity className="h-4 w-4 text-amber-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{activeCount}</div>
+                        <p className="text-xs text-slate-400 mt-1">Active tasks</p>
+                    </CardContent>
+                </Card>
 
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper green">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" />
-                                <path d="M16 12h5" />
-                            </svg>
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Total Cost</span>
-                            <div className="stat-value">{formatCurrency(totalCost)}</div>
-                            <div className="stat-footer">Project costs</div>
-                        </div>
-                    </div>
+                <Card className="border-none shadow-md shadow-emerald-100/50 bg-white/70 backdrop-blur-md">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-500">Total Cost</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold truncate">{formatCurrency(totalCost)}</div>
+                        <p className="text-xs text-slate-400 mt-1">Project budget</p>
+                    </CardContent>
+                </Card>
 
-                    {/* Team Availability Summary Card */}
-                    <div className="stat-card availability-card">
-                        <div className="stat-icon-wrapper cyan">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 6v6l4 2" />
-                            </svg>
+                <Card className="border-none shadow-md shadow-cyan-100/50 bg-white/80 backdrop-blur-md border border-cyan-100/50">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-500">Availability</CardTitle>
+                        <Clock className="h-4 w-4 text-cyan-500" />
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                            <span className="text-xs font-semibold text-emerald-700">{availabilitySummary.availableNow} available</span>
                         </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Team Availability</span>
-                            <div className="availability-details">
-                                <div className="availability-row available">
-                                    <span className="availability-dot"></span>
-                                    <span>{availabilitySummary.availableNow} Available Now</span>
-                                </div>
-                                <div className="availability-row booked">
-                                    <span className="availability-dot"></span>
-                                    <span>{availabilitySummary.fullyBooked} Fully Booked</span>
-                                </div>
-                                {availabilitySummary.nextAvailable && (
-                                    <div className="availability-row next">
-                                        <span className="availability-label">Next:</span>
-                                        <span>{availabilitySummary.nextAvailable.name}</span>
-                                        <span className="availability-date">
-                                            {availabilitySummary.nextAvailable.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                            <span className="text-xs font-medium text-slate-600">{availabilitySummary.fullyBooked} Booked</span>
                         </div>
-                    </div>
-                </div>
-            </section>
+                    </CardContent>
+                </Card>
+            </div>
 
             {/* Capacity Heatmap Section */}
             <section className="heatmap-section">
@@ -821,6 +793,6 @@ export default function WorkloadSummary() {
                     })}
                 </div>
             </section>
-        </div>
+        </div >
     );
 }

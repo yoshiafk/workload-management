@@ -74,6 +74,9 @@ const ACTIONS = {
 
     // Settings
     UPDATE_SETTINGS: 'UPDATE_SETTINGS',
+
+    // UI State
+    SET_DIALOG_STATE: 'SET_DIALOG_STATE',
 };
 
 // Initial State
@@ -99,6 +102,9 @@ const initialState = {
             DEVOPS: false,
             UIUX: false,
         },
+    },
+    ui: {
+        isDialogOpen: false,
     },
     isLoaded: false,
 };
@@ -267,6 +273,15 @@ function appReducer(state, action) {
             return {
                 ...state,
                 settings: { ...state.settings, ...action.payload },
+            };
+
+        case ACTIONS.SET_DIALOG_STATE:
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    isDialogOpen: action.payload,
+                },
             };
 
         default:

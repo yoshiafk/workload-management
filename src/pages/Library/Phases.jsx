@@ -1,11 +1,28 @@
-/**
- * Phases Page
- * Full CRUD functionality with modal forms
- */
-
 import { useState } from 'react';
 import { useApp, ACTIONS } from '../../context/AppContext';
-import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+    Plus,
+    Edit2,
+    Trash2,
+    ChevronUp,
+    ChevronDown,
+    Layers,
+    AlertCircle
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import './LibraryPage.css';
 
 // Empty phase template
@@ -92,6 +109,7 @@ export default function Phases() {
         if (phaseToDelete) {
             dispatch({ type: ACTIONS.DELETE_PHASE, payload: phaseToDelete.id });
         }
+        setIsDeleteOpen(false);
         setPhaseToDelete(null);
     };
 
@@ -116,124 +134,169 @@ export default function Phases() {
     };
 
     return (
-        <div className="library-page">
-            <div className="page-header">
-                <h2>Task Phases</h2>
-                <button className="btn btn-primary" onClick={handleAdd}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Add Phase
-                </button>
+        <div className="library-page space-y-6 animate-in fade-in duration-500">
+            {/* Header section with glass effect */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                        <Layers className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Task Phases</h2>
+                        <p className="text-sm text-slate-500 font-medium">Define and order your project workflow</p>
+                    </div>
+                </div>
+
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add phase
+                </Button>
             </div>
 
-            <div className="phases-list">
+            <div className="grid gap-3">
                 {state.phases.map((phase, index) => (
-                    <div key={phase.id} className={`phase-card ${phase.isTerminal ? 'terminal' : ''}`}>
-                        <div className="reorder-buttons">
-                            <button
-                                className="btn-icon btn-reorder"
-                                title="Move Up"
+                    <div
+                        key={phase.id}
+                        className={cn(
+                            "group flex items-center gap-4 p-4 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm transition-all hover:shadow-md hover:border-blue-200",
+                            phase.isTerminal && "opacity-80 grayscale-[0.2]"
+                        )}
+                    >
+                        <div className="flex flex-col gap-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                                 onClick={() => handleMoveUp(index)}
                                 disabled={index === 0}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="18 15 12 9 6 15" />
-                                </svg>
-                            </button>
-                            <button
-                                className="btn-icon btn-reorder"
-                                title="Move Down"
+                                <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                                 onClick={() => handleMoveDown(index)}
                                 disabled={index === state.phases.length - 1}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="6 9 12 15 18 9" />
-                                </svg>
-                            </button>
+                                <ChevronDown className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <div className="phase-number">{index + 1}</div>
-                        <div className="phase-content">
-                            <h3 className="phase-name">{phase.name}</h3>
-                            <p className="phase-tasks">
-                                {phase.tasks.length} task{phase.tasks.length !== 1 ? 's' : ''}
+
+                        <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-slate-100 text-slate-500 font-bold text-lg border border-slate-200">
+                            {index + 1}
+                        </div>
+
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-slate-800">{phase.name}</h3>
+                                {phase.isTerminal && (
+                                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] py-0 px-1.5 uppercase tracking-wide">
+                                        Terminal
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium">
+                                {phase.tasks.length} task templates linked
                             </p>
                         </div>
-                        {phase.isTerminal && (
-                            <span className="terminal-badge">Terminal</span>
-                        )}
-                        <div className="phase-actions">
-                            <button
-                                className="btn-icon"
-                                title="Edit"
-                                onClick={() => handleEdit(phase)}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
-                            </button>
-                            <button
-                                className="btn-icon btn-icon-danger"
-                                title="Delete"
-                                onClick={() => handleDeleteClick(phase)}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="3 6 5 6 21 6" />
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                            </button>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(phase)}>
+                                <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDeleteClick(phase)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                 ))}
+
+                {state.phases.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-slate-400">
+                        <Layers className="h-10 w-10 mb-2 opacity-20" />
+                        <p className="font-medium">No phases defined yet.</p>
+                        <Button variant="link" onClick={handleAdd} className="text-blue-500">Add your first phase</Button>
+                    </div>
+                )}
             </div>
 
-            {/* Add/Edit Modal */}
-            <Modal
-                isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
-                title={editingPhase ? 'Edit Phase' : 'Add Phase'}
-                size="sm"
-            >
-                <FormInput
-                    label="Phase Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    error={errors.name}
-                    required
-                    autoFocus
-                    placeholder="e.g., Planning, Development"
-                />
-                <FormInput
-                    label="Terminal Phase"
-                    name="isTerminal"
-                    type="checkbox"
-                    value={formData.isTerminal}
-                    onChange={handleChange}
-                    helpText="Terminal phases mark the end of work (e.g., Completed, Idle)"
-                />
-                <ModalFooter>
-                    <button className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>
-                        Cancel
-                    </button>
-                    <button className="btn btn-primary" onClick={handleSubmit}>
-                        {editingPhase ? 'Update' : 'Add'} Phase
-                    </button>
-                </ModalFooter>
-            </Modal>
+            {/* Add/Edit Dialog */}
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingPhase ? 'Edit Phase' : 'Add Phase'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Define a new project stage or lifecycle phase.
+                        </DialogDescription>
+                    </DialogHeader>
 
-            {/* Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={isDeleteOpen}
-                onClose={() => setIsDeleteOpen(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Delete Phase"
-                message={`Are you sure you want to delete "${phaseToDelete?.name}"? Tasks in this phase may be affected.`}
-                confirmText="Delete"
-                variant="danger"
-            />
+                    <div className="p-8 space-y-4 pt-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Phase Name</Label>
+                            <Input
+                                id="name"
+                                value={formData.name}
+                                onChange={(e) => handleChange('name', e.target.value)}
+                                className={cn("rounded-lg", errors.name && "border-red-500")}
+                                placeholder="e.g. Planning, Execution, Review"
+                            />
+                            {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
+                        </div>
+
+                        <div className="flex items-start space-x-3 p-3 rounded-lg bg-amber-50/50 border border-amber-100">
+                            <Checkbox
+                                id="isTerminal"
+                                checked={formData.isTerminal}
+                                onCheckedChange={(v) => handleChange('isTerminal', v)}
+                                className="mt-1 rounded-[4px]"
+                            />
+                            <div className="space-y-1">
+                                <Label htmlFor="isTerminal" className="text-sm font-bold text-amber-900 cursor-pointer">
+                                    Terminal Phase
+                                </Label>
+                                <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                                    Marks the end of work. Tasks in this phase won't count towards active workload capacity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsFormOpen(false)}
+                            className="font-bold"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                        >
+                            {editingPhase ? 'Update' : 'Create'} phase
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-[400px] rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Delete Phase</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete <span className="font-bold text-slate-900">"{phaseToDelete?.name}"</span>?
+                            This stage will be removed from all active project timelines.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Phase</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

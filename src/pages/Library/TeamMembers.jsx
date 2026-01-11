@@ -1,13 +1,51 @@
-/**
- * Team Members Page
- * Full CRUD functionality with modal forms
- */
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp, ACTIONS } from '../../context/AppContext';
-import { Modal, ModalFooter, FormInput, ConfirmDialog } from '../../components/ui';
 import { defaultRoleTiers, getRoleOptions, roleHasCostTracking } from '../../data/defaultRoleTiers';
+import {
+    flexRender,
+    getCoreRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import {
+    Plus,
+    Edit2,
+    Trash2,
+    UserPlus,
+    Users,
+    Search,
+    ChevronRight
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 import './LibraryPage.css';
 
 // Generate unique ID
@@ -35,6 +73,108 @@ export default function TeamMembers() {
     // Form state
     const [formData, setFormData] = useState(emptyMember);
     const [errors, setErrors] = useState({});
+    const [globalFilter, setGlobalFilter] = useState("");
+
+    // TanStack Table Columns
+    const columns = useMemo(() => [
+        {
+            accessorKey: "id",
+            header: "ID",
+            cell: ({ row }) => <span className="text-[10px] font-mono text-slate-400">{row.getValue("id")}</span>,
+        },
+        {
+            accessorKey: "name",
+            header: "Name",
+            cell: ({ row }) => <span className="font-semibold text-slate-900">{row.getValue("name")}</span>,
+        },
+        {
+            accessorKey: "type",
+            header: "Role",
+            cell: ({ row }) => {
+                const type = row.getValue("type");
+                const label = defaultRoleTiers[type]?.name || type;
+                return (
+                    <Badge variant={
+                        type === 'FRONTEND' ? 'info' :
+                            type === 'BACKEND' ? 'secondary' : 'success'
+                    } className="font-semibold px-3">
+                        {label}
+                    </Badge>
+                )
+            },
+        },
+        {
+            accessorKey: "costTierId",
+            header: "Cost Tier",
+            cell: ({ row }) => {
+                const costTier = state.costs.find(c => c.id === row.original.costTierId);
+                return costTier ? (
+                    <span className="text-sm text-slate-600">{costTier.resourceName}</span>
+                ) : (
+                    <Link to="/workload-management/library/costs" className="text-xs text-slate-400 hover:text-indigo-600 flex items-center gap-1 group">
+                        Not linked
+                        <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                );
+            },
+        },
+        {
+            accessorKey: "maxHoursPerWeek",
+            header: "Cap / Week",
+            cell: ({ row }) => <span className="tabular-nums font-medium text-slate-600">{row.getValue("maxHoursPerWeek")}h</span>,
+        },
+        {
+            accessorKey: "isActive",
+            header: "Status",
+            cell: ({ row }) => (
+                <Badge className={cn(
+                    "rounded-full px-2 py-0 text-[10px] uppercase font-bold",
+                    row.getValue("isActive") ? "bg-emerald-500/10 text-emerald-600 border-emerald-200" : "bg-slate-500/10 text-slate-600 border-slate-200"
+                )}>
+                    {row.getValue("isActive") ? "Active" : "Inactive"}
+                </Badge>
+            ),
+        },
+        {
+            id: "actions",
+            header: () => <div className="text-right">Actions</div>,
+            cell: ({ row }) => (
+                <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(row.original)}>
+                        <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDeleteClick(row.original)}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+        },
+    ], [state.costs]);
+
+    const [sorting, setSorting] = useState([]);
+
+    const table = useReactTable({
+        data: state.members,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        state: {
+            sorting,
+            globalFilter,
+        },
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+    });
+
+    // filtered data for display count
+    const filteredMembers = useMemo(() => {
+        if (!globalFilter) return state.members;
+        const filter = globalFilter.toLowerCase();
+        return state.members.filter(m =>
+            m.name.toLowerCase().includes(filter) ||
+            m.type.toLowerCase().includes(filter)
+        );
+    }, [state.members, globalFilter]);
 
     // Open add modal
     const handleAdd = () => {
@@ -46,8 +186,7 @@ export default function TeamMembers() {
 
     // Open edit modal
     const handleEdit = (member) => {
-        // Ensure skills is always an array (for existing members without skills)
-        setFormData({ ...member, skills: member.skills || [] });
+        setFormData({ ...member });
         setEditingMember(member);
         setErrors({});
         setIsFormOpen(true);
@@ -62,7 +201,6 @@ export default function TeamMembers() {
     // Handle form input change
     const handleChange = (name, value) => {
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear error on change
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -71,12 +209,8 @@ export default function TeamMembers() {
     // Validate form
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
-        }
-        if (!formData.type) {
-            newErrors.type = 'Role type is required';
-        }
+        if (!formData.name.trim()) newErrors.name = 'Name is required';
+        if (!formData.type) newErrors.type = 'Role type is required';
         if (!formData.maxHoursPerWeek || formData.maxHoursPerWeek < 1) {
             newErrors.maxHoursPerWeek = 'Max hours must be at least 1';
         }
@@ -87,7 +221,6 @@ export default function TeamMembers() {
     // Submit form
     const handleSubmit = () => {
         if (!validate()) return;
-
         if (editingMember) {
             dispatch({ type: ACTIONS.UPDATE_MEMBER, payload: formData });
         } else {
@@ -101,176 +234,198 @@ export default function TeamMembers() {
         if (memberToDelete) {
             dispatch({ type: ACTIONS.DELETE_MEMBER, payload: memberToDelete.id });
         }
+        setIsDeleteOpen(false);
         setMemberToDelete(null);
     };
 
     return (
-        <div className="library-page">
-            <div className="page-header">
-                <h2>Team Members</h2>
-                <button className="btn btn-primary" onClick={handleAdd}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Add Member
-                </button>
-            </div>
-
-            <div className="data-table-container">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Role</th>
-                            <th>Cost Tier</th>
-                            <th>Max Hours/Week</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {state.members.map(member => (
-                            <tr key={member.id}>
-                                <td className="cell-id">{member.id}</td>
-                                <td className="cell-name">{member.name}</td>
-                                <td>
-                                    <span className={`type-badge ${member.type.toLowerCase()}`}>
-                                        {defaultRoleTiers[member.type]?.name || member.type}
-                                    </span>
-                                </td>
-                                <td>
-                                    {(() => {
-                                        const costTier = state.costs.find(c => c.id === member.costTierId);
-                                        return costTier ? costTier.resourceName : <Link to="/workload-management/library/costs" className="link-muted">Not linked →</Link>;
-                                    })()}
-                                </td>
-                                <td>{member.maxHoursPerWeek}h</td>
-                                <td>
-                                    <span className={`status-badge ${member.isActive ? 'active' : 'inactive'}`}>
-                                        {member.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td className="cell-actions">
-                                    <div className="actions-wrapper">
-                                        <button
-                                            className="btn-icon"
-                                            title="Edit"
-                                            onClick={() => handleEdit(member)}
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            className="btn-icon btn-icon-danger"
-                                            title="Delete"
-                                            onClick={() => handleDeleteClick(member)}
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Add/Edit Modal */}
-            <Modal
-                isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
-                title={editingMember ? 'Edit Team Member' : 'Add Team Member'}
-                size="md"
-            >
-                <FormInput
-                    label="Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    error={errors.name}
-                    required
-                    autoFocus
-                    placeholder="Enter member name"
-                />
-                <FormInput
-                    label="Role Type"
-                    name="type"
-                    type="select"
-                    value={formData.type}
-                    onChange={handleChange}
-                    error={errors.type}
-                    required
-                    options={getRoleOptions()}
-                />
-                <FormInput
-                    label="Max Hours per Week"
-                    name="maxHoursPerWeek"
-                    type="number"
-                    value={formData.maxHoursPerWeek}
-                    onChange={handleChange}
-                    error={errors.maxHoursPerWeek}
-                    required
-                    min={1}
-                    max={168}
-                />
-                {roleHasCostTracking(formData.type) && (
-                    <FormInput
-                        label="Cost Tier"
-                        name="costTierId"
-                        type="select"
-                        value={formData.costTierId}
-                        onChange={handleChange}
-                        options={[
-                            { value: '', label: 'Select cost tier...' },
-                            ...state.costs
-                                .filter(cost => cost.roleType === formData.type)
-                                .map(cost => ({
-                                    value: cost.id,
-                                    label: `${cost.resourceName} - Tier ${cost.tierLevel || 1} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cost.monthlyCost)}/mo)`
-                                }))
-                        ]}
-                        helpText={`Showing ${defaultRoleTiers[formData.type]?.name || formData.type} cost tiers only`}
-                    />
-                )}
-                {!roleHasCostTracking(formData.type) && (
-                    <div className="form-note">
-                        <span className="text-muted">Cost tracking is not enabled for {defaultRoleTiers[formData.type]?.name || formData.type}</span>
+        <div className="library-page space-y-6 animate-in fade-in duration-500">
+            {/* Header section with glass effect */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                        <Users className="h-6 w-6" />
                     </div>
-                )}
-                <FormInput
-                    label="Active"
-                    name="isActive"
-                    type="checkbox"
-                    value={formData.isActive}
-                    onChange={handleChange}
-                />
-                <ModalFooter>
-                    <button className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>
-                        Cancel
-                    </button>
-                    <button className="btn btn-primary" onClick={handleSubmit}>
-                        {editingMember ? 'Update' : 'Add'} Member
-                    </button>
-                </ModalFooter>
-            </Modal>
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Team Members</h2>
+                        <p className="text-sm text-slate-500 font-medium">Manage your team and resource capacity</p>
+                    </div>
+                </div>
 
-            {/* Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={isDeleteOpen}
-                onClose={() => setIsDeleteOpen(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Delete Team Member"
-                message={`Are you sure you want to delete "${memberToDelete?.name}"? This action cannot be undone.`}
-                confirmText="Delete"
-                variant="danger"
-            />
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add member
+                </Button>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Input
+                        placeholder="Search by name or role..."
+                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg focus-visible:ring-indigo-500"
+                        value={globalFilter}
+                        onChange={(e) => setGlobalFilter(e.target.value)}
+                    />
+                </div>
+                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider">
+                    {filteredMembers.length} OF {state.members.length} MEMBERS
+                </div>
+            </div>
+
+            {/* Table Container */}
+            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id} className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 py-3">
+                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableHeader>
+                    <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id} className="hover:bg-slate-50/30 transition-colors border-slate-100">
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} className="h-32 text-center align-middle">
+                                    <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                                        <Users className="h-8 w-8 opacity-20" />
+                                        <p>No team members found.</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            {/* Add/Edit Dialog */}
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingMember ? 'Edit Team Member' : 'Add Team Member'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Configure profile, role, and capacity for this resource.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="p-8 space-y-6 pt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <Label htmlFor="name" className="text-right">Name</Label>
+                            <Input
+                                id="name"
+                                value={formData.name}
+                                onChange={(e) => handleChange('name', e.target.value)}
+                                className={cn("rounded-lg", errors.name && "border-red-500")}
+                                placeholder="e.g. John Doe"
+                            />
+                            {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Label htmlFor="type" className="text-right">Role Type</Label>
+                            <Select value={formData.type} onValueChange={(v) => handleChange('type', v)}>
+                                <SelectTrigger className="rounded-lg">
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getRoleOptions().map(opt => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Label htmlFor="hours" className="text-right">Max Hours per Week</Label>
+                            <Input
+                                id="hours"
+                                type="number"
+                                value={formData.maxHoursPerWeek}
+                                onChange={(e) => handleChange('maxHoursPerWeek', parseInt(e.target.value))}
+                                className="rounded-lg"
+                            />
+                        </div>
+                        {roleHasCostTracking(formData.type) && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <Label htmlFor="costTier" className="text-right">Cost Tier</Label>
+                                <Select value={formData.costTierId} onValueChange={(v) => handleChange('costTierId', v)}>
+                                    <SelectTrigger className="rounded-lg">
+                                        <SelectValue placeholder="Select cost tier" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Select cost tier...</SelectItem>
+                                        {state.costs
+                                            .filter(cost => cost.roleType === formData.type)
+                                            .map(cost => (
+                                                <SelectItem key={cost.id} value={cost.id}>
+                                                    {cost.resourceName} - Tier {cost.tierLevel}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        <div className="flex items-center space-x-2 pt-2 col-span-2">
+                            <Checkbox
+                                id="isActive"
+                                checked={formData.isActive}
+                                onCheckedChange={(v) => handleChange('isActive', v)}
+                                className="rounded-[4px]"
+                            />
+                            <Label htmlFor="isActive" className="text-sm font-medium leading-none cursor-pointer">
+                                Active Member
+                            </Label>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsFormOpen(false)}
+                            className="font-bold"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                        >
+                            {editingMember ? 'Update' : 'Add'} member
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-[400px] rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Delete Team Member</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete <span className="font-bold text-slate-900">"{memberToDelete?.name}"</span>?
+                            This action cannot be undone and may affect active allocations.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Member</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

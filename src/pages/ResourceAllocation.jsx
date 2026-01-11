@@ -1,23 +1,66 @@
-/**
- * Resource Allocation Page
- * Full table with CRUD and auto-calculations
- */
-
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp, ACTIONS } from '../context/AppContext';
-import { Modal, ModalFooter, FormInput, ConfirmDialog, RichTextEditor } from '../components/ui';
 import {
     formatCurrency,
-    formatPercentage,
     calculatePlanEndDate,
     calculateProjectCost,
     calculateMonthlyCost,
     calculateWorkloadPercentage,
 } from '../utils/calculations';
 import { calculateSLAStatus, getPriorityColor } from '../utils/supportCalculations';
-import { defaultStatuses, getStatusOptions, getDefaultStatus } from '../data/defaultStatuses';
-import { defaultTags, getTagOptions } from '../data/defaultTags';
+import { getStatusOptions } from '../data/defaultStatuses';
+import { getTagOptions } from '../data/defaultTags';
+
+import {
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input.jsx"
+import {
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    Select
+} from "@/components/ui/select.jsx"
+import { Badge } from "@/components/ui/badge.jsx"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog.jsx"
+import { Label } from "@/components/ui/label.jsx"
+import { Textarea } from "@/components/ui/textarea.jsx"
+import { ScrollArea } from "@/components/ui/scroll-area.jsx"
+import {
+    Plus,
+    Search,
+    Filter,
+    Trash2,
+    Edit2,
+    AlertCircle,
+    Download,
+    FileSpreadsheet
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { RichTextEditor } from '../components/ui';
 import './ResourceAllocation.css';
 
 // Generate unique ID
@@ -70,7 +113,6 @@ export default function ResourceAllocation() {
     const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
     const [editingAllocation, setEditingAllocation] = useState(null);
     const [allocationToDelete, setAllocationToDelete] = useState(null);
-    const [selectedIds, setSelectedIds] = useState(new Set());
 
     // Form state
     const [formData, setFormData] = useState(emptyAllocation);
@@ -99,15 +141,10 @@ export default function ResourceAllocation() {
     // Filtered allocations
     const filteredAllocations = useMemo(() => {
         return allocations.filter(a => {
-            // Resource filter
             if (filterResource && a.resource !== filterResource) return false;
-            // Status filter
             if (filterStatus && a.status !== filterStatus) return false;
-            // Category filter
             if (filterCategory && a.category?.toLowerCase() !== filterCategory.toLowerCase()) return false;
-            // Complexity filter
             if (filterComplexity && a.complexity?.toLowerCase() !== filterComplexity.toLowerCase()) return false;
-            // Search text (activity name, demand number)
             if (searchText) {
                 const search = searchText.toLowerCase();
                 const matchActivity = a.activityName?.toLowerCase().includes(search);
@@ -118,10 +155,6 @@ export default function ResourceAllocation() {
             return true;
         });
     }, [allocations, filterResource, filterStatus, filterCategory, filterComplexity, searchText]);
-
-    // Dropdown options
-    const memberOptions = members.map(m => ({ value: m.name, label: m.name }));
-    const phaseOptions = phases.map(p => ({ value: p.name, label: p.name }));
 
     // Dynamically filter tasks based on selected phase
     const taskOptions = useMemo(() => {
@@ -155,7 +188,6 @@ export default function ResourceAllocation() {
             return { taskEnd: '', costProject: 0, costMonthly: 0 };
         }
 
-        // Find the member to get their costTierId
         const member = state.members.find(m => m.name === formData.resource);
         const costTierId = member?.costTierId;
 
@@ -168,7 +200,6 @@ export default function ResourceAllocation() {
             complexity
         );
 
-        // Support tasks have zero cost
         const isProject = formData.category === 'Project';
         const costProject = isProject ? calculateProjectCost(
             formData.complexity,
@@ -217,7 +248,6 @@ export default function ResourceAllocation() {
         setFormData(prev => {
             let next = { ...prev };
 
-            // Handle nested properties (plan.taskStart, actual.taskEnd, etc.)
             if (name.includes('.')) {
                 const [parent, child] = name.split('.');
                 next[parent] = {
@@ -228,35 +258,29 @@ export default function ResourceAllocation() {
                 next[name] = value;
             }
 
-            // Auto-select IT Operations phase for Support/Maintenance
             if (name === 'category' && (value === 'Support' || value === 'Maintenance')) {
                 const itOpsPhase = phases.find(p => p.name === 'IT Operations & Support');
                 if (itOpsPhase) {
                     next.phase = itOpsPhase.name;
-                    // Clear task if current task doesn't belong to IT Ops phase
                     const currentTask = tasks.find(t => t.name === prev.taskName);
                     if (currentTask && currentTask.phaseId !== itOpsPhase.id) {
                         next.taskName = '';
                     }
                 }
-                // Default plan start date to today if not set
                 if (!prev.plan?.taskStart) {
                     const today = new Date().toISOString().split('T')[0];
                     next.plan = { ...prev.plan, taskStart: today };
                 }
             }
 
-            // Task-Phase Mapping Logic
             if (name === 'phase') {
                 const selectedPhase = phases.find(p => p.name === value);
                 const currentTask = tasks.find(t => t.name === prev.taskName);
-                // If a phase is selected and the current task doesn't belong to it, clear task
                 if (value && currentTask && currentTask.phaseId !== selectedPhase?.id) {
                     next.taskName = '';
                 }
             } else if (name === 'taskName') {
                 const selectedTask = tasks.find(t => t.name === value);
-                // If a task is selected, auto-select its phase
                 if (value && selectedTask) {
                     const taskPhase = phases.find(p => p.id === selectedTask.phaseId);
                     if (taskPhase && prev.phase !== taskPhase.name) {
@@ -277,21 +301,13 @@ export default function ResourceAllocation() {
         }
     };
 
-    // Validate form
     const validate = () => {
         const newErrors = {};
-        if (!formData.activityName.trim()) {
-            newErrors.activityName = 'Activity name is required';
-        }
-        if (!formData.resource) {
-            newErrors.resource = 'Resource is required';
-        }
-        if (!formData.taskName) {
-            newErrors.taskName = 'Task is required';
-        }
-        if (!formData.plan?.taskStart) {
-            newErrors['plan.taskStart'] = 'Start date is required';
-        }
+        if (!formData.activityName?.trim()) newErrors.activityName = 'Activity name is required';
+        if (!formData.resource) newErrors.resource = 'Resource is required';
+        if (!formData.taskName) newErrors.taskName = 'Task is required';
+        if (!formData.plan?.taskStart) newErrors['plan.taskStart'] = 'Start date is required';
+
         if (formData.category === 'Support') {
             if (!formData.ticketId) newErrors.ticketId = 'Ticket ID is required';
             if (!formData.priority) newErrors.priority = 'Priority is required';
@@ -301,11 +317,9 @@ export default function ResourceAllocation() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Submit form
     const handleSubmit = () => {
         if (!validate()) return;
 
-        // Calculate workload
         const workload = calculateWorkloadPercentage(
             formData.taskName,
             formData.complexity,
@@ -331,67 +345,14 @@ export default function ResourceAllocation() {
         setIsFormOpen(false);
     };
 
-    // Confirm delete
     const handleDeleteConfirm = () => {
         if (allocationToDelete) {
             dispatch({ type: ACTIONS.DELETE_ALLOCATION, payload: allocationToDelete.id });
         }
         setAllocationToDelete(null);
+        setIsDeleteOpen(false);
     };
 
-    // Selection handlers
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            setSelectedIds(new Set(allocations.map(a => a.id)));
-        } else {
-            setSelectedIds(new Set());
-        }
-    };
-
-    const handleSelectRow = (id) => {
-        setSelectedIds(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(id)) {
-                newSet.delete(id);
-            } else {
-                newSet.add(id);
-            }
-            return newSet;
-        });
-    };
-
-    // Bulk delete handlers
-    const handleBulkDeleteClick = () => {
-        if (selectedIds.size > 0) {
-            setIsBulkDeleteOpen(true);
-        }
-    };
-
-    const handleBulkDeleteConfirm = () => {
-        selectedIds.forEach(id => {
-            dispatch({ type: ACTIONS.DELETE_ALLOCATION, payload: id });
-        });
-        setSelectedIds(new Set());
-        setIsBulkDeleteOpen(false);
-    };
-
-    // Bulk status update handler
-    const handleBulkStatusChange = (newStatus) => {
-        if (selectedIds.size === 0 || !newStatus) return;
-
-        selectedIds.forEach(id => {
-            const allocation = allocations.find(a => a.id === id);
-            if (allocation) {
-                dispatch({
-                    type: ACTIONS.UPDATE_ALLOCATION,
-                    payload: { ...allocation, status: newStatus }
-                });
-            }
-        });
-        setSelectedIds(new Set());
-    };
-
-    // Format date for display
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('en-US', {
@@ -401,475 +362,499 @@ export default function ResourceAllocation() {
         });
     };
 
-    return (
-        <div className="allocation-page">
-            <div className="page-header">
-                <div>
-                    <h2>Resource Allocation</h2>
-                    <p className="page-subtitle">{allocations.length} allocations total</p>
+    const columns = useMemo(() => [
+        {
+            id: "select",
+            header: ({ table }) => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={table.getIsAllPageRowsSelected()}
+                        onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+                        className="rounded border-slate-300 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                    />
                 </div>
-                <div className="header-actions">
-                    {selectedIds.size > 0 && (
-                        <>
-                            <div className="bulk-actions-group">
-                                <span className="bulk-label">{selectedIds.size} selected:</span>
-                                <select
-                                    className="bulk-status-select"
-                                    onChange={(e) => handleBulkStatusChange(e.target.value)}
-                                    defaultValue=""
-                                >
-                                    <option value="" disabled>Change Status...</option>
-                                    {getStatusOptions().map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <button className="btn btn-danger" onClick={handleBulkDeleteClick}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="3 6 5 6 21 6" />
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                                Delete
-                            </button>
-                        </>
+            ),
+            cell: ({ row }) => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={row.getIsSelected()}
+                        onChange={(e) => row.toggleSelected(!!e.target.checked)}
+                        className="rounded border-slate-300 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                    />
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+        {
+            accessorKey: "demandNumber",
+            header: "Demand Number",
+            cell: ({ row }) => <div className="font-bold text-slate-900 tabular-nums">{row.getValue("demandNumber") || "—"}</div>,
+        },
+        {
+            accessorKey: "category",
+            header: "Type",
+            cell: ({ row }) => {
+                const category = row.getValue("category");
+                return (
+                    <Badge variant={
+                        category === 'Support' ? "success" :
+                            category === 'Maintenance' ? "warning" : "default"
+                    } className="font-semibold px-3">
+                        {category}
+                    </Badge>
+                )
+            },
+        },
+        {
+            accessorKey: "activityName",
+            header: "Activity / Ticket",
+            cell: ({ row }) => (
+                <div className="flex flex-col gap-0.5 max-w-[200px]">
+                    {row.original.category === 'Support' && (
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{row.original.ticketId}</span>
                     )}
-                    <button id="btn-add-allocation" className="btn btn-primary" onClick={handleAdd}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        Add Allocation
-                    </button>
+                    <span className="font-semibold text-slate-900 truncate" title={row.getValue("activityName")}>
+                        {row.getValue("activityName")}
+                    </span>
+                </div>
+            ),
+        },
+        {
+            accessorKey: "resource",
+            header: "Resource",
+        },
+        {
+            accessorKey: "complexity",
+            header: "Complexity",
+            cell: ({ row }) => {
+                const comp = row.getValue("complexity")?.toLowerCase();
+                const label = complexity[comp]?.label || comp;
+                return (
+                    <Badge variant="secondary" className="font-medium px-2 bg-slate-100 text-slate-700 border-slate-200">
+                        {label.charAt(0).toUpperCase() + label.slice(1)}
+                    </Badge>
+                )
+            },
+        },
+        {
+            accessorKey: "taskName",
+            header: "Task / SLA",
+            cell: ({ row }) => (
+                <div className="flex flex-col gap-1">
+                    {row.original.category === 'Support' && (
+                        <div className="flex gap-1 items-center">
+                            <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: getPriorityColor(row.original.priority) }}
+                                title={`Priority: ${row.original.priority}`}
+                            />
+                            <span className="text-[10px] font-medium text-slate-500">{row.original.slaStatus}</span>
+                        </div>
+                    )}
+                    <span className="text-xs text-slate-600 line-clamp-1">{row.getValue("taskName")}</span>
+                </div>
+            ),
+        },
+        {
+            accessorKey: "plan.taskStart",
+            header: "Plan Start",
+            cell: ({ row }) => <span className="text-slate-600 tabular-nums">{formatDate(row.original.plan?.taskStart)}</span>,
+        },
+        {
+            accessorKey: "plan.taskEnd",
+            header: "Plan End",
+            cell: ({ row }) => <span className="text-slate-600 tabular-nums">{formatDate(row.original.plan?.taskEnd)}</span>,
+        },
+        {
+            accessorKey: "plan.costProject",
+            header: "Cost",
+            cell: ({ row }) => <div className="text-right font-medium tabular-nums">{formatCurrency(row.original.plan?.costProject || 0)}</div>,
+        },
+        {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => (
+                <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)} className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
+                        <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(row.original)} className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50">
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+        },
+    ], [phases, tasks, complexity]);
+
+    const [sorting, setSorting] = useState([])
+    const [rowSelection, setRowSelection] = useState({})
+
+    const table = useReactTable({
+        data: filteredAllocations,
+        columns,
+        onSortingChange: setSorting,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        onRowSelectionChange: setRowSelection,
+        state: {
+            sorting,
+            rowSelection,
+        },
+    })
+
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const hasSelection = selectedRows.length > 0;
+
+    const handleBulkDeleteClick = () => {
+        if (hasSelection) setIsBulkDeleteOpen(true);
+    };
+
+    const handleBulkDeleteConfirm = () => {
+        selectedRows.forEach(row => {
+            dispatch({ type: ACTIONS.DELETE_ALLOCATION, payload: row.original.id });
+        });
+        table.resetRowSelection();
+        setIsBulkDeleteOpen(false);
+    };
+
+    const handleBulkStatusChange = (newStatus) => {
+        if (!hasSelection || !newStatus) return;
+        selectedRows.forEach(row => {
+            dispatch({
+                type: ACTIONS.UPDATE_ALLOCATION,
+                payload: { ...row.original, status: newStatus }
+            });
+        });
+        table.resetRowSelection();
+    };
+
+    return (
+        <div className="allocation-page space-y-6 animate-in fade-in duration-500">
+            {/* Action bar */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-4 px-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-indigo-500" />
+                    <span className="text-sm font-semibold text-slate-700">Actions & Bulk Operations</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                    {hasSelection && (
+                        <div className="flex items-center gap-2 mr-2 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+                            <span className="text-xs font-semibold px-2 text-slate-600">{selectedRows.length} selected</span>
+                            <Select onValueChange={handleBulkStatusChange}>
+                                <SelectTrigger className="h-8 w-[140px] bg-white border-none shadow-none text-xs">
+                                    <SelectValue placeholder="Update Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getStatusOptions().map(opt => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleBulkDeleteClick}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+
+                    <Button variant="outline" className="rounded-xl shadow-sm border-slate-200">
+                        <Download className="mr-2 h-4 w-4 text-slate-500" />
+                        Export
+                    </Button>
+                    <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100" onClick={handleAdd}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add allocation
+                    </Button>
                 </div>
             </div>
 
-            {/* Filter Controls */}
-            <div className="filter-bar">
-                <div className="filter-group">
-                    <input
-                        type="text"
-                        className="filter-search"
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+                <div className="md:col-span-5 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
                         placeholder="Search activity, demand #, phase..."
+                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
                 </div>
-                <div className="filter-group">
-                    <select
-                        className="filter-select"
-                        value={filterResource}
-                        onChange={(e) => setFilterResource(e.target.value)}
-                    >
-                        <option value="">All Resources</option>
-                        {members.map(m => (
-                            <option key={m.id} value={m.name}>{m.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="filter-group">
-                    <select
-                        className="filter-select"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                        <option value="">All Statuses</option>
-                        {getStatusOptions().map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                    </select>
-                </div>
-                {(searchText || filterResource || filterStatus || filterCategory || filterComplexity) && (
-                    <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => {
-                            setSearchText('');
-                            setFilterResource('');
-                            setFilterStatus('');
-                            setFilterCategory('');
-                            setFilterComplexity('');
-                        }}
-                    >
-                        Clear Filters
-                    </button>
-                )}
-                {/* Only show count when filters are active OR there are allocations */}
-                {allocations.length > 0 && (
-                    <span className="filter-count">
-                        {filteredAllocations.length} of {allocations.length}
-                    </span>
-                )}
-            </div>
 
-            <div className="allocation-table-container">
-                <table className="allocation-table">
-                    <thead>
-                        <tr>
-                            <th className="cell-checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={allocations.length > 0 && selectedIds.size === allocations.length}
-                                    onChange={handleSelectAll}
-                                    title="Select all"
-                                />
-                            </th>
-                            <th>Demand #</th>
-                            <th>Type</th>
-                            <th>Activity / Ticket</th>
-                            <th>Resource</th>
-                            <th>Complexity</th>
-                            <th>SLA / Task</th>
-                            <th>Plan Start</th>
-                            <th>Plan End</th>
-                            <th>Cost</th>
-                            <th>Workload</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredAllocations.length === 0 ? (
-                            <tr>
-                                <td colSpan="12" className="empty-row">
-                                    <div className="empty-state">
-                                        <p>{allocations.length === 0 ? 'No allocations yet' : 'No matching allocations'}</p>
-                                        <p className="empty-hint">
-                                            {allocations.length === 0
-                                                ? 'Click "Add Allocation" to create your first task allocation'
-                                                : 'Try adjusting your filters'}
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredAllocations.map(allocation => (
-                                <tr key={allocation.id} className={selectedIds.has(allocation.id) ? 'selected' : ''}>
-                                    <td className="cell-checkbox">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.has(allocation.id)}
-                                            onChange={() => handleSelectRow(allocation.id)}
-                                        />
-                                    </td>
-                                    <td className="cell-demand">{allocation.demandNumber || '—'}</td>
-                                    <td>
-                                        <span className={`category-badge category-${allocation.category?.toLowerCase() || 'project'}`}>
-                                            {allocation.category || 'Project'}
-                                        </span>
-                                    </td>
-                                    <td className="cell-name">
-                                        <div className="activity-cell">
-                                            {allocation.category === 'Support' && (
-                                                <span className="ticket-id">{allocation.ticketId}</span>
-                                            )}
-                                            <span className="activity-name">{allocation.activityName}</span>
-                                        </div>
-                                    </td>
-                                    <td>{allocation.resource}</td>
-                                    <td>
-                                        <span className={`category-badge category-${allocation.complexity}`}>
-                                            {allocation.complexity}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="task-cell">
-                                            {allocation.category === 'Support' && (
-                                                <div className="support-meta">
-                                                    <span
-                                                        className="priority-badge"
-                                                        style={{ backgroundColor: getPriorityColor(allocation.priority) }}
-                                                    >
-                                                        {allocation.priority}
-                                                    </span>
-                                                    <span className={`sla-status sla-${allocation.slaStatus?.toLowerCase().replace(' ', '-')}`}>
-                                                        {allocation.slaStatus}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <span className="task-name">{allocation.taskName}</span>
-                                        </div>
-                                    </td>
-                                    <td className="cell-date">{formatDate(allocation.plan?.taskStart)}</td>
-                                    <td className="cell-date">{formatDate(allocation.plan?.taskEnd)}</td>
-                                    <td className="cell-currency">{formatCurrency(allocation.plan?.costProject || 0)}</td>
-                                    <td className="cell-workload">
-                                        <span className="workload-badge">
-                                            {formatPercentage(allocation.workload || 0)}
-                                        </span>
-                                    </td>
-                                    <td className="cell-actions">
-                                        <div className="actions-wrapper">
-                                            <button
-                                                className="btn-icon"
-                                                title="Edit"
-                                                onClick={() => handleEdit(allocation)}
-                                            >
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                className="btn-icon btn-icon-danger"
-                                                title="Delete"
-                                                onClick={() => handleDeleteClick(allocation)}
-                                            >
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <polyline points="3 6 5 6 21 6" />
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            <Modal
-                isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
-                title={editingAllocation ? 'Edit Allocation' : 'Add Allocation'}
-                size="lg"
-            >
-                <div className="form-row">
-                    <FormInput
-                        label="Demand Number"
-                        name="demandNumber"
-                        value={formData.demandNumber}
-                        onChange={handleChange}
-                        placeholder="DM-000001"
-                    />
-                    <FormInput
-                        label="Work Category"
-                        name="category"
-                        type="select"
-                        value={formData.category}
-                        onChange={handleChange}
-                        options={workCategoryOptions}
-                        required
-                    />
+                <div className="md:col-span-3">
+                    <Select value={filterResource} onValueChange={setFilterResource}>
+                        <SelectTrigger className="bg-white/50 border-slate-200/50 rounded-lg">
+                            <SelectValue placeholder="All Resources" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Resources</SelectItem>
+                            {members.map(m => (
+                                <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                <div className="form-row">
-                    <FormInput
-                        label={formData.category === 'Support' ? "Incident/Request Name" : "Activity Name"}
-                        name="activityName"
-                        value={formData.activityName}
-                        onChange={handleChange}
-                        error={errors.activityName}
-                        required
-                        autoFocus
-                        placeholder={formData.category === 'Support' ? "e.g., Mail Server Issue" : "e.g., Requirements Gathering"}
-                    />
-                    <FormInput
-                        label="Complexity"
-                        name="complexity"
-                        type="select"
-                        value={formData.complexity}
-                        onChange={handleChange}
-                        options={complexityOptions}
-                        required
-                    />
+                <div className="md:col-span-3">
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                        <SelectTrigger className="bg-white/50 border-slate-200/50 rounded-lg">
+                            <SelectValue placeholder="All Statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            {getStatusOptions().map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                {formData.category === 'Support' && (
-                    <div className="form-row">
-                        <FormInput
-                            label="Ticket ID"
-                            name="ticketId"
-                            value={formData.ticketId}
-                            onChange={handleChange}
-                            error={errors.ticketId}
-                            placeholder="INC-001"
-                            required
-                        />
-                        <FormInput
-                            label="Priority"
-                            name="priority"
-                            type="select"
-                            value={formData.priority}
-                            onChange={handleChange}
-                            error={errors.priority}
-                            options={priorityOptions}
-                            required
-                        />
-                        <FormInput
-                            label="SLA Deadline"
-                            name="slaDeadline"
-                            type="datetime-local"
-                            value={formData.slaDeadline}
-                            onChange={handleChange}
-                            error={errors.slaDeadline}
-                            required
-                        />
-                    </div>
-                )}
-
-                <div className="form-row">
-                    <FormInput
-                        label="Resource"
-                        name="resource"
-                        type="select"
-                        value={formData.resource}
-                        onChange={handleChange}
-                        error={errors.resource}
-                        required
-                        options={memberOptions}
-                    />
-                    {formData.category === 'Project' && (
-                        <FormInput
-                            label="Phase"
-                            name="phase"
-                            type="select"
-                            value={formData.phase}
-                            onChange={handleChange}
-                            options={phaseOptions}
-                        />
+                <div className="md:col-span-1 flex items-center justify-end">
+                    {(searchText || filterResource || filterStatus || filterCategory || filterComplexity) ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-slate-500 h-9"
+                            onClick={() => {
+                                setSearchText('');
+                                setFilterResource('');
+                                setFilterStatus('');
+                                setFilterCategory('');
+                                setFilterComplexity('');
+                            }}
+                        >
+                            Reset
+                        </Button>
+                    ) : (
+                        <div className="text-xs font-semibold text-slate-400 px-2 uppercase tracking-wider">{filteredAllocations.length} items</div>
                     )}
                 </div>
+            </div>
 
-                <div className="form-row">
-                    <FormInput
-                        label="Task"
-                        name="taskName"
-                        type="select"
-                        value={formData.taskName}
-                        onChange={handleChange}
-                        error={errors.taskName}
-                        required
-                        options={taskOptions}
-                    />
-                    <FormInput
-                        label="Plan Start Date"
-                        name="plan.taskStart"
-                        type="date"
-                        value={formData.plan?.taskStart || ''}
-                        onChange={handleChange}
-                        error={errors['plan.taskStart']}
-                        required
-                    />
-                </div>
+            {/* Table */}
+            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id} className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableHeader>
+                    <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="hover:bg-slate-50/50 transition-colors border-slate-100">
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} className="h-32 text-center align-middle text-slate-400">
+                                    <FileSpreadsheet className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                    No results found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
 
-                <div className="calculated-fields">
-                    <h4>Auto-Calculated Values</h4>
-                    <div className="calculated-row">
-                        <div className="calculated-item">
-                            <span className="calculated-label">Plan End Date</span>
-                            <span className="calculated-value">
-                                {calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—'}
-                            </span>
-                        </div>
-                        <div className="calculated-item">
-                            <span className="calculated-label">Project Cost</span>
-                            <span className="calculated-value">{formatCurrency(calculatedPlan.costProject)}</span>
-                        </div>
-                        <div className="calculated-item">
-                            <span className="calculated-label">Monthly Cost</span>
-                            <span className="calculated-value">{formatCurrency(calculatedPlan.costMonthly)}</span>
-                        </div>
-                    </div>
-                </div>
+            {/* Form Dialog */}
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingAllocation ? 'Edit Allocation' : 'Add Allocation'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {editingAllocation ? `Updating details for ${editingAllocation.activityName}` : 'Create a new resource assignment'}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                {/* Status and Tags */}
-                <div className="form-row">
-                    <FormInput
-                        label="Status"
-                        name="status"
-                        type="select"
-                        value={formData.status}
-                        onChange={handleChange}
-                        options={getStatusOptions()}
-                    />
-                    <FormInput
-                        label="Tags"
-                        name="tags"
-                        type="select"
-                        value={formData.tags?.[0] || ''}
-                        onChange={(name, value) => handleChange('tags', value ? [value] : [])}
-                        options={[
-                            { value: '', label: 'Select tag...' },
-                            ...getTagOptions()
-                        ]}
-                    />
-                </div>
+                    <div className="max-h-[70vh] px-8 pb-8 overflow-y-auto">
+                        <div className="space-y-6 pt-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="demandNumber" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Demand Number</Label>
+                                    <Input
+                                        id="demandNumber"
+                                        placeholder="DM-000001"
+                                        value={formData.demandNumber}
+                                        onChange={(e) => handleChange('demandNumber', e.target.value)}
+                                        className="rounded-xl border-slate-200"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Work Category</Label>
+                                    <Select value={formData.category} onValueChange={(v) => handleChange('category', v)}>
+                                        <SelectTrigger className="rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {workCategoryOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
 
-                {/* Actual Dates - shown when task is in progress or beyond */}
-                {formData.status !== 'open' && (
-                    <div className="actual-dates-section">
-                        <h4>Actual Progress</h4>
-                        <div className="form-row">
-                            <FormInput
-                                label="Actual Start Date"
-                                name="actual.taskStart"
-                                type="date"
-                                value={formData.actual?.taskStart || ''}
-                                onChange={handleChange}
-                                helpText="When work actually began"
-                            />
-                            {(formData.status === 'completed' || formData.status === 'under-review') && (
-                                <FormInput
-                                    label="Actual End Date"
-                                    name="actual.taskEnd"
-                                    type="date"
-                                    value={formData.actual?.taskEnd || ''}
-                                    onChange={handleChange}
-                                    helpText="When work was completed"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="activityName" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Activity Name</Label>
+                                    <Input
+                                        id="activityName"
+                                        value={formData.activityName}
+                                        onChange={(e) => handleChange('activityName', e.target.value)}
+                                        className={cn("rounded-xl border-slate-200", errors.activityName && "border-red-500")}
+                                    />
+                                    {errors.activityName && <p className="text-[10px] font-bold text-red-500 ml-1">{errors.activityName}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Complexity</Label>
+                                    <Select value={formData.complexity} onValueChange={(v) => handleChange('complexity', v)}>
+                                        <SelectTrigger className="rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {complexityOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            {formData.category === 'Support' && (
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="ticketId" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Ticket ID</Label>
+                                        <Input id="ticketId" value={formData.ticketId} onChange={(e) => handleChange('ticketId', e.target.value)} className="rounded-xl border-slate-200" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Priority</Label>
+                                        <Select value={formData.priority} onValueChange={(v) => handleChange('priority', v)}>
+                                            <SelectTrigger className="rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                {priorityOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="slaDeadline" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">SLA Deadline</Label>
+                                        <Input id="slaDeadline" type="datetime-local" value={formData.slaDeadline} onChange={(e) => handleChange('slaDeadline', e.target.value)} className="rounded-xl border-slate-200" />
+                                    </div>
+                                </div>
                             )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Resource</Label>
+                                    <Select value={formData.resource} onValueChange={(v) => handleChange('resource', v)}>
+                                        <SelectTrigger className="rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {members.map(m => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Phase</Label>
+                                    <Select value={formData.phase} onValueChange={(v) => handleChange('phase', v)}>
+                                        <SelectTrigger className="rounded-xl border-slate-200"><SelectValue placeholder="Select phase" /></SelectTrigger>
+                                        <SelectContent>
+                                            {phases.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Task</Label>
+                                    <Select value={formData.taskName} onValueChange={(v) => handleChange('taskName', v)}>
+                                        <SelectTrigger className="rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {taskOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskStart" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Start Date</Label>
+                                    <Input id="taskStart" type="date" value={formData.plan?.taskStart || ''} onChange={(e) => handleChange('plan.taskStart', e.target.value)} className="rounded-xl border-slate-200" />
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 grid grid-cols-3 gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Estimated End</p>
+                                    <p className="text-sm font-black text-slate-900">{calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Project Cost</p>
+                                    <p className="text-sm font-black text-slate-900">{formData.category === 'Project' ? formatCurrency(calculatedPlan.costProject) : 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Monthly Impact</p>
+                                    <p className="text-sm font-black text-slate-900">{formatCurrency(calculatedPlan.costMonthly)}</p>
+                                </div>
+                            </div>
+
+                            <RichTextEditor
+                                label="Description"
+                                value={formData.description}
+                                onChange={(value) => handleChange('description', value)}
+                            />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="remarks" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Remarks</Label>
+                                <Textarea id="remarks" value={formData.remarks} onChange={(e) => handleChange('remarks', e.target.value)} className="rounded-xl border-slate-200 min-h-[80px]" />
+                            </div>
                         </div>
                     </div>
-                )}
 
-                {/* Description */}
-                <RichTextEditor
-                    label="Description"
-                    value={formData.description}
-                    onChange={(value) => handleChange('description', value)}
-                    placeholder="Enter task description..."
-                />
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsFormOpen(false)} className="font-bold">Cancel</Button>
+                        <Button onClick={handleSubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold">Save Allocation</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                <FormInput
-                    label="Remarks"
-                    name="remarks"
-                    type="textarea"
-                    value={formData.remarks}
-                    onChange={handleChange}
-                    placeholder="Optional notes or comments"
-                    rows={2}
-                />
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="text-center sm:text-center items-center">
+                        <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2">
+                            <Trash2 className="h-8 w-8" />
+                        </div>
+                        <DialogTitle>Delete Allocation?</DialogTitle>
+                        <DialogDescription>Are you sure you want to delete this item? This cannot be undone.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center">
+                        <Button variant="ghost" onClick={() => setIsDeleteOpen(false)} className="font-bold">Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} className="px-8 font-bold">Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                <ModalFooter>
-                    <button className="btn btn-secondary" onClick={() => setIsFormOpen(false)}>
-                        Cancel
-                    </button>
-                    <button id="btn-save-allocation" className="btn btn-primary" onClick={handleSubmit}>
-                        {editingAllocation ? 'Update' : 'Add'} Allocation
-                    </button>
-                </ModalFooter>
-            </Modal>
-
-            {/* Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={isDeleteOpen}
-                onClose={() => setIsDeleteOpen(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Delete Allocation"
-                message={`Are you sure you want to delete "${allocationToDelete?.activityName}"? This action cannot be undone.`}
-                confirmText="Delete"
-                variant="danger"
-            />
-
-            {/* Bulk Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={isBulkDeleteOpen}
-                onClose={() => setIsBulkDeleteOpen(false)}
-                onConfirm={handleBulkDeleteConfirm}
-                title="Delete Selected Allocations"
-                message={`Are you sure you want to delete ${selectedIds.size} selected allocation(s)? This action cannot be undone.`}
-                confirmText={`Delete ${selectedIds.size} Items`}
-                variant="danger"
-            />
+            <Dialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="text-center sm:text-center items-center">
+                        <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2">
+                            <AlertCircle className="h-8 w-8" />
+                        </div>
+                        <DialogTitle>Delete {selectedRows.length} Items?</DialogTitle>
+                        <DialogDescription>This will permanently remove the selected allocations.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center">
+                        <Button variant="ghost" onClick={() => setIsBulkDeleteOpen(false)} className="font-bold">Cancel</Button>
+                        <Button variant="destructive" onClick={handleBulkDeleteConfirm} className="px-8 font-bold">Delete All</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

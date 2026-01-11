@@ -395,23 +395,31 @@
 }
 
 .workload-summary .legend-dot.available {
-    background: #dcfce7;
-    border: 1px solid #22c55e;
+    background: #ecfdf5;
+    /* emerald-50 */
+    border: 1px solid #10b981;
+    /* emerald-500 */
 }
 
 .workload-summary .legend-dot.busy {
-    background: #dbeafe;
-    border: 1px solid #3b82f6;
+    background: #eef2ff;
+    /* indigo-50 */
+    border: 1px solid #4f46e5;
+    /* indigo-600 */
 }
 
 .workload-summary .legend-dot.limited {
-    background: #fef3c7;
+    background: #fffbeb;
+    /* amber-50 */
     border: 1px solid #f59e0b;
+    /* amber-500 */
 }
 
 .workload-summary .legend-dot.at-capacity {
-    background: #fee2e2;
-    border: 1px solid #ef4444;
+    background: #fff1f2;
+    /* rose-50 */
+    border: 1px solid #f43f5e;
+    /* rose-500 */
 }
 
 .workload-summary .legend-dot.leave {
@@ -469,23 +477,31 @@
 }
 
 .workload-summary .heatmap-status-cell.available {
-    background: #dcfce7;
-    color: #22c55e;
+    background: #ecfdf5;
+    color: #047857;
+    /* emerald-700 for better contrast */
+    border: 1px solid #a7f3d0;
 }
 
 .workload-summary .heatmap-status-cell.busy {
-    background: #dbeafe;
-    color: #3b82f6;
+    background: #eef2ff;
+    color: #4338ca;
+    /* indigo-700 */
+    border: 1px solid #c7d2fe;
 }
 
 .workload-summary .heatmap-status-cell.limited {
-    background: #fef3c7;
+    background: #fffbeb;
     color: #b45309;
+    /* amber-700 */
+    border: 1px solid #fde68a;
 }
 
 .workload-summary .heatmap-status-cell.at-capacity {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #fff1f2;
+    color: #be123c;
+    /* rose-700 */
+    border: 1px solid #fecdd3;
 }
 
 .workload-summary .heatmap-status-cell.leave {

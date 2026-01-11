@@ -1,7 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ----------------------------------------
    Import Google Fonts (must be first)
    ---------------------------------------- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ========================================
    WORKLOAD RESOURCE MANAGEMENT
@@ -12,66 +17,98 @@
    CSS Variables (Design Tokens)
    ---------------------------------------- */
 :root {
-  /* Color Palette - Light Professional Theme */
+  /* Color Palette - Refined Indigo/Slate Theme */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8fafc;
+  /* slate-50 */
   --color-bg-tertiary: #f1f5f9;
+  /* slate-100 */
   --color-bg-card: #ffffff;
   --color-bg-card-hover: #f8fafc;
 
-  /* Sidebar - Subtle dark sidebar for contrast */
-  --color-sidebar-bg: #1e293b;
-  --color-sidebar-text: #cbd5e1;
+  /* Sidebar - Refined Slate for better glass contrast */
+  --color-sidebar-bg: #0f172a;
+  /* slate-900 */
+  --color-sidebar-text: #64748b;
+  /* slate-500 */
   --color-sidebar-text-active: #ffffff;
-  --color-sidebar-hover: rgba(255, 255, 255, 0.05);
-  --color-sidebar-active: rgba(59, 130, 246, 0.15);
+  --color-sidebar-hover: rgba(79, 70, 229, 0.1);
+  --color-sidebar-active: rgba(79, 70, 229, 0.15);
+  /* indigo-600 with opacity */
 
-  /* Primary Blue - Professional accent */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-active: #1d4ed8;
-  --color-primary-light: #eff6ff;
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
+  /* Primary Indigo - Professional and Trustworthy */
+  --color-primary: #4f46e5;
+  /* indigo-600 */
+  --color-primary-hover: #4338ca;
+  /* indigo-700 */
+  --color-primary-active: #3730a3;
+  /* indigo-800 */
+  --color-primary-light: #eef2ff;
+  /* indigo-50 */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
 
-  /* Secondary - Slate gray */
-  --color-secondary: #64748b;
-  --color-secondary-hover: #475569;
+  /* Secondary - Slate blue/gray */
+  --color-secondary: #475569;
+  /* slate-600 */
+  --color-secondary-hover: #334155;
+  /* slate-700 */
   --color-secondary-light: #f1f5f9;
+  /* slate-100 */
 
-  /* Status Colors - Muted professional tones */
-  --color-success: #059669;
+  /* Status Colors - Nature-inspired & Accessible */
+  --color-success: #10b981;
+  /* emerald-500 */
   --color-success-light: #ecfdf5;
+  /* emerald-50 */
   --color-success-border: #a7f3d0;
-  --color-warning: #d97706;
+  /* emerald-200 */
+  --color-warning: #f59e0b;
+  /* amber-500 */
   --color-warning-light: #fffbeb;
+  /* amber-50 */
   --color-warning-border: #fde68a;
-  --color-danger: #dc2626;
-  --color-danger-light: #fef2f2;
-  --color-danger-border: #fecaca;
-  --color-info: #0284c7;
+  /* amber-200 */
+  --color-danger: #f43f5e;
+  /* rose-500 */
+  --color-danger-light: #fff1f2;
+  /* rose-50 */
+  --color-danger-border: #fecdd3;
+  /* rose-200 */
+  --color-info: #0ea5e9;
+  /* sky-500 */
   --color-info-light: #f0f9ff;
   --color-info-border: #bae6fd;
 
-  /* Complexity Colors - Subtle indicators */
-  --color-complexity-low: #059669;
-  --color-complexity-medium: #3b82f6;
-  --color-complexity-high: #d97706;
+  /* Complexity Colors - Standardized */
+  --color-complexity-low: #10b981;
+  /* emerald-500 */
+  --color-complexity-medium: #4f46e5;
+  /* indigo-600 */
+  --color-complexity-high: #f59e0b;
+  /* amber-500 */
 
-  /* Text Colors - High contrast for readability */
+  /* Text Colors - Optimal contrast */
   --color-text-primary: #0f172a;
+  /* slate-900 */
   --color-text-secondary: #475569;
+  /* slate-600 */
   --color-text-tertiary: #64748b;
+  /* slate-500 */
   --color-text-muted: #94a3b8;
+  /* slate-400 */
   --color-text-inverse: #ffffff;
 
   /* Border Colors */
   --color-border: #e2e8f0;
+  /* slate-200 */
   --color-border-hover: #cbd5e1;
-  --color-border-focus: #3b82f6;
+  /* slate-300 */
+  --color-border-focus: #6366f1;
+  /* indigo-400 */
 
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -116,18 +153,18 @@
   --radius-2xl: 1rem;
   --radius-full: 9999px;
 
-  /* Shadows - Subtle and professional */
+  /* Shadows - Layered and precise */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.2);
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 200ms ease;
-  --transition-slow: 300ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Z-Index */
   --z-dropdown: 100;
@@ -139,7 +176,38 @@
   /* Layout */
   --sidebar-width: 260px;
   --header-height: 64px;
-  --content-max-width: 1400px;
+  --content-max-width: 1440px;
+
+  /* Glassmorphism Refined */
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-blur: 16px;
+}
+
+/* ----------------------------------------
+   Glassmorphism Utilities
+   ---------------------------------------- */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-xl);
+}
+
+.glass-nav {
+  background: rgba(15, 23, 42, 0.04);
+  /* Subtle dark tint */
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border-right: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* ----------------------------------------
@@ -167,6 +235,11 @@ body {
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
   background: var(--color-bg-secondary);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.03) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.03) 0, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.03) 0, transparent 50%);
   min-height: 100vh;
 }
 
@@ -183,10 +256,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
+  /* Increased from semibold for better hierarchy */
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
+  /* Tighter for a more premium look */
 }
 
 h1 {
@@ -403,7 +478,8 @@ button:focus {
 }
 
 .btn-success:hover {
-  background: #059669; /* Success darker */
+  background: #059669;
+  /* Success darker */
 }
 
 .btn-danger {
@@ -413,7 +489,8 @@ button:focus {
 }
 
 .btn-danger:hover {
-  background: #dc2626; /* Danger darker */
+  background: #dc2626;
+  /* Danger darker */
 }
 
 .btn-warning {
@@ -423,7 +500,8 @@ button:focus {
 }
 
 .btn-warning:hover {
-  background: #d97706; /* Warning darker */
+  background: #d97706;
+  /* Warning darker */
 }
 
 .btn-icon {

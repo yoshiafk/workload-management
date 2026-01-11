@@ -8,7 +8,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    background: var(--color-sidebar-bg);
+    /* background: var(--color-sidebar-bg); Removed for glass effect */
     display: flex;
     flex-direction: column;
     z-index: var(--z-sticky);

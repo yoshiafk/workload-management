@@ -45,7 +45,14 @@ export default function Layout() {
         <div className="layout">
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
-            <div className="layout-main">
+            <div
+                className={`layout-main transition-all duration-300 ease-in-out ${state.ui?.isDialogOpen ? 'scale-[0.98] saturate-[0.8] blur-[1px]' : 'scale-100 saturate-100 blur-0'
+                    }`}
+                style={{
+                    transformOrigin: 'center center',
+                    willChange: 'transform, filter'
+                }}
+            >
                 <Header onMenuClick={toggleSidebar} />
                 <main className="layout-content">
                     <Outlet />

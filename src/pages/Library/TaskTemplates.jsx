@@ -1,13 +1,52 @@
-/**
- * Task Templates Page
- * Full CRUD for task templates with complexity estimates
- */
-
-import { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useState, useMemo } from 'react';
+import { useApp, ACTIONS } from '../../context/AppContext';
 import { formatPercentage } from '../../utils/calculations';
-import Modal, { ModalFooter } from '../../components/ui/Modal';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import {
+    flexRender,
+    getCoreRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import {
+    Plus,
+    Edit2,
+    Trash2,
+    List,
+    Search,
+    ChevronDown,
+    Activity,
+    Clock,
+    Zap,
+    Scale
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 import './LibraryPage.css';
 
 const initialFormState = {
@@ -23,11 +62,145 @@ const initialFormState = {
 };
 
 export default function TaskTemplates() {
-    const { state, dispatch, ACTIONS } = useApp();
+    const { state, dispatch } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [currentTask, setCurrentTask] = useState(null);
     const [formData, setFormData] = useState(initialFormState);
+    const [globalFilter, setGlobalFilter] = useState("");
+
+    // TanStack Table Columns with Grouping
+    const columns = useMemo(() => [
+        {
+            accessorKey: "id",
+            header: "ID",
+            cell: ({ row }) => <span className="text-[10px] font-mono text-slate-400">{row.getValue("id")}</span>,
+        },
+        {
+            accessorKey: "name",
+            header: "Task Name",
+            cell: ({ row }) => <span className="font-semibold text-slate-800">{row.getValue("name")}</span>,
+        },
+        {
+            header: "Complexity: Low",
+            columns: [
+                {
+                    accessorKey: "estimates.low.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.low?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.low.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.low?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.low.percentage",
+                    header: "%",
+                    cell: ({ row }) => <span className="text-xs text-indigo-600 font-bold">{formatPercentage(row.original.estimates?.low?.percentage ?? 0)}</span>,
+                },
+            ],
+        },
+        {
+            header: "Complexity: Medium",
+            columns: [
+                {
+                    accessorKey: "estimates.medium.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.medium?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.medium.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.medium?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.medium.percentage",
+                    header: "%",
+                    cell: ({ row }) => <span className="text-xs text-indigo-600 font-bold">{formatPercentage(row.original.estimates?.medium?.percentage ?? 0)}</span>,
+                },
+            ],
+        },
+        {
+            header: "Complexity: High",
+            columns: [
+                {
+                    accessorKey: "estimates.high.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.high?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.high.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.high?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.high.percentage",
+                    header: "%",
+                    cell: ({ row }) => <span className="text-xs text-purple-600 font-bold">{formatPercentage(row.original.estimates?.high?.percentage ?? 0)}</span>,
+                },
+            ],
+        },
+        {
+            header: "Complexity: Sophisticated",
+            columns: [
+                {
+                    accessorKey: "estimates.sophisticated.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.sophisticated?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.sophisticated.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.sophisticated?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.sophisticated.percentage",
+                    header: "%",
+                    cell: ({ row }) => <span className="text-xs text-rose-600 font-bold">{formatPercentage(row.original.estimates?.sophisticated?.percentage ?? 0)}</span>,
+                },
+            ],
+        },
+        {
+            id: "actions",
+            header: () => <div className="text-right">Actions</div>,
+            cell: ({ row }) => (
+                <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(row.original)}>
+                        <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDelete(row.original)}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+        },
+    ], []);
+
+    const [sorting, setSorting] = useState([]);
+
+    const table = useReactTable({
+        data: state.tasks,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        state: {
+            sorting,
+            globalFilter,
+        },
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+    });
+
+    // filtered data for display count
+    const filteredTasks = useMemo(() => {
+        if (!globalFilter) return state.tasks;
+        const filter = globalFilter.toLowerCase();
+        return state.tasks.filter(t =>
+            t.name.toLowerCase().includes(filter) ||
+            t.id.toLowerCase().includes(filter)
+        );
+    }, [state.tasks, globalFilter]);
 
     const handleAdd = () => {
         const nextId = `T${String(state.tasks.length + 1).padStart(3, '0')}`;
@@ -76,7 +249,6 @@ export default function TaskTemplates() {
             dispatch({ type: ACTIONS.ADD_TASK, payload: formData });
         }
         setIsModalOpen(false);
-        setFormData(initialFormState);
     };
 
     const updateEstimate = (level, field, value) => {
@@ -86,16 +258,10 @@ export default function TaskTemplates() {
             [field]: numValue,
         };
 
-        // Auto-calculate workload percentage: hours / (days * 8)
         if (field === 'hours' || field === 'days') {
             const hours = field === 'hours' ? numValue : formData.estimates[level].hours;
             const days = field === 'days' ? numValue : formData.estimates[level].days;
-
-            if (days > 0) {
-                updatedEstimate.percentage = hours / (days * 8);
-            } else {
-                updatedEstimate.percentage = 0;
-            }
+            updatedEstimate.percentage = days > 0 ? hours / (days * 8) : 0;
         }
 
         setFormData({
@@ -108,191 +274,225 @@ export default function TaskTemplates() {
     };
 
     return (
-        <div className="library-page">
-            <div className="page-header">
-                <h2>Task Templates</h2>
-                <button className="btn btn-primary" onClick={handleAdd}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Add Task
-                </button>
-            </div>
-
-            <div className="data-table-container">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Task Name</th>
-                            <th colSpan="3" className="complexity-header">Low</th>
-                            <th colSpan="3" className="complexity-header">Medium</th>
-                            <th colSpan="3" className="complexity-header">High</th>
-                            <th colSpan="3" className="complexity-header">Sophisticated</th>
-                            <th>Actions</th>
-                        </tr>
-                        <tr className="sub-header">
-                            <th></th>
-                            <th></th>
-                            <th>Days</th>
-                            <th>Hours</th>
-                            <th>%</th>
-                            <th>Days</th>
-                            <th>Hours</th>
-                            <th>%</th>
-                            <th>Days</th>
-                            <th>Hours</th>
-                            <th>%</th>
-                            <th>Days</th>
-                            <th>Hours</th>
-                            <th>%</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {state.tasks.map(task => (
-                            <tr key={task.id}>
-                                <td className="cell-id">{task.id}</td>
-                                <td className="cell-name">{task.name}</td>
-                                <td>{task.estimates?.low?.days ?? 0}</td>
-                                <td>{task.estimates?.low?.hours ?? 0}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates?.low?.percentage ?? 0)}</td>
-                                <td>{task.estimates?.medium?.days ?? 0}</td>
-                                <td>{task.estimates?.medium?.hours ?? 0}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates?.medium?.percentage ?? 0)}</td>
-                                <td>{task.estimates?.high?.days ?? 0}</td>
-                                <td>{task.estimates?.high?.hours ?? 0}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates?.high?.percentage ?? 0)}</td>
-                                <td>{task.estimates?.sophisticated?.days ?? 0}</td>
-                                <td>{task.estimates?.sophisticated?.hours ?? 0}</td>
-                                <td className="cell-pct">{formatPercentage(task.estimates?.sophisticated?.percentage ?? 0)}</td>
-                                <td className="cell-actions">
-                                    <button className="btn-icon" onClick={() => handleEdit(task)} title="Edit">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                        </svg>
-                                    </button>
-                                    <button className="btn-icon btn-danger" onClick={() => handleDelete(task)} title="Delete">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <polyline points="3 6 5 6 21 6" />
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Add/Edit Modal */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title={currentTask ? 'Edit Task Template' : 'Add Task Template'}
-                size="lg"
-            >
-                <form onSubmit={handleSubmit}>
-                    <div className="form-grid">
-                        <div className="form-group">
-                            <label>Task ID</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={formData.id}
-                                readOnly
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Task Name</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g. Stakeholder Interviews"
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Phase</label>
-                            <select
-                                className="form-select"
-                                value={formData.phaseId || ''}
-                                onChange={(e) => setFormData({ ...formData, phaseId: e.target.value })}
-                            >
-                                <option value="">Select Phase...</option>
-                                {state.phases.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
-                        </div>
+        <div className="library-page space-y-6 animate-in fade-in duration-500">
+            {/* Header section with glass effect */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                        <List className="h-6 w-6" />
                     </div>
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Task Templates</h2>
+                        <p className="text-sm text-slate-500 font-medium">Define effort estimates for common resource tasks</p>
+                    </div>
+                </div>
 
-                    <h4 className="section-title">Complexity Estimates</h4>
-                    <div className="complexity-grid">
-                        {['low', 'medium', 'high', 'sophisticated'].map(level => (
-                            <div key={level} className="complexity-card">
-                                <h5 className="complexity-label">{level.charAt(0).toUpperCase() + level.slice(1)}</h5>
-                                <div className="estimate-row">
-                                    <div className="form-group">
-                                        <label>Days</label>
-                                        <input
-                                            type="number"
-                                            className="form-input"
-                                            value={formData.estimates[level].days}
-                                            onChange={(e) => updateEstimate(level, 'days', e.target.value)}
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Hours</label>
-                                        <input
-                                            type="number"
-                                            className="form-input"
-                                            value={formData.estimates[level].hours}
-                                            onChange={(e) => updateEstimate(level, 'hours', e.target.value)}
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Workload</label>
-                                        <input
-                                            type="text"
-                                            className="form-input form-input-calc"
-                                            value={`${(formData.estimates[level].percentage * 100).toFixed(1)}%`}
-                                            readOnly
-                                            title="Auto-calculated: Hours / (Days * 8)"
-                                        />
-                                    </div>
-                                </div>
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add template
+                </Button>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Input
+                        placeholder="Search templates..."
+                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg focus-visible:ring-indigo-500"
+                        value={globalFilter}
+                        onChange={(e) => setGlobalFilter(e.target.value)}
+                    />
+                </div>
+                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider">
+                    {filteredTasks.length} OF {state.tasks.length} TEMPLATES
+                </div>
+            </div>
+
+            {/* Table Container */}
+            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader className="bg-slate-50/50">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead
+                                            key={header.id}
+                                            colSpan={header.colSpan}
+                                            className={cn(
+                                                "text-[10px] font-bold text-slate-500 uppercase tracking-widest h-auto py-2 border-b border-slate-100",
+                                                header.column.columnDef.header.toString().includes('Complexity') ? "text-center bg-slate-100/30" : "text-left"
+                                            )}
+                                        >
+                                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow key={row.id} className="hover:bg-slate-50/30 transition-colors border-slate-100">
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className={cn("py-2.5 px-4 text-sm align-middle h-10")}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={table.getAllColumns().length} className="h-32 text-center align-middle">
+                                        <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                                            <List className="h-8 w-8 opacity-20" />
+                                            <p>No task templates found.</p>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+
+            {/* Add/Edit Dialog */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {currentTask ? 'Edit Template' : 'Add Template'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Configure effort estimation and details for this task.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="p-8 pb-0 max-h-[60vh] overflow-y-auto pt-4">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase tracking-tight text-slate-400">Template ID</Label>
+                                <Input value={formData.id} readOnly className="bg-slate-50 rounded-lg border-slate-200 text-slate-500 font-mono text-xs h-9" />
                             </div>
-                        ))}
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="name" className="text-xs font-bold uppercase tracking-tight text-slate-400">Task Name</Label>
+                                <Input
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="rounded-lg h-9"
+                                    placeholder="e.g. System Integration Testing"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2 md:col-span-3">
+                                <Label htmlFor="phase" className="text-xs font-bold uppercase tracking-tight text-slate-400">Linked Phase</Label>
+                                <Select
+                                    value={formData.phaseId?.toString()}
+                                    onValueChange={(v) => setFormData({ ...formData, phaseId: parseInt(v) })}
+                                >
+                                    <SelectTrigger className="rounded-lg h-9">
+                                        <SelectValue placeholder="Select Phase" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {state.phases.map(p => (
+                                            <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 px-6">
+                            {['low', 'medium', 'high', 'sophisticated'].map(level => {
+                                const levelConfig = {
+                                    low: { icon: Clock, color: "text-indigo-500", bg: "bg-indigo-50" },
+                                    medium: { icon: Activity, color: "text-emerald-500", bg: "bg-emerald-50" },
+                                    high: { icon: Zap, color: "text-purple-500", bg: "bg-purple-50" },
+                                    sophisticated: { icon: Scale, color: "text-rose-500", bg: "bg-rose-50" }
+                                }[level];
+
+                                const Icon = levelConfig.icon;
+
+                                return (
+                                    <div key={level} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={cn("p-1.5 rounded-lg", levelConfig.bg, levelConfig.color)}>
+                                                <Icon className="h-3.5 w-3.5" />
+                                            </div>
+                                            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                                                {level}
+                                            </h5>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="space-y-1.5 text-center">
+                                                <Label className="text-[10px] font-bold text-slate-400">Days</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={formData.estimates[level].days}
+                                                    onChange={(e) => updateEstimate(level, 'days', e.target.value)}
+                                                    className="h-8 rounded-lg text-center text-xs"
+                                                    min="0"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5 text-center">
+                                                <Label className="text-[10px] font-bold text-slate-400">Hours</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={formData.estimates[level].hours}
+                                                    onChange={(e) => updateEstimate(level, 'hours', e.target.value)}
+                                                    className="h-8 rounded-lg text-center text-xs"
+                                                    min="0"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5 text-center">
+                                                <Label className="text-[10px] font-bold text-slate-400">Workload</Label>
+                                                <div className="h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-900 border-dashed">
+                                                    {(formData.estimates[level].percentage * 100).toFixed(1)}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <ModalFooter>
-                        <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsDialogOpen(false)}
+                            className="font-bold"
+                        >
                             Cancel
-                        </button>
-                        <button type="submit" className="btn btn-primary">
-                            {currentTask ? 'Update' : 'Create'}
-                        </button>
-                    </ModalFooter>
-                </form>
-            </Modal>
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                        >
+                            {currentTask ? 'Update' : 'Create'} template
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-            {/* Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={isDeleteOpen}
-                onClose={() => setIsDeleteOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Task Template"
-                message={`Are you sure you want to delete "${currentTask?.name}"? This action cannot be undone.`}
-                confirmText="Delete"
-                variant="danger"
-            />
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Delete Task Template</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete <span className="font-bold text-slate-900">"{currentTask?.name}"</span>?
+                            This template will be removed from future selection, but existing allocations will remain.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
+                        <Button variant="destructive" onClick={confirmDelete} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Template</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

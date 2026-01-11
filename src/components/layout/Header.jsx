@@ -36,7 +36,7 @@ export default function Header({ onMenuClick }) {
     const description = pageDescriptions[location.pathname] || '';
 
     return (
-        <header className="header">
+        <header className="header glass-header">
             <div className="header-content">
                 <div className="header-left">
                     <button className="menu-toggle" onClick={onMenuClick} aria-label="Toggle menu">
