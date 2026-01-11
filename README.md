@@ -9,6 +9,8 @@ A professional resource management platform designed to track team workload, pro
 - **Auto-Sync Calculations**: Real-time updates for end dates, costs, and workload percentages.
 - **Workload Dashboard**: Visual capacity tracking (percentage-based) with over-allocation alerts.
 - **Holiday & Leave Integration**: Intelligent scheduling that skips weekends, holidays, and individual leave dates.
+- **Premium Dark Mode**: Sophisticated dark theme with consistent table styling and high-fidelity aesthetics.
+- **Custom Branding**: Integrated high-quality SVG logo and customized favicon for a professional look.
 
 ---
 
@@ -78,8 +80,9 @@ Shows a member's total workload relative to their individual maximum capacity.
 
 ## 🛠 Tech Stack
 
-- **Frontend**: React + Vite
-- **Styling**: Vanilla CSS (Custom tokens)
+- **Frontend**: React 18 + Vite
+- **Styling**: Vanilla CSS (Custom tokens, Glassmorphism elements)
+- **Icons**: Lucide React
 - **Charts**: Recharts
 - **Date Logic**: date-fns
 - **State Management**: React Context API
