@@ -54,16 +54,16 @@ const initialFormState = {
     name: '',
     phaseId: '',
     estimates: {
-        low: { days: 2, hours: 1, percentage: 0.125 },
-        medium: { days: 5, hours: 2, percentage: 0.25 },
-        high: { days: 10, hours: 4, percentage: 0.5 },
-        sophisticated: { days: 20, hours: 6, percentage: 0.75 },
+        low: { days: 2, hours: 1 },
+        medium: { days: 5, hours: 2 },
+        high: { days: 10, hours: 4 },
+        sophisticated: { days: 20, hours: 6 },
     },
 };
 
 export default function TaskTemplates() {
     const { state, dispatch } = useApp();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [currentTask, setCurrentTask] = useState(null);
     const [formData, setFormData] = useState(initialFormState);
@@ -79,7 +79,7 @@ export default function TaskTemplates() {
         {
             accessorKey: "name",
             header: "Task Name",
-            cell: ({ row }) => <span className="font-semibold text-slate-800">{row.getValue("name")}</span>,
+            cell: ({ row }) => <span className="font-semibold text-slate-800 dark:text-slate-200">{row.getValue("name")}</span>,
         },
         {
             header: "Complexity: Low",
@@ -87,17 +87,22 @@ export default function TaskTemplates() {
                 {
                     accessorKey: "estimates.low.days",
                     header: "D",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.low?.days ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.low?.days ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.low.hours",
                     header: "H",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.low?.hours ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.low?.hours ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.low.percentage",
                     header: "%",
-                    cell: ({ row }) => <span className="text-xs text-indigo-600 font-bold">{formatPercentage(row.original.estimates?.low?.percentage ?? 0)}</span>,
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.low?.days ?? 0;
+                        const hours = row.original.estimates?.low?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
                 },
             ],
         },
@@ -107,17 +112,22 @@ export default function TaskTemplates() {
                 {
                     accessorKey: "estimates.medium.days",
                     header: "D",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.medium?.days ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.medium?.days ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.medium.hours",
                     header: "H",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.medium?.hours ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.medium?.hours ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.medium.percentage",
                     header: "%",
-                    cell: ({ row }) => <span className="text-xs text-indigo-600 font-bold">{formatPercentage(row.original.estimates?.medium?.percentage ?? 0)}</span>,
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.medium?.days ?? 0;
+                        const hours = row.original.estimates?.medium?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
                 },
             ],
         },
@@ -127,17 +137,22 @@ export default function TaskTemplates() {
                 {
                     accessorKey: "estimates.high.days",
                     header: "D",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.high?.days ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.high?.days ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.high.hours",
                     header: "H",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.high?.hours ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.high?.hours ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.high.percentage",
                     header: "%",
-                    cell: ({ row }) => <span className="text-xs text-purple-600 font-bold">{formatPercentage(row.original.estimates?.high?.percentage ?? 0)}</span>,
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.high?.days ?? 0;
+                        const hours = row.original.estimates?.high?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-purple-600 dark:text-purple-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
                 },
             ],
         },
@@ -147,17 +162,22 @@ export default function TaskTemplates() {
                 {
                     accessorKey: "estimates.sophisticated.days",
                     header: "D",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.sophisticated?.days ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.sophisticated?.days ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.sophisticated.hours",
                     header: "H",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 font-medium">{row.original.estimates?.sophisticated?.hours ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.sophisticated?.hours ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.sophisticated.percentage",
                     header: "%",
-                    cell: ({ row }) => <span className="text-xs text-rose-600 font-bold">{formatPercentage(row.original.estimates?.sophisticated?.percentage ?? 0)}</span>,
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.sophisticated?.days ?? 0;
+                        const hours = row.original.estimates?.sophisticated?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
                 },
             ],
         },
@@ -206,7 +226,7 @@ export default function TaskTemplates() {
         const nextId = `T${String(state.tasks.length + 1).padStart(3, '0')}`;
         setFormData({ ...initialFormState, id: nextId });
         setCurrentTask(null);
-        setIsModalOpen(true);
+        setIsFormOpen(true);
     };
 
     const handleEdit = (task) => {
@@ -225,7 +245,7 @@ export default function TaskTemplates() {
         };
         setFormData(mergedFormData);
         setCurrentTask(task);
-        setIsModalOpen(true);
+        setIsFormOpen(true);
     };
 
     const handleDelete = (task) => {
@@ -248,7 +268,7 @@ export default function TaskTemplates() {
         } else {
             dispatch({ type: ACTIONS.ADD_TASK, payload: formData });
         }
-        setIsModalOpen(false);
+        setIsFormOpen(false);
     };
 
     const updateEstimate = (level, field, value) => {
@@ -259,9 +279,7 @@ export default function TaskTemplates() {
         };
 
         if (field === 'hours' || field === 'days') {
-            const hours = field === 'hours' ? numValue : formData.estimates[level].hours;
-            const days = field === 'days' ? numValue : formData.estimates[level].days;
-            updatedEstimate.percentage = days > 0 ? hours / (days * 8) : 0;
+            // Recalculation happens in render
         }
 
         setFormData({
@@ -276,44 +294,44 @@ export default function TaskTemplates() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <List className="h-6 w-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Task Templates</h2>
-                        <p className="text-sm text-slate-500 font-medium">Define effort estimates for common resource tasks</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Task Templates</h2>
+                        <p className="text-sm text-slate-500 font-medium dark:text-slate-400">Define effort estimates for common resource tasks</p>
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add template
                 </Button>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-glass-bg glass-effect p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
                         placeholder="Search templates..."
-                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg focus-visible:ring-indigo-500"
+                        className="pl-9 bg-slate-500/5 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus-visible:ring-indigo-500"
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
                     />
                 </div>
-                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider">
+                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider dark:text-slate-500">
                     {filteredTasks.length} OF {state.tasks.length} TEMPLATES
                 </div>
             </div>
 
             {/* Table Container */}
-            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-slate-50/50">
+                        <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
@@ -321,8 +339,10 @@ export default function TaskTemplates() {
                                             key={header.id}
                                             colSpan={header.colSpan}
                                             className={cn(
-                                                "text-[10px] font-bold text-slate-500 uppercase tracking-widest h-auto py-2 border-b border-slate-100",
-                                                header.column.columnDef.header.toString().includes('Complexity') ? "text-center bg-slate-100/30" : "text-left"
+                                                "text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest h-auto py-2 border-b border-slate-100 dark:border-slate-800",
+                                                header.column.columnDef.header.toString().includes('Complexity')
+                                                    ? "text-center bg-white/40 dark:bg-white/5"
+                                                    : (['D', 'H', '%'].includes(header.column.columnDef.header?.toString()) ? "text-center" : "text-left")
                                             )}
                                         >
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -334,12 +354,15 @@ export default function TaskTemplates() {
                         <TableBody>
                             {table.getRowModel().rows?.length ? (
                                 table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} className="hover:bg-slate-50/30 transition-colors border-slate-100">
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className={cn("py-2.5 px-4 text-sm align-middle h-10")}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
+                                    <TableRow key={row.id}>
+                                        {row.getVisibleCells().map((cell) => {
+                                            const isNumeric = ['D', 'H', '%'].includes(cell.column.columnDef.header?.toString());
+                                            return (
+                                                <TableCell key={cell.id} className={cn("py-2.5 px-4 text-sm align-middle h-10", isNumeric && "text-center")}>
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            );
+                                        })}
                                     </TableRow>
                                 ))
                             ) : (
@@ -358,7 +381,7 @@ export default function TaskTemplates() {
             </div>
 
             {/* Add/Edit Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>
@@ -433,7 +456,7 @@ export default function TaskTemplates() {
                                                     type="number"
                                                     value={formData.estimates[level].days}
                                                     onChange={(e) => updateEstimate(level, 'days', e.target.value)}
-                                                    className="h-8 rounded-lg text-center text-xs"
+                                                    className="h-8 rounded-lg text-center text-xs dark:bg-slate-900 dark:border-slate-800"
                                                     min="0"
                                                 />
                                             </div>
@@ -443,14 +466,17 @@ export default function TaskTemplates() {
                                                     type="number"
                                                     value={formData.estimates[level].hours}
                                                     onChange={(e) => updateEstimate(level, 'hours', e.target.value)}
-                                                    className="h-8 rounded-lg text-center text-xs"
+                                                    className="h-8 rounded-lg text-center text-xs dark:bg-slate-900 dark:border-slate-800"
                                                     min="0"
                                                 />
                                             </div>
                                             <div className="space-y-1.5 text-center">
                                                 <Label className="text-[10px] font-bold text-slate-400">Workload</Label>
-                                                <div className="h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-900 border-dashed">
-                                                    {(formData.estimates[level].percentage * 100).toFixed(1)}%
+                                                <div className="h-8 flex items-center justify-center bg-slate-500/5 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold text-slate-900 dark:text-slate-100 border-dashed">
+                                                    {(formData.estimates[level].days > 0
+                                                        ? ((formData.estimates[level].hours / (formData.estimates[level].days * 8)) * 100)
+                                                        : 0
+                                                    ).toFixed(1)}%
                                                 </div>
                                             </div>
                                         </div>
@@ -463,7 +489,7 @@ export default function TaskTemplates() {
                     <DialogFooter>
                         <Button
                             variant="ghost"
-                            onClick={() => setIsDialogOpen(false)}
+                            onClick={() => setIsFormOpen(false)}
                             className="font-bold"
                         >
                             Cancel

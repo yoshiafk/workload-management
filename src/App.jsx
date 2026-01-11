@@ -6,6 +6,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ErrorBoundary, PageLoader } from './components/ui';
 import Layout from './components/layout/Layout';
 
@@ -26,36 +27,38 @@ import './index.css';
 
 function App() {
   return (
-    <AppProvider>
-      <BrowserRouter basename="/workload-management">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                {/* Dashboard */}
-                <Route index element={<WorkloadSummary />} />
+    <ThemeProvider>
+      <AppProvider>
+        <BrowserRouter basename="/workload-management">
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  {/* Dashboard */}
+                  <Route index element={<WorkloadSummary />} />
 
-                {/* Management */}
-                <Route path="allocation" element={<ResourceAllocation />} />
-                <Route path="timeline" element={<TimelineView />} />
-                <Route path="dates" element={<ImportantDates />} />
-                <Route path="member/:memberId" element={<MemberTaskHistory />} />
+                  {/* Management */}
+                  <Route path="allocation" element={<ResourceAllocation />} />
+                  <Route path="timeline" element={<TimelineView />} />
+                  <Route path="dates" element={<ImportantDates />} />
+                  <Route path="member/:memberId" element={<MemberTaskHistory />} />
 
-                {/* Library (Config) */}
-                <Route path="library/members" element={<TeamMembers />} />
-                <Route path="library/phases" element={<Phases />} />
-                <Route path="library/tasks" element={<TaskTemplates />} />
-                <Route path="library/complexity" element={<Complexity />} />
-                <Route path="library/costs" element={<ResourceCosts />} />
+                  {/* Library (Config) */}
+                  <Route path="library/members" element={<TeamMembers />} />
+                  <Route path="library/phases" element={<Phases />} />
+                  <Route path="library/tasks" element={<TaskTemplates />} />
+                  <Route path="library/complexity" element={<Complexity />} />
+                  <Route path="library/costs" element={<ResourceCosts />} />
 
-                {/* Settings */}
-                <Route path="settings" element={<Settings />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
-      </BrowserRouter>
-    </AppProvider>
+                  {/* Settings */}
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </BrowserRouter>
+      </AppProvider>
+    </ThemeProvider>
   );
 }
 

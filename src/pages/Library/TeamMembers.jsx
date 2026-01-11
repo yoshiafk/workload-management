@@ -241,47 +241,47 @@ export default function TeamMembers() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Users className="h-6 w-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Team Members</h2>
-                        <p className="text-sm text-slate-500 font-medium">Manage your team and resource capacity</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Team Members</h2>
+                        <p className="text-sm text-slate-500 font-medium dark:text-slate-400">Manage your team and resource capacity</p>
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Add member
                 </Button>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-glass-bg glass-effect p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
                         placeholder="Search by name or role..."
-                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg focus-visible:ring-indigo-500"
+                        className="pl-9 bg-slate-500/5 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus-visible:ring-indigo-500"
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
                     />
                 </div>
-                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider">
+                <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider dark:text-slate-500">
                     {filteredMembers.length} OF {state.members.length} MEMBERS
                 </div>
             </div>
 
             {/* Table Container */}
-            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 py-3">
+                                    <TableHead key={header.id} className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider h-10 py-3">
                                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
@@ -291,7 +291,7 @@ export default function TeamMembers() {
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} className="hover:bg-slate-50/30 transition-colors border-slate-100">
+                                <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}

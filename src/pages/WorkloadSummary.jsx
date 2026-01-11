@@ -277,25 +277,25 @@ export default function WorkloadSummary() {
     return (
         <div className="workload-summary space-y-8 animate-in fade-in duration-500">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-4 px-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-4 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-2">
                     <LayoutDashboard className="h-4 w-4 text-indigo-500" />
-                    <span className="text-sm rounded-full bg-indigo-50 px-2.5 py-0.5 font-semibold text-indigo-600 border border-indigo-100">Analytical Overview</span>
+                    <span className="text-sm rounded-full bg-indigo-500/10 px-2.5 py-0.5 font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">Analytical Overview</span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
-                        <label className="text-xs font-bold text-slate-400 px-2 uppercase tracking-tight">Period:</label>
+                    <div className="flex items-center gap-2 bg-slate-500/10 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <label className="text-xs font-bold text-slate-500 px-2 uppercase tracking-tight">Period:</label>
                         <input
                             type="date"
-                            className="bg-white border border-slate-200 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-slate-600"
+                            className="bg-transparent border border-slate-200 dark:border-slate-800 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-slate-700 dark:text-slate-200"
                             value={dateFilter.start}
                             onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
                         />
                         <span className="text-slate-400 text-[10px] font-bold">TO</span>
                         <input
                             type="date"
-                            className="bg-white border border-slate-200 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-slate-600"
+                            className="bg-transparent border border-slate-200 dark:border-slate-800 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-slate-700 dark:text-slate-200"
                             value={dateFilter.end}
                             onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
                         />
@@ -326,51 +326,51 @@ export default function WorkloadSummary() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                <Card className="border-none shadow-md shadow-blue-100/50 bg-white/70 backdrop-blur-md">
+                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">Team Members</CardTitle>
-                        <Users className="h-4 w-4 text-blue-500" />
+                        <Users className="h-4 w-4 text-indigo-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{members.length}</div>
-                        <p className="text-xs text-slate-400 mt-1">Active resources</p>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{members.length}</div>
+                        <p className="text-xs text-slate-500 mt-1">Active resources</p>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-purple-100/50 bg-white/70 backdrop-blur-md">
+                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">Allocations</CardTitle>
                         <ListPlus className="h-4 w-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{allocations.length}</div>
-                        <p className="text-xs text-slate-400 mt-1">Task assignments</p>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{allocations.length}</div>
+                        <p className="text-xs text-slate-500 mt-1">Task assignments</p>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-amber-100/50 bg-white/70 backdrop-blur-md">
+                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">In Progress</CardTitle>
                         <Activity className="h-4 w-4 text-amber-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{activeCount}</div>
-                        <p className="text-xs text-slate-400 mt-1">Active tasks</p>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{activeCount}</div>
+                        <p className="text-xs text-slate-500 mt-1">Active tasks</p>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-emerald-100/50 bg-white/70 backdrop-blur-md">
+                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">Total Cost</CardTitle>
                         <TrendingUp className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold truncate">{formatCurrency(totalCost)}</div>
-                        <p className="text-xs text-slate-400 mt-1">Project budget</p>
+                        <div className="text-2xl font-bold truncate text-slate-900 dark:text-white">{formatCurrency(totalCost)}</div>
+                        <p className="text-xs text-slate-500 mt-1">Project budget</p>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-cyan-100/50 bg-white/80 backdrop-blur-md border border-cyan-100/50">
+                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md border border-indigo-500/10">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">Availability</CardTitle>
                         <Clock className="h-4 w-4 text-cyan-500" />

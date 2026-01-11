@@ -79,21 +79,21 @@ export default function Complexity() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Settings2 className="h-6 w-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Complexity Settings</h2>
-                        <p className="text-sm text-slate-500 font-medium">Configure estimation baselines for project tasks</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Complexity Settings</h2>
+                        <p className="text-sm text-slate-500 font-medium dark:text-slate-400">Configure estimation baselines for project tasks</p>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {Object.values(complexity).map(level => (
-                    <Card key={level.level} className="relative overflow-hidden border-slate-200/60 bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
+                    <Card key={level.level} className="relative overflow-hidden border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
                         <div
                             className="absolute top-0 left-0 w-full h-1"
                             style={{ backgroundColor: level.color }}
@@ -118,7 +118,7 @@ export default function Complexity() {
                                         <Calendar className="h-3 w-3" />
                                         Duration
                                     </div>
-                                    <div className="text-xl font-bold text-slate-900 tabular-nums">
+                                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                                         {level.days}<span className="text-xs font-medium text-slate-400 ml-1">Days</span>
                                     </div>
                                 </div>
@@ -127,7 +127,7 @@ export default function Complexity() {
                                         <Clock className="h-3 w-3" />
                                         Effort
                                     </div>
-                                    <div className="text-xl font-bold text-slate-900 tabular-nums">
+                                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                                         {level.hours}<span className="text-xs font-medium text-slate-400 ml-1">Hrs</span>
                                     </div>
                                 </div>
@@ -190,12 +190,12 @@ export default function Complexity() {
                             />
                             {errors.hours && <p className="text-[10px] text-red-500 font-medium">{errors.hours}</p>}
                         </div>
-                        <div className="p-4 bg-slate-50 rounded-xl space-y-2 border border-slate-100">
+                        <div className="p-4 bg-surface-sunken dark:bg-white/5 rounded-xl space-y-2 border border-slate-200 dark:border-white/10">
                             <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
                                 <span>Calculated Man-Days</span>
                                 <Gauge className="h-3 w-3" />
                             </div>
-                            <div className="text-3xl font-black text-slate-900 tabular-nums">
+                            <div className="text-3xl font-black text-slate-900 dark:text-slate-100 tabular-nums">
                                 {formData.workload?.toFixed(4)}
                             </div>
                             <p className="text-[10px] text-slate-400 font-medium leading-tight">
@@ -212,7 +212,7 @@ export default function Complexity() {
                             Cancel
                         </Button>
                         <Button
-                            onClick={() => setIsFormOpen(false)}
+                            onClick={handleSubmit}
                             className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
                         >
                             Update settings

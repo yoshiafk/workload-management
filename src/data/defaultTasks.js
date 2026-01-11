@@ -12,10 +12,10 @@ export const defaultTaskTemplates = [
         phaseId: 1,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 2, percentage: 0.125 },
-            medium: { days: 4, hours: 3, percentage: 0.09 },
-            high: { days: 6, hours: 4, percentage: 0.08 },
-            sophisticated: { days: 10, hours: 5, percentage: 0.06 },
+            low: { days: 2, hours: 2 },
+            medium: { days: 4, hours: 3 },
+            high: { days: 6, hours: 4 },
+            sophisticated: { days: 10, hours: 5 },
         },
     },
     {
@@ -24,10 +24,10 @@ export const defaultTaskTemplates = [
         phaseId: 1,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 3, hours: 3, percentage: 0.125 },
-            high: { days: 5, hours: 4, percentage: 0.1 },
-            sophisticated: { days: 8, hours: 5, percentage: 0.08 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 3, hours: 3 },
+            high: { days: 5, hours: 4 },
+            sophisticated: { days: 8, hours: 5 },
         },
     },
 
@@ -38,10 +38,10 @@ export const defaultTaskTemplates = [
         phaseId: 2,
         category: 'Project',
         estimates: {
-            low: { days: 3, hours: 3, percentage: 0.125 },
-            medium: { days: 6, hours: 4, percentage: 0.08 },
-            high: { days: 10, hours: 5, percentage: 0.0625 },
-            sophisticated: { days: 15, hours: 6, percentage: 0.05 },
+            low: { days: 3, hours: 3 },
+            medium: { days: 6, hours: 4 },
+            high: { days: 10, hours: 5 },
+            sophisticated: { days: 15, hours: 6 },
         },
     },
     {
@@ -50,10 +50,10 @@ export const defaultTaskTemplates = [
         phaseId: 2,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 2, percentage: 0.125 },
-            medium: { days: 5, hours: 4, percentage: 0.1 },
-            high: { days: 8, hours: 5, percentage: 0.08 },
-            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
+            low: { days: 2, hours: 2 },
+            medium: { days: 5, hours: 4 },
+            high: { days: 8, hours: 5 },
+            sophisticated: { days: 12, hours: 6 },
         },
     },
     {
@@ -62,10 +62,10 @@ export const defaultTaskTemplates = [
         phaseId: 2,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 3, percentage: 0.19 },
-            high: { days: 3, hours: 4, percentage: 0.17 },
-            sophisticated: { days: 4, hours: 4, percentage: 0.125 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 3 },
+            high: { days: 3, hours: 4 },
+            sophisticated: { days: 4, hours: 4 },
         },
     },
 
@@ -76,10 +76,10 @@ export const defaultTaskTemplates = [
         phaseId: 3,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 4, percentage: 0.25 },
-            high: { days: 4, hours: 6, percentage: 0.19 },
-            sophisticated: { days: 6, hours: 8, percentage: 0.17 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 4 },
+            high: { days: 4, hours: 6 },
+            sophisticated: { days: 6, hours: 8 },
         },
     },
     {
@@ -88,10 +88,10 @@ export const defaultTaskTemplates = [
         phaseId: 3,
         category: 'Project',
         estimates: {
-            low: { days: 3, hours: 4, percentage: 0.17 },
-            medium: { days: 7, hours: 5, percentage: 0.09 },
-            high: { days: 14, hours: 6, percentage: 0.05 },
-            sophisticated: { days: 21, hours: 7, percentage: 0.04 },
+            low: { days: 3, hours: 4 },
+            medium: { days: 7, hours: 5 },
+            high: { days: 14, hours: 6 },
+            sophisticated: { days: 21, hours: 7 },
         },
     },
     {
@@ -100,10 +100,10 @@ export const defaultTaskTemplates = [
         phaseId: 3,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 3, percentage: 0.19 },
-            medium: { days: 5, hours: 4, percentage: 0.1 },
-            high: { days: 8, hours: 5, percentage: 0.08 },
-            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
+            low: { days: 2, hours: 3 },
+            medium: { days: 5, hours: 4 },
+            high: { days: 8, hours: 5 },
+            sophisticated: { days: 12, hours: 6 },
         },
     },
     {
@@ -112,10 +112,10 @@ export const defaultTaskTemplates = [
         phaseId: 3,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 2, percentage: 0.125 },
-            medium: { days: 4, hours: 3, percentage: 0.09 },
-            high: { days: 7, hours: 4, percentage: 0.07 },
-            sophisticated: { days: 10, hours: 5, percentage: 0.0625 },
+            low: { days: 2, hours: 2 },
+            medium: { days: 4, hours: 3 },
+            high: { days: 7, hours: 4 },
+            sophisticated: { days: 10, hours: 5 },
         },
     },
 
@@ -126,10 +126,10 @@ export const defaultTaskTemplates = [
         phaseId: 4,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 3, percentage: 0.19 },
-            high: { days: 3, hours: 4, percentage: 0.17 },
-            sophisticated: { days: 5, hours: 5, percentage: 0.125 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 3 },
+            high: { days: 3, hours: 4 },
+            sophisticated: { days: 5, hours: 5 },
         },
     },
     {
@@ -138,10 +138,10 @@ export const defaultTaskTemplates = [
         phaseId: 4,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 3, percentage: 0.19 },
-            medium: { days: 4, hours: 4, percentage: 0.125 },
-            high: { days: 6, hours: 5, percentage: 0.1 },
-            sophisticated: { days: 10, hours: 6, percentage: 0.075 },
+            low: { days: 2, hours: 3 },
+            medium: { days: 4, hours: 4 },
+            high: { days: 6, hours: 5 },
+            sophisticated: { days: 10, hours: 6 },
         },
     },
     {
@@ -150,10 +150,10 @@ export const defaultTaskTemplates = [
         phaseId: 4,
         category: 'Project',
         estimates: {
-            low: { days: 3, hours: 3, percentage: 0.125 },
-            medium: { days: 5, hours: 4, percentage: 0.1 },
-            high: { days: 8, hours: 5, percentage: 0.08 },
-            sophisticated: { days: 12, hours: 6, percentage: 0.0625 },
+            low: { days: 3, hours: 3 },
+            medium: { days: 5, hours: 4 },
+            high: { days: 8, hours: 5 },
+            sophisticated: { days: 12, hours: 6 },
         },
     },
 
@@ -164,10 +164,10 @@ export const defaultTaskTemplates = [
         phaseId: 5,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 4, percentage: 0.25 },
-            high: { days: 4, hours: 5, percentage: 0.16 },
-            sophisticated: { days: 6, hours: 6, percentage: 0.125 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 4 },
+            high: { days: 4, hours: 5 },
+            sophisticated: { days: 6, hours: 6 },
         },
     },
     {
@@ -176,10 +176,10 @@ export const defaultTaskTemplates = [
         phaseId: 5,
         category: 'Project',
         estimates: {
-            low: { days: 2, hours: 2, percentage: 0.125 },
-            medium: { days: 4, hours: 3, percentage: 0.09 },
-            high: { days: 6, hours: 4, percentage: 0.08 },
-            sophisticated: { days: 8, hours: 5, percentage: 0.08 },
+            low: { days: 2, hours: 2 },
+            medium: { days: 4, hours: 3 },
+            high: { days: 6, hours: 4 },
+            sophisticated: { days: 8, hours: 5 },
         },
     },
     {
@@ -188,10 +188,10 @@ export const defaultTaskTemplates = [
         phaseId: 5,
         category: 'Project',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 3, percentage: 0.19 },
-            high: { days: 3, hours: 4, percentage: 0.17 },
-            sophisticated: { days: 5, hours: 5, percentage: 0.125 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 3 },
+            high: { days: 3, hours: 4 },
+            sophisticated: { days: 5, hours: 5 },
         },
     },
 
@@ -202,10 +202,10 @@ export const defaultTaskTemplates = [
         phaseId: 6,
         category: 'Support',
         estimates: {
-            low: { days: 1, hours: 2, percentage: 0.25 },
-            medium: { days: 2, hours: 4, percentage: 0.25 },
-            high: { days: 3, hours: 6, percentage: 0.25 },
-            sophisticated: { days: 5, hours: 8, percentage: 0.2 },
+            low: { days: 1, hours: 2 },
+            medium: { days: 2, hours: 4 },
+            high: { days: 3, hours: 6 },
+            sophisticated: { days: 5, hours: 8 },
         },
     },
     {
@@ -214,10 +214,10 @@ export const defaultTaskTemplates = [
         phaseId: 6,
         category: 'Support',
         estimates: {
-            low: { days: 1, hours: 1, percentage: 0.125 },
-            medium: { days: 2, hours: 2, percentage: 0.125 },
-            high: { days: 4, hours: 3, percentage: 0.09 },
-            sophisticated: { days: 6, hours: 4, percentage: 0.08 },
+            low: { days: 1, hours: 1 },
+            medium: { days: 2, hours: 2 },
+            high: { days: 4, hours: 3 },
+            sophisticated: { days: 6, hours: 4 },
         },
     },
     {
@@ -226,10 +226,10 @@ export const defaultTaskTemplates = [
         phaseId: 6,
         category: 'Support',
         estimates: {
-            low: { days: 1, hours: 1, percentage: 0.125 },
-            medium: { days: 1, hours: 2, percentage: 0.25 },
-            high: { days: 2, hours: 3, percentage: 0.19 },
-            sophisticated: { days: 3, hours: 4, percentage: 0.17 },
+            low: { days: 1, hours: 1 },
+            medium: { days: 1, hours: 2 },
+            high: { days: 2, hours: 3 },
+            sophisticated: { days: 3, hours: 4 },
         },
     },
 
@@ -240,10 +240,10 @@ export const defaultTaskTemplates = [
         phaseId: 7,
         category: 'Terminal',
         estimates: {
-            low: { days: 0, hours: 0, percentage: 0 },
-            medium: { days: 0, hours: 0, percentage: 0 },
-            high: { days: 0, hours: 0, percentage: 0 },
-            sophisticated: { days: 0, hours: 0, percentage: 0 },
+            low: { days: 0, hours: 0 },
+            medium: { days: 0, hours: 0 },
+            high: { days: 0, hours: 0 },
+            sophisticated: { days: 0, hours: 0 },
         },
     },
     {
@@ -252,10 +252,10 @@ export const defaultTaskTemplates = [
         phaseId: 8,
         category: 'Terminal',
         estimates: {
-            low: { days: 0, hours: 0, percentage: 0 },
-            medium: { days: 0, hours: 0, percentage: 0 },
-            high: { days: 0, hours: 0, percentage: 0 },
-            sophisticated: { days: 0, hours: 0, percentage: 0 },
+            low: { days: 0, hours: 0 },
+            medium: { days: 0, hours: 0 },
+            high: { days: 0, hours: 0 },
+            sophisticated: { days: 0, hours: 0 },
         },
     },
 ];

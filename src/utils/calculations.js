@@ -156,7 +156,16 @@ export function calculateWorkloadPercentage(taskName, complexity, taskTemplates)
     if (!task) return 0;
 
     const level = complexity.toLowerCase();
-    return task.estimates[level]?.percentage || 0;
+    const estimate = task.estimates[level];
+
+    if (!estimate) return 0;
+
+    // Formula: Estimated Hours / (Duration Days * 8 hours)
+    const durationHours = (estimate.days || 0) * 8;
+
+    if (durationHours === 0) return 0;
+
+    return (estimate.hours || 0) / durationHours;
 }
 
 /**

@@ -136,18 +136,18 @@ export default function Phases() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Layers className="h-6 w-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Task Phases</h2>
-                        <p className="text-sm text-slate-500 font-medium">Define and order your project workflow</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Task Phases</h2>
+                        <p className="text-sm text-slate-500 font-medium dark:text-slate-400">Define and order your project workflow</p>
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add phase
                 </Button>
@@ -158,7 +158,7 @@ export default function Phases() {
                     <div
                         key={phase.id}
                         className={cn(
-                            "group flex items-center gap-4 p-4 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm transition-all hover:shadow-md hover:border-blue-200",
+                            "group flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-glass-bg backdrop-blur-sm transition-all hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800",
                             phase.isTerminal && "opacity-80 grayscale-[0.2]"
                         )}
                     >
@@ -183,13 +183,13 @@ export default function Phases() {
                             </Button>
                         </div>
 
-                        <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-slate-100 text-slate-500 font-bold text-lg border border-slate-200">
+                        <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-lg border border-slate-200 dark:border-slate-700">
                             {index + 1}
                         </div>
 
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-slate-800">{phase.name}</h3>
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100">{phase.name}</h3>
                                 {phase.isTerminal && (
                                     <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] py-0 px-1.5 uppercase tracking-wide">
                                         Terminal
@@ -213,10 +213,10 @@ export default function Phases() {
                 ))}
 
                 {state.phases.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-slate-400">
+                    <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-surface-sunken dark:bg-white/5 text-slate-400">
                         <Layers className="h-10 w-10 mb-2 opacity-20" />
                         <p className="font-medium">No phases defined yet.</p>
-                        <Button variant="link" onClick={handleAdd} className="text-blue-500">Add your first phase</Button>
+                        <Button variant="link" onClick={handleAdd} className="text-indigo-500 dark:text-indigo-400 font-bold">Add your first phase</Button>
                     </div>
                 )}
             </div>
@@ -246,7 +246,7 @@ export default function Phases() {
                             {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
                         </div>
 
-                        <div className="flex items-start space-x-3 p-3 rounded-lg bg-amber-50/50 border border-amber-100">
+                        <div className="flex items-start space-x-3 p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
                             <Checkbox
                                 id="isTerminal"
                                 checked={formData.isTerminal}
@@ -254,10 +254,10 @@ export default function Phases() {
                                 className="mt-1 rounded-[4px]"
                             />
                             <div className="space-y-1">
-                                <Label htmlFor="isTerminal" className="text-sm font-bold text-amber-900 cursor-pointer">
+                                <Label htmlFor="isTerminal" className="text-sm font-bold text-slate-900 dark:text-slate-100 cursor-pointer">
                                     Terminal Phase
                                 </Label>
-                                <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                                     Marks the end of work. Tasks in this phase won't count towards active workload capacity.
                                 </p>
                             </div>

@@ -60,7 +60,7 @@ import {
     FileSpreadsheet
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { RichTextEditor } from '../components/ui';
+
 import './ResourceAllocation.css';
 
 // Generate unique ID
@@ -82,7 +82,7 @@ const emptyAllocation = {
     taskName: '',
     status: 'open', // Task status
     tags: [], // Task tags
-    description: '', // Rich text description
+
     plan: {
         taskStart: '',
         taskEnd: '',
@@ -381,7 +381,7 @@ export default function ResourceAllocation() {
                         type="checkbox"
                         checked={row.getIsSelected()}
                         onChange={(e) => row.toggleSelected(!!e.target.checked)}
-                        className="rounded border-slate-300 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-slate-300 dark:border-slate-700 h-4 w-4 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-900"
                     />
                 </div>
             ),
@@ -433,7 +433,7 @@ export default function ResourceAllocation() {
                 const comp = row.getValue("complexity")?.toLowerCase();
                 const label = complexity[comp]?.label || comp;
                 return (
-                    <Badge variant="secondary" className="font-medium px-2 bg-slate-100 text-slate-700 border-slate-200">
+                    <Badge variant="secondary" className="font-medium px-2 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
                         {label.charAt(0).toUpperCase() + label.slice(1)}
                     </Badge>
                 )
@@ -536,18 +536,18 @@ export default function ResourceAllocation() {
     return (
         <div className="allocation-page space-y-6 animate-in fade-in duration-500">
             {/* Action bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-4 px-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-4 px-6 rounded-2xl border border-glass-border shadow-sm">
                 <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-indigo-500" />
-                    <span className="text-sm font-semibold text-slate-700">Actions & Bulk Operations</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Actions & Bulk Operations</span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                     {hasSelection && (
-                        <div className="flex items-center gap-2 mr-2 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
-                            <span className="text-xs font-semibold px-2 text-slate-600">{selectedRows.length} selected</span>
+                        <div className="flex items-center gap-2 mr-2 bg-slate-500/10 p-1 rounded-xl border border-slate-500/20">
+                            <span className="text-xs font-semibold px-2 text-slate-600 dark:text-slate-400">{selectedRows.length} selected</span>
                             <Select onValueChange={handleBulkStatusChange}>
-                                <SelectTrigger className="h-8 w-[140px] bg-white border-none shadow-none text-xs">
+                                <SelectTrigger className="h-8 w-[140px] bg-transparent border-none shadow-none text-xs text-slate-700 dark:text-slate-200">
                                     <SelectValue placeholder="Update Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -574,12 +574,12 @@ export default function ResourceAllocation() {
             </div>
 
             {/* Filter Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-glass-bg glass-effect p-4 rounded-xl border border-glass-border shadow-sm">
                 <div className="md:col-span-5 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
                         placeholder="Search activity, demand #, phase..."
-                        className="pl-9 bg-white/50 border-slate-200/50 rounded-lg"
+                        className="pl-9 bg-slate-500/5 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
@@ -587,7 +587,7 @@ export default function ResourceAllocation() {
 
                 <div className="md:col-span-3">
                     <Select value={filterResource} onValueChange={setFilterResource}>
-                        <SelectTrigger className="bg-white/50 border-slate-200/50 rounded-lg">
+                        <SelectTrigger className="bg-slate-500/5 border-slate-500/20 rounded-lg text-slate-700 dark:text-slate-200">
                             <SelectValue placeholder="All Resources" />
                         </SelectTrigger>
                         <SelectContent>
@@ -601,7 +601,7 @@ export default function ResourceAllocation() {
 
                 <div className="md:col-span-3">
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="bg-white/50 border-slate-200/50 rounded-lg">
+                        <SelectTrigger className="bg-slate-500/5 border-slate-500/20 rounded-lg text-slate-700 dark:text-slate-200">
                             <SelectValue placeholder="All Statuses" />
                         </SelectTrigger>
                         <SelectContent>
@@ -636,9 +636,9 @@ export default function ResourceAllocation() {
             </div>
 
             {/* Table */}
-            <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-glass-border bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
@@ -652,7 +652,7 @@ export default function ResourceAllocation() {
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="hover:bg-slate-50/50 transition-colors border-slate-100">
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -694,7 +694,7 @@ export default function ResourceAllocation() {
                                         placeholder="DM-000001"
                                         value={formData.demandNumber}
                                         onChange={(e) => handleChange('demandNumber', e.target.value)}
-                                        className="rounded-xl border-slate-200"
+                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-900"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -789,7 +789,7 @@ export default function ResourceAllocation() {
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 grid grid-cols-3 gap-4">
+                            <div className="p-6 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 grid grid-cols-3 gap-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Estimated End</p>
                                     <p className="text-sm font-black text-slate-900">{calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—'}</p>
@@ -804,11 +804,7 @@ export default function ResourceAllocation() {
                                 </div>
                             </div>
 
-                            <RichTextEditor
-                                label="Description"
-                                value={formData.description}
-                                onChange={(value) => handleChange('description', value)}
-                            />
+
 
                             <div className="space-y-2">
                                 <Label htmlFor="remarks" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Remarks</Label>

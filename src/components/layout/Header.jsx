@@ -4,6 +4,7 @@
  */
 
 import { useLocation } from 'react-router-dom';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import './Header.css';
 
 const pageTitles = {
@@ -36,7 +37,7 @@ export default function Header({ onMenuClick }) {
     const description = pageDescriptions[location.pathname] || '';
 
     return (
-        <header className="header glass-header">
+        <header className="header bg-glass-bg glass-effect border-b border-glass-border">
             <div className="header-content">
                 <div className="header-left">
                     <button className="menu-toggle" onClick={onMenuClick} aria-label="Toggle menu">
@@ -53,6 +54,7 @@ export default function Header({ onMenuClick }) {
                 </div>
 
                 <div className="header-actions">
+                    <ThemeToggle />
                     <div className="header-date">
                         <span className="date-label">Today</span>
                         <span className="date-value">

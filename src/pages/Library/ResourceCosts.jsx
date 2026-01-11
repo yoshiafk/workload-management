@@ -280,18 +280,18 @@ export default function ResourceCosts() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Banknote className="h-6 w-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Resource Costs</h2>
-                        <p className="text-sm text-slate-500 font-medium">Manage role-based salary tiers and hourly rates</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Resource Costs</h2>
+                        <p className="text-sm text-slate-500 font-medium dark:text-slate-400">Manage role-based salary tiers and hourly rates</p>
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add cost tier
                 </Button>
@@ -300,12 +300,12 @@ export default function ResourceCosts() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Cost Tracking Settings Card */}
                 <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/40 p-5 shadow-sm space-y-6">
+                    <div className="bg-glass-bg backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+                            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                                 <Settings className="h-4 w-4" />
                             </div>
-                            <h3 className="font-bold text-slate-800">Tracking Controls</h3>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100">Tracking Controls</h3>
                         </div>
 
                         <div className="space-y-4">
@@ -314,8 +314,8 @@ export default function ResourceCosts() {
                                 return (
                                     <div key={roleKey} className="flex items-center justify-between group">
                                         <div className="space-y-0.5">
-                                            <Label className="text-sm font-semibold text-slate-700">{role.name}</Label>
-                                            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Cost Tracking</p>
+                                            <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name}</Label>
+                                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-tight">Cost Tracking</p>
                                         </div>
                                         <Switch
                                             checked={isEnabled}
@@ -351,25 +351,25 @@ export default function ResourceCosts() {
                 {/* Table Container */}
                 <div className="lg:col-span-2 space-y-4">
                     {/* Filter Bar */}
-                    <div className="flex items-center bg-white/40 glass-effect p-3 rounded-xl border border-white/20 shadow-sm">
+                    <div className="flex items-center bg-glass-bg glass-effect p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div className="relative flex-1 group">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                             <Input
                                 placeholder="Search costs..."
-                                className="pl-9 bg-white/50 border-slate-200/50 rounded-lg h-9 focus-visible:ring-indigo-500"
+                                className="pl-9 bg-slate-500/5 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg h-9 focus-visible:ring-indigo-500"
                                 value={globalFilter}
                                 onChange={(e) => setGlobalFilter(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm overflow-hidden">
+                    <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
                         <Table>
-                            <TableHeader className="bg-slate-50/50">
+                            <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => (
-                                            <TableHead key={header.id} className="text-[10px] font-bold text-slate-500 uppercase tracking-widest h-10 py-3">
+                                            <TableHead key={header.id} className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest h-10 py-3">
                                                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                             </TableHead>
                                         ))}
@@ -379,7 +379,7 @@ export default function ResourceCosts() {
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
                                     table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id} className="hover:bg-slate-50/30 transition-colors border-slate-100">
+                                        <TableRow key={row.id}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -404,7 +404,7 @@ export default function ResourceCosts() {
             </div>
 
             {/* Add/Edit Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
@@ -463,7 +463,7 @@ export default function ResourceCosts() {
                                     type="number"
                                     value={formData.monthlyCost}
                                     onChange={(e) => handleChange('monthlyCost', e.target.value)}
-                                    className={cn("pl-9 pr-4 rounded-lg h-10 font-bold text-slate-900 group-focus-within:ring-emerald-500", errors.monthlyCost && "border-red-500")}
+                                    className={cn("pl-9 pr-4 rounded-lg h-10 font-bold text-slate-900 dark:text-slate-100 dark:bg-slate-900 dark:border-slate-800 group-focus-within:ring-emerald-500", errors.monthlyCost && "border-red-500")}
                                 />
                             </div>
                             <div className="flex justify-between items-center text-[10px] px-1">
@@ -473,20 +473,20 @@ export default function ResourceCosts() {
                             {errors.monthlyCost && <p className="text-[10px] text-red-500 font-bold text-right">{errors.monthlyCost}</p>}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div className="grid grid-cols-2 gap-4 bg-slate-500/5 dark:bg-indigo-950/20 p-4 rounded-xl border border-slate-200 dark:border-indigo-900/50">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
                                     <Calculator className="h-3 w-3" />
                                     Per Day Rate
                                 </div>
-                                <div className="text-sm font-bold text-slate-900">{formatCurrency(formData.perDayCost)}</div>
+                                <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{formatCurrency(formData.perDayCost)}</div>
                             </div>
                             <div className="space-y-1">
                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
                                     <Clock className="h-3 w-3" />
                                     Hourly Rate
                                 </div>
-                                <div className="text-sm font-bold text-slate-900">{formatCurrency(formData.perHourCost)}</div>
+                                <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{formatCurrency(formData.perHourCost)}</div>
                             </div>
                         </div>
                     </div>
@@ -494,7 +494,7 @@ export default function ResourceCosts() {
                     <DialogFooter>
                         <Button
                             variant="ghost"
-                            onClick={() => setIsDialogOpen(false)}
+                            onClick={() => setIsFormOpen(false)}
                             className="font-bold"
                         >
                             Cancel

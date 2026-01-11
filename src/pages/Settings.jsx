@@ -297,8 +297,7 @@ export default function Settings() {
                     <Card className="border-none glass-effect bg-white/20 shadow-sm rounded-3xl p-6 text-center">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 italic">End of Settings</p>
                         <p className="text-[9px] font-bold text-slate-400">
-                            Antigravity Design Engine &copy; 2024<br />
-                            Enterprise Grade Resource Management
+                            Designed & Developed by Yosy Aliffakry
                         </p>
                     </Card>
                 </div>
@@ -337,17 +336,4 @@ export default function Settings() {
 
         </div>
     );
-}
-
-// Minimal placeholder for input since it's not imported
-function Input({ className, ...props }) {
-    return (
-        <input
-            className={cn(
-                "flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus-visible:ring-slate-300",
-                className
-            )}
-            {...props}
-        />
-    )
 }
