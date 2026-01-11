@@ -9,12 +9,17 @@
   <!-- SPA redirect handler for GitHub Pages -->
   <script>
     (function (l) {
-      if (l.search[1] === '/') {
+      if (l.search[1] === 'p' && l.search[2] === '=') {
         var decoded = l.search.slice(1).split('&').map(function (s) {
           return s.replace(/~and~/g, '&')
+        }).filter(function (s) {
+          return s.slice(0, 2) !== 'p='
         }).join('?');
+        var path = l.search.slice(1).split('&').filter(function (s) {
+          return s.slice(0, 2) === 'p='
+        })[0].slice(2);
         window.history.replaceState(null, null,
-          l.pathname.slice(0, -1) + decoded + l.hash
+          l.pathname.slice(0, -1) + path + (decoded ? '?' + decoded : '') + l.hash
         );
       }
     }(window.location))

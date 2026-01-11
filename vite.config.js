@@ -14,19 +14,20 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React libraries - loaded on every page
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          // Charts library - only needed on Dashboard
-          'vendor-charts': ['recharts'],
-          // Rich text editor - only needed when editing notes
-          'vendor-editor': ['react-quill-new'],
-          // Date utilities - tree-shaken, keep separate
-          'vendor-utils': ['date-fns'],
-        },
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('react-quill-new')) return 'vendor-editor';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('@radix-ui')) return 'vendor-ui';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
+            return 'vendor';
+          }
+        }
       },
     },
-    // Increase limit since vendor-charts will be ~300KB
-    chunkSizeWarningLimit: 350,
+    chunkSizeWarningLimit: 600,
+    assetsInlineLimit: 4096, // Inline small assets (4KB)
+    reportCompressedSize: false, // Speed up build
   },
 })
