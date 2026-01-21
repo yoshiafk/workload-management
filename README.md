@@ -86,3 +86,12 @@ Shows a member's total workload relative to their individual maximum capacity.
 - **Charts**: Recharts
 - **Date Logic**: date-fns
 - **State Management**: React Context API
+- 
+
+## Revise
+- Set SLA map to Priority
+- Remove Complexcity Calculation except for Project Task
+- Align the color for Member Load Status
+- Check modal for Date Picker Implementation
+- Update the Date Filter Function on Dashboard View
+- Fix typo on URL
