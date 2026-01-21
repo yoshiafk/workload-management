@@ -17,11 +17,12 @@
     margin: 0;
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
+    color: hsl(var(--foreground));
 }
 
 .page-subtitle {
     font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
     margin: var(--spacing-1) 0 0 0;
 }
 
@@ -31,8 +32,8 @@
     align-items: center;
     gap: var(--spacing-3);
     padding: var(--spacing-3) var(--spacing-4);
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     margin-bottom: var(--spacing-4);
     flex-wrap: wrap;
@@ -47,42 +48,42 @@
     width: 280px;
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-sm);
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     transition: border-color var(--transition-fast);
 }
 
 .filter-search::placeholder {
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .filter-search:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: hsl(var(--primary));
 }
 
 .filter-select {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-sm);
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     cursor: pointer;
     min-width: 140px;
 }
 
 .filter-select:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: hsl(var(--primary));
 }
 
 .filter-count {
     margin-left: auto;
     font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .btn-sm {
@@ -92,8 +93,8 @@
 
 /* Table Container */
 .allocation-table-container {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     overflow: hidden;
 }
@@ -110,17 +111,17 @@
     font-weight: var(--font-weight-semibold);
     text-transform: capitalize;
     letter-spacing: 0.02em;
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     padding: var(--spacing-3) var(--spacing-4);
-    background: var(--color-bg-tertiary);
-    border-bottom: 1px solid var(--color-border);
+    background: hsl(var(--muted));
+    border-bottom: 1px solid hsl(var(--border));
     white-space: nowrap;
 }
 
 .allocation-table td {
     padding: var(--spacing-3) var(--spacing-4);
-    color: var(--color-text-secondary);
-    border-bottom: 1px solid var(--color-border);
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border));
     vertical-align: middle;
 }
 
@@ -129,12 +130,12 @@
 }
 
 .allocation-table tr:hover td {
-    background: var(--color-bg-secondary);
+    background: hsl(var(--muted) / 0.5);
 }
 
 /* Cell Types */
 .cell-name {
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     font-weight: var(--font-weight-medium);
 }
 
@@ -170,7 +171,7 @@
 
 /* Selected Row */
 .allocation-table tr.selected td {
-    background: var(--color-primary-light);
+    background: hsl(var(--primary) / 0.1);
 }
 
 /* Header Actions */
@@ -186,25 +187,25 @@
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-2) var(--spacing-3);
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
 }
 
 .bulk-label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     white-space: nowrap;
 }
 
 .bulk-status-select {
     padding: var(--spacing-1) var(--spacing-2);
     font-size: var(--font-size-sm);
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-sm);
-    background: var(--color-bg-card);
-    color: var(--color-text-primary);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     cursor: pointer;
     min-width: 140px;
 }
@@ -216,9 +217,9 @@
 
 /* Danger Button */
 .btn-danger {
-    background: var(--color-danger);
-    color: white;
-    border-color: var(--color-danger);
+    background: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+    border-color: hsl(var(--destructive));
 }
 
 .btn-danger:hover {
@@ -249,43 +250,43 @@
 }
 
 .category-low {
-    background: var(--color-success-light);
-    color: var(--color-success);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
 }
 
 .category-medium {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
 }
 
 .category-high {
-    background: var(--color-warning-light);
-    color: var(--color-warning);
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 50%);
 }
 
 .category-sophisticated {
     background: #4b2c20;
     color: #ff8c00;
-    border: 1px solid rgba(255, 140, 0, 0.2);
+    border: 1px solid hsl(38 92% 50% / 0.2);
 }
 
 /* Work Category Styles */
 .category-project {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.2);
 }
 
 .category-support {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
+    border: 1px solid hsl(142 76% 36% / 0.2);
 }
 
 .category-maintenance {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 50%);
+    border: 1px solid hsl(38 92% 50% / 0.2);
 }
 
 /* Workload Badge */
@@ -297,8 +298,8 @@
     padding: var(--spacing-1) var(--spacing-2);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-primary);
-    background: var(--color-primary-light);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
     border-radius: var(--radius-sm);
     font-family: var(--font-family-mono);
 }
@@ -314,7 +315,7 @@
 .ticket-id {
     font-size: 10px;
     font-weight: 700;
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
     text-transform: uppercase;
     line-height: 1;
 }
@@ -346,15 +347,15 @@
 }
 
 .sla-within-sla {
-    color: var(--color-success);
+    color: hsl(142 76% 36%);
 }
 
 .sla-at-risk {
-    color: var(--color-warning);
+    color: hsl(38 92% 50%);
 }
 
 .sla-breached {
-    color: var(--color-danger);
+    color: hsl(var(--destructive));
 }
 
 /* Empty State */
@@ -368,19 +369,19 @@
 
 .empty-state p {
     margin: 0;
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
 }
 
 .empty-hint {
     font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     margin-top: var(--spacing-1);
 }
 
 /* Calculated Fields Section */
 .calculated-fields {
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
     padding: var(--spacing-4);
     margin: var(--spacing-6) 0 var(--spacing-4) 0;
@@ -389,7 +390,7 @@
 .calculated-fields h4 {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     margin: 0 0 var(--spacing-3) 0;
 }
 
@@ -407,13 +408,13 @@
 
 .calculated-label {
     font-size: var(--font-size-xs);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
 }
 
 .calculated-value {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     font-family: var(--font-family-mono);
 }
 
@@ -432,20 +433,20 @@
     margin: 0 0 var(--spacing-3) 0;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-primary);
+    color: hsl(var(--primary));
 }
 
 /* Variance Indicators */
 .variance-positive {
-    color: var(--color-success);
+    color: hsl(142 76% 36%);
 }
 
 .variance-negative {
-    color: var(--color-danger);
+    color: hsl(var(--destructive));
 }
 
 .variance-neutral {
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
 }
 
 /* Responsive */

@@ -26,13 +26,13 @@
 .workload-summary .page-title {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0;
 }
 
 .workload-summary .page-subtitle {
     font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .quick-actions-right {
@@ -53,24 +53,24 @@
 }
 
 .workload-summary .quick-actions-right .btn-secondary {
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border: 1px solid hsl(var(--border));
 }
 
 .workload-summary .quick-actions-right .btn-secondary:hover {
-    background: var(--color-bg-tertiary);
-    border-color: var(--color-border-hover);
+    background: hsl(var(--muted));
+    border-color: hsl(var(--border));
 }
 
 .workload-summary .quick-actions-right .btn-primary {
-    background: var(--color-primary);
-    color: white;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     border: none;
 }
 
 .workload-summary .quick-actions-right .btn-primary:hover {
-    background: var(--color-primary-hover);
+    background: hsl(var(--primary) / 0.9);
 }
 
 /* Date Filter */
@@ -84,25 +84,25 @@
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-2) var(--spacing-3);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--muted) / 0.5);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
 }
 
 .workload-summary .date-filter-label {
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     white-space: nowrap;
 }
 
 .workload-summary .date-input {
     padding: var(--spacing-1) var(--spacing-2);
     font-size: var(--font-size-xs);
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-sm);
-    background: var(--color-bg-card);
-    color: var(--color-text-primary);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
 }
 
 .workload-summary .date-input:focus {
@@ -169,8 +169,8 @@
 
 /* Stat Card - Scoped and Centered */
 .workload-summary .stat-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-5);
     transition: box-shadow var(--transition-fast);
@@ -194,23 +194,23 @@
 }
 
 .workload-summary .stat-icon-wrapper.blue {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
 }
 
 .workload-summary .stat-icon-wrapper.purple {
-    background: #f3e8ff;
-    color: #9333ea;
+    background: hsl(262 83% 58% / 0.1);
+    color: hsl(262 83% 58%);
 }
 
 .workload-summary .stat-icon-wrapper.amber {
-    background: var(--color-warning-light);
-    color: var(--color-warning);
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 50%);
 }
 
 .workload-summary .stat-icon-wrapper.green {
-    background: var(--color-success-light);
-    color: var(--color-success);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
 }
 
 .workload-summary .stat-icon-wrapper.cyan {
@@ -249,21 +249,21 @@
 }
 
 .workload-summary .availability-row.available .availability-dot {
-    background: var(--color-success);
+    background: hsl(142 76% 36%);
 }
 
 .workload-summary .availability-row.booked .availability-dot {
-    background: var(--color-danger);
+    background: hsl(var(--destructive));
 }
 
 .workload-summary .availability-row.next {
     font-size: 10px;
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .availability-row.next .availability-date {
     font-weight: var(--font-weight-semibold);
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     margin-left: auto;
 }
 
@@ -284,9 +284,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-tertiary);
+    background: hsl(var(--muted));
     border-radius: var(--radius-full);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .chart-empty-icon svg {
@@ -296,7 +296,7 @@
 
 .workload-summary .chart-empty-text {
     font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     margin: 0;
 }
 
@@ -307,8 +307,8 @@
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
-    color: var(--color-primary);
-    background: var(--color-primary-light);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
     border: none;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -330,21 +330,21 @@
 .workload-summary .stat-label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     margin-bottom: 4px;
 }
 
 .workload-summary .stat-value {
     font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     line-height: 1.1;
     margin-bottom: 4px;
 }
 
 .workload-summary .stat-footer {
     font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
 }
 
 /* Capacity Heatmap Section */
@@ -353,8 +353,8 @@
 }
 
 .workload-summary .heatmap-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-4);
 }
@@ -371,7 +371,7 @@
 .workload-summary .heatmap-title {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0;
 }
 
@@ -379,7 +379,7 @@
     display: flex;
     gap: var(--spacing-4);
     font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .legend-item {
@@ -395,31 +395,23 @@
 }
 
 .workload-summary .legend-dot.available {
-    background: #ecfdf5;
-    /* emerald-50 */
-    border: 1px solid #10b981;
-    /* emerald-500 */
+    background: hsl(142 76% 36% / 0.1);
+    border: 1px solid hsl(142 76% 36%);
 }
 
 .workload-summary .legend-dot.busy {
-    background: #eef2ff;
-    /* indigo-50 */
-    border: 1px solid #4f46e5;
-    /* indigo-600 */
+    background: hsl(var(--primary) / 0.1);
+    border: 1px solid hsl(var(--primary));
 }
 
 .workload-summary .legend-dot.limited {
-    background: #fffbeb;
-    /* amber-50 */
-    border: 1px solid #f59e0b;
-    /* amber-500 */
+    background: hsl(38 92% 50% / 0.1);
+    border: 1px solid hsl(38 92% 50%);
 }
 
 .workload-summary .legend-dot.at-capacity {
-    background: #fff1f2;
-    /* rose-50 */
-    border: 1px solid #f43f5e;
-    /* rose-500 */
+    background: hsl(var(--destructive) / 0.1);
+    border: 1px solid hsl(var(--destructive));
 }
 
 .workload-summary .legend-dot.leave {
@@ -451,20 +443,20 @@
     flex: 0 0 140px;
     text-align: left;
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-primary);
-    background: var(--bg-surface-sunken);
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.5);
 }
 
 .workload-summary .heatmap-day-header {
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-    background: var(--bg-table-header);
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
 }
 
 .workload-summary .heatmap-header-row .heatmap-member-cell {
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-    background: var(--bg-table-header);
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
 }
 
 .workload-summary .heatmap-status-cell {
@@ -477,47 +469,62 @@
 }
 
 .workload-summary .heatmap-status-cell.available {
-    background: var(--color-success-light);
-    color: var(--color-success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: hsl(142 76% 36% / 0.15);
+    color: hsl(142 76% 36%);
+    border: 1px solid hsl(142 76% 36% / 0.3);
+}
+
+.dark .workload-summary .heatmap-status-cell.available {
+    background: hsl(142 76% 25% / 0.4);
+    color: hsl(142 76% 70%);
 }
 
 .workload-summary .heatmap-status-cell.busy {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
-    border: 1px solid rgba(129, 140, 248, 0.2);
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.3);
+}
+
+.dark .workload-summary .heatmap-status-cell.busy {
+    background: hsl(var(--primary) / 0.4);
+    color: hsl(var(--primary));
 }
 
 .workload-summary .heatmap-status-cell.limited {
-    background: var(--color-warning-light);
-    color: var(--color-warning);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: hsl(38 92% 50% / 0.15);
+    color: hsl(38 92% 50%);
+    border: 1px solid hsl(38 92% 50% / 0.3);
+}
+
+.dark .workload-summary .heatmap-status-cell.limited {
+    background: hsl(38 92% 25% / 0.4);
+    color: hsl(38 92% 70%);
 }
 
 .workload-summary .heatmap-status-cell.at-capacity {
-    background: var(--color-danger-light);
-    color: var(--color-danger);
-    border: 1px solid rgba(244, 63, 94, 0.2);
+    background: hsl(var(--destructive) / 0.15);
+    color: hsl(var(--destructive));
+    border: 1px solid hsl(var(--destructive) / 0.3);
+}
+
+.dark .workload-summary .heatmap-status-cell.at-capacity {
+    background: hsl(var(--destructive) / 0.4);
+    color: hsl(var(--destructive));
 }
 
 .workload-summary .heatmap-status-cell.leave {
     background: repeating-linear-gradient(45deg,
-            var(--color-bg-tertiary),
-            var(--color-bg-tertiary) 4px,
-            var(--color-border) 4px,
-            var(--color-border) 8px);
-    color: var(--color-text-muted);
+            hsl(var(--muted)),
+            hsl(var(--muted)) 4px,
+            hsl(var(--border)) 4px,
+            hsl(var(--border)) 8px);
+    color: hsl(var(--muted-foreground));
     font-style: italic;
     font-size: 10px;
     font-weight: var(--font-weight-medium);
 }
 
-.dark .workload-summary .heatmap-status-cell.available,
-.dark .workload-summary .heatmap-status-cell.busy,
-.dark .workload-summary .heatmap-status-cell.limited,
-.dark .workload-summary .heatmap-status-cell.at-capacity {
-    border-color: rgba(255, 255, 255, 0.05);
-}
+
 
 /* Charts Section */
 .workload-summary .charts-section {
@@ -539,8 +546,8 @@
 }
 
 .workload-summary .chart-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-5);
 }
@@ -548,7 +555,7 @@
 .workload-summary .chart-title {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-4) 0;
 }
 
@@ -568,15 +575,15 @@
 }
 
 .workload-summary .chart-empty {
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     font-size: var(--font-size-sm);
 }
 
 
 /* Section */
 .workload-summary .section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-6);
 }
@@ -588,13 +595,13 @@
 .workload-summary .section-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-1) 0;
 }
 
 .workload-summary .section-subtitle {
     font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
     margin: 0;
 }
 
@@ -606,8 +613,8 @@
 }
 
 .workload-summary .member-card {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--muted) / 0.5);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
     padding: var(--spacing-4);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -617,15 +624,15 @@
 
 /* Status-based card border */
 .workload-summary .member-card.status-available {
-    border-left: 3px solid var(--color-success);
+    border-left: 3px solid hsl(142 76% 36%);
 }
 
 .workload-summary .member-card.status-limited {
-    border-left: 3px solid var(--color-warning);
+    border-left: 3px solid hsl(38 92% 50%);
 }
 
 .workload-summary .member-card.status-at-capacity {
-    border-left: 3px solid var(--color-danger);
+    border-left: 3px solid hsl(var(--destructive));
 }
 
 .workload-summary .member-card:hover {
@@ -656,18 +663,18 @@
 }
 
 .workload-summary .task-count-badge.available {
-    color: var(--color-success);
-    background: var(--color-success-light);
+    color: hsl(142 76% 36%);
+    background: hsl(142 76% 36% / 0.1);
 }
 
 .workload-summary .task-count-badge.limited {
-    color: var(--color-warning);
-    background: var(--color-warning-light);
+    color: hsl(38 92% 50%);
+    background: hsl(38 92% 50% / 0.1);
 }
 
 .workload-summary .task-count-badge.at-capacity {
-    color: var(--color-danger);
-    background: var(--color-danger-light);
+    color: hsl(var(--destructive));
+    background: hsl(var(--destructive) / 0.1);
 }
 
 /* Availability Footer */
@@ -677,12 +684,12 @@
     justify-content: space-between;
     margin-top: auto;
     padding-top: var(--spacing-3);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid hsl(var(--border));
 }
 
 .workload-summary .availability-label {
     font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .availability-footer .available-now {
@@ -691,15 +698,15 @@
     padding: 4px 12px;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-success);
-    background: var(--color-success-light);
+    color: hsl(142 76% 36%);
+    background: hsl(142 76% 36% / 0.1);
     border-radius: var(--radius-md);
 }
 
 .workload-summary .availability-footer .available-date {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .member-header {
@@ -708,7 +715,7 @@
     gap: var(--spacing-3);
     margin-bottom: var(--spacing-4);
     padding-bottom: var(--spacing-4);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid hsl(var(--border));
 }
 
 .workload-summary .member-avatar {
@@ -717,11 +724,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-primary);
+    background: hsl(var(--primary));
     border-radius: var(--radius-full);
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    color: white;
+    color: hsl(var(--primary-foreground));
 }
 
 .workload-summary .member-info {
@@ -732,13 +739,13 @@
 .workload-summary .member-name {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0;
 }
 
 .workload-summary .member-role {
     font-size: var(--font-size-xs);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
 }
 
 .workload-summary .member-badge {
@@ -746,7 +753,7 @@
     align-items: center;
     gap: var(--spacing-2);
     font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     font-weight: var(--font-weight-medium);
 }
 
@@ -754,20 +761,20 @@
     width: 8px;
     height: 8px;
     border-radius: var(--radius-full);
-    background: var(--color-text-muted);
+    background: hsl(var(--muted-foreground));
 }
 
 .workload-summary .status-indicator.active {
-    background: var(--color-success);
+    background: hsl(142 76% 36%);
 }
 
 .workload-summary .status-indicator.overloaded {
-    background: var(--color-danger);
-    box-shadow: 0 0 8px var(--color-danger-light);
+    background: hsl(var(--destructive));
+    box-shadow: 0 0 8px hsl(var(--destructive) / 0.5);
 }
 
 .workload-summary .status-indicator.idle {
-    background: var(--color-text-muted);
+    background: hsl(var(--muted-foreground));
 }
 
 /* Capacity Progress Bars */
@@ -789,13 +796,13 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
     border-radius: var(--radius-sm);
-    background: var(--color-success-light);
-    color: var(--color-success);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
 }
 
 .workload-summary .utilization-badge.high {
-    background: var(--color-warning-light);
-    color: var(--color-warning);
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 50%);
 }
 
 .workload-summary .utilization-badge.overloaded {

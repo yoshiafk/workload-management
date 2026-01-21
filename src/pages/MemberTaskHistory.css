@@ -26,18 +26,18 @@
     width: 44px;
     height: 44px;
     border-radius: var(--radius-full);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-secondary);
+    background: hsl(var(--muted) / 0.5);
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
     text-decoration: none;
     transition: all var(--transition-fast);
     flex-shrink: 0;
 }
 
 .member-history-page .back-button:hover {
-    background: var(--color-primary-light);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary));
     transform: translateX(-2px);
 }
 
@@ -54,24 +54,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-primary), #6366f1);
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%));
     border-radius: var(--radius-lg);
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    color: white;
+    color: hsl(var(--primary-foreground));
     box-shadow: var(--shadow-md);
 }
 
 .member-history-page .member-details h1 {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-1) 0;
 }
 
 .member-history-page .member-role {
     font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
 }
 
 /* Stats Row */
@@ -82,50 +82,50 @@
 }
 
 .member-history-page .stat-item {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-4);
     text-align: center;
 }
 
 .member-history-page .stat-item.active {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
 }
 
 .member-history-page .stat-item.completed {
-    border-color: var(--color-success);
-    background: var(--color-success-light);
+    border-color: hsl(142 76% 36%);
+    background: hsl(142 76% 36% / 0.1);
 }
 
 .member-history-page .stat-value {
     display: block;
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin-bottom: var(--spacing-1);
 }
 
 .member-history-page .stat-item.active .stat-value {
-    color: var(--color-primary);
+    color: hsl(var(--primary));
 }
 
 .member-history-page .stat-item.completed .stat-value {
-    color: var(--color-success);
+    color: hsl(142 76% 36%);
 }
 
 .member-history-page .stat-label {
     font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 /* History Section */
 .member-history-page .history-section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-6);
 }
@@ -133,7 +133,7 @@
 .member-history-page .history-section h2 {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-4) 0;
 }
 
@@ -151,21 +151,21 @@
     text-align: left;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     padding: var(--spacing-3) var(--spacing-4);
-    background: var(--color-bg-tertiary);
-    border-bottom: 1px solid var(--color-border);
+    background: hsl(var(--muted));
+    border-bottom: 1px solid hsl(var(--border));
     white-space: nowrap;
 }
 
 .member-history-page .history-table td {
     padding: var(--spacing-3) var(--spacing-4);
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-text-primary);
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
 }
 
 .member-history-page .history-table tr:hover td {
-    background: var(--color-bg-secondary);
+    background: hsl(var(--muted) / 0.5);
 }
 
 .member-history-page .history-table tr.completed td {
@@ -187,7 +187,7 @@
 
 .member-history-page .empty-row {
     text-align: center;
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     padding: var(--spacing-8) !important;
 }
 
@@ -207,8 +207,8 @@
 }
 
 .member-history-page .category-badge.category-medium {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
 }
 
 .member-history-page .category-badge.category-high {
@@ -223,21 +223,21 @@
 
 /* Work Category Styles */
 .member-history-page .category-badge.category-project {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.2);
 }
 
 .member-history-page .category-badge.category-support {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
+    border: 1px solid hsl(142 76% 36% / 0.2);
 }
 
 .member-history-page .category-badge.category-maintenance {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 50%);
+    border: 1px solid hsl(38 92% 50% / 0.2);
 }
 
 /* Status Badge */
@@ -250,18 +250,18 @@
 }
 
 .member-history-page .status-badge.active {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
 }
 
 .member-history-page .status-badge.completed {
-    background: var(--color-success-light);
-    color: var(--color-success);
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
 }
 
 .member-history-page .status-badge.idle {
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-muted);
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
 }
 
 /* Error State */
@@ -272,11 +272,11 @@
 
 .member-history-page .error-state h2 {
     font-size: var(--font-size-xl);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-2) 0;
 }
 
 .member-history-page .error-state p {
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     margin: 0 0 var(--spacing-4) 0;
 }

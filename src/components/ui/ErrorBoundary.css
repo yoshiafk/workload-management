@@ -16,20 +16,20 @@
 }
 
 .error-icon {
-    color: var(--color-danger);
-    margin-bottom: var(--space-lg);
+    color: hsl(var(--destructive));
+    margin-bottom: var(--spacing-5);
 }
 
 .error-boundary h2 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-sm);
+    color: hsl(var(--foreground));
+    margin-bottom: var(--spacing-2);
 }
 
 .error-message {
-    color: var(--text-secondary);
-    margin-bottom: var(--space-lg);
+    color: hsl(var(--muted-foreground));
+    margin-bottom: var(--spacing-5);
 }
 
 .error-actions {
@@ -41,10 +41,10 @@
 
 .error-details {
     text-align: left;
-    background: var(--surface-secondary);
-    padding: var(--space-md);
+    background: hsl(var(--muted));
+    padding: var(--spacing-4);
     border-radius: var(--radius-md);
-    margin-top: var(--space-lg);
+    margin-top: var(--spacing-5);
 }
 
 .error-details summary {
@@ -54,9 +54,9 @@
 }
 
 .error-details pre {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     overflow-x: auto;
     white-space: pre-wrap;
     word-break: break-word;
-    color: var(--color-danger);
+    color: hsl(var(--destructive));
 }

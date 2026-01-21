@@ -32,12 +32,12 @@
 
 .spinner {
     animation: spin 1s linear infinite;
-    color: var(--color-primary);
+    color: hsl(var(--primary));
 }
 
 .loading-text {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-sm);
 }
 
 @keyframes spin {

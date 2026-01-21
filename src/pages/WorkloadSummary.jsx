@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getMemberWorkloads, formatCurrency, calculateMonthlyTrend, getMemberTaskAvailability } from '../utils/calculations';
 import { defaultRoleTiers } from '../data';
@@ -30,6 +31,20 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, LayoutDashboard, Calendar, Users, ListPlus, Activity, TrendingUp, Clock } from "lucide-react"
+
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.08 }
+    }
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+};
 
 // Chart colors - Indigo, Emerald, Amber, Rose, Sky, Slate
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#64748b', '#8b5cf6'];
@@ -277,7 +292,7 @@ export default function WorkloadSummary() {
     return (
         <div className="workload-summary space-y-8 animate-in fade-in duration-500">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-4 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-4 px-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-2">
                     <LayoutDashboard className="h-4 w-4 text-indigo-500" />
                     <span className="text-sm rounded-full bg-indigo-500/10 px-2.5 py-0.5 font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">Analytical Overview</span>
@@ -325,68 +340,83 @@ export default function WorkloadSummary() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500">Team Members</CardTitle>
-                        <Users className="h-4 w-4 text-indigo-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{members.length}</div>
-                        <p className="text-xs text-slate-500 mt-1">Active resources</p>
-                    </CardContent>
-                </Card>
+            <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <motion.div variants={cardVariants}>
+                    <Card className="border-border shadow-md shadow-indigo-500/5 bg-card h-full">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-500">Team Members</CardTitle>
+                            <Users className="h-4 w-4 text-indigo-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{members.length}</div>
+                            <p className="text-xs text-slate-500 mt-1">Active resources</p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500">Allocations</CardTitle>
-                        <ListPlus className="h-4 w-4 text-purple-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{allocations.length}</div>
-                        <p className="text-xs text-slate-500 mt-1">Task assignments</p>
-                    </CardContent>
-                </Card>
+                <motion.div variants={cardVariants}>
+                    <Card className="border-border shadow-md shadow-indigo-500/5 bg-card h-full">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-500">Allocations</CardTitle>
+                            <ListPlus className="h-4 w-4 text-purple-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{allocations.length}</div>
+                            <p className="text-xs text-slate-500 mt-1">Task assignments</p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500">In Progress</CardTitle>
-                        <Activity className="h-4 w-4 text-amber-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{activeCount}</div>
-                        <p className="text-xs text-slate-500 mt-1">Active tasks</p>
-                    </CardContent>
-                </Card>
+                <motion.div variants={cardVariants}>
+                    <Card className="border-border shadow-md shadow-indigo-500/5 bg-card h-full">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-500">In Progress</CardTitle>
+                            <Activity className="h-4 w-4 text-amber-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{activeCount}</div>
+                            <p className="text-xs text-slate-500 mt-1">Active tasks</p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500">Total Cost</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold truncate text-slate-900 dark:text-white">{formatCurrency(totalCost)}</div>
-                        <p className="text-xs text-slate-500 mt-1">Project budget</p>
-                    </CardContent>
-                </Card>
+                <motion.div variants={cardVariants}>
+                    <Card className="border-border shadow-md shadow-indigo-500/5 bg-card h-full">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-500">Total Cost</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold truncate text-slate-900 dark:text-white">{formatCurrency(totalCost)}</div>
+                            <p className="text-xs text-slate-500 mt-1">Project budget</p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-                <Card className="border-none shadow-md shadow-indigo-500/5 bg-glass-bg backdrop-blur-md border border-indigo-500/10">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500">Availability</CardTitle>
-                        <Clock className="h-4 w-4 text-cyan-500" />
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                            <span className="text-xs font-semibold text-emerald-700">{availabilitySummary.availableNow} available</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                            <span className="text-xs font-medium text-slate-600">{availabilitySummary.fullyBooked} Booked</span>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                <motion.div variants={cardVariants}>
+                    <Card className="border-border shadow-md shadow-indigo-500/5 bg-card border border-indigo-500/10 h-full">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-500">Availability</CardTitle>
+                            <Clock className="h-4 w-4 text-cyan-500" />
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                                <span className="text-xs font-semibold text-emerald-700">{availabilitySummary.availableNow} available</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                                <span className="text-xs font-medium text-slate-600">{availabilitySummary.fullyBooked} Booked</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </motion.div>
 
             {/* Capacity Heatmap Section */}
             <section className="heatmap-section">

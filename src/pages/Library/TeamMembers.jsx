@@ -241,7 +241,7 @@ export default function TeamMembers() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Users className="h-6 w-6" />
@@ -259,12 +259,12 @@ export default function TeamMembers() {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center bg-glass-bg glass-effect p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                     <Input
                         placeholder="Search by name or role..."
-                        className="pl-9 bg-slate-500/5 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus-visible:ring-indigo-500"
+                        className="pl-9 bg-muted border-slate-200 dark:border-slate-800 rounded-lg focus-visible:ring-indigo-500"
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
                     />
@@ -275,7 +275,7 @@ export default function TeamMembers() {
             </div>
 
             {/* Table Container */}
-            <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

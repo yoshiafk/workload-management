@@ -79,7 +79,7 @@ export default function Complexity() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Settings2 className="h-6 w-6" />
@@ -93,7 +93,7 @@ export default function Complexity() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {Object.values(complexity).map(level => (
-                    <Card key={level.level} className="relative overflow-hidden border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
+                    <Card key={level.level} className="relative overflow-hidden border-border bg-card hover:shadow-lg transition-all duration-300 group">
                         <div
                             className="absolute top-0 left-0 w-full h-1"
                             style={{ backgroundColor: level.color }}
@@ -190,7 +190,7 @@ export default function Complexity() {
                             />
                             {errors.hours && <p className="text-[10px] text-red-500 font-medium">{errors.hours}</p>}
                         </div>
-                        <div className="p-4 bg-surface-sunken dark:bg-white/5 rounded-xl space-y-2 border border-slate-200 dark:border-white/10">
+                        <div className="p-4 bg-muted/50 rounded-xl space-y-2 border border-border">
                             <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
                                 <span>Calculated Man-Days</span>
                                 <Gauge className="h-3 w-3" />

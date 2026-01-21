@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { defaultRoleTiers } from '../data';
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ export default function TimelineView() {
         <TooltipProvider>
             <div className="timeline-page space-y-6 animate-in fade-in duration-500">
                 {/* Modern Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
                             <CalendarDays className="h-6 w-6" />
@@ -187,7 +188,7 @@ export default function TimelineView() {
                 </div>
 
                 {/* Timeline Visualization */}
-                <div className="bg-white/40 glass-effect rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+                <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <div className="min-w-[800px]">
                             {/* Date Header Row */}
@@ -229,16 +230,22 @@ export default function TimelineView() {
 
                             {/* Member Rows */}
                             <div className="divide-y divide-slate-100">
-                                {activeMembers.map(member => (
-                                    <div key={member.id} className="flex hover:bg-white/20 transition-colors group">
-                                        <div className="w-64 p-4 flex items-center gap-3 border-r border-slate-100 group-hover:bg-slate-50/30 transition-colors">
-                                            <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
-                                                <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 font-bold text-xs uppercase">
+                                {activeMembers.map((member, memberIdx) => (
+                                    <motion.div
+                                        key={member.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: memberIdx * 0.03, duration: 0.3 }}
+                                        className="flex hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group"
+                                    >
+                                        <div className="w-64 p-4 flex items-center gap-3 border-r border-slate-100 dark:border-slate-800 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-800/30 transition-colors">
+                                            <Avatar className="h-9 w-9 ring-2 ring-white dark:ring-slate-800 shadow-sm">
+                                                <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase">
                                                     {member.name.charAt(0)}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-sm font-bold text-slate-800 truncate leading-tight">{member.name}</span>
+                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate leading-tight">{member.name}</span>
                                                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tight truncate">
                                                     {defaultRoleTiers[member.type]?.name || member.type}
                                                 </span>
@@ -267,25 +274,20 @@ export default function TimelineView() {
                                                                         <Badge className="bg-rose-100 text-rose-600 hover:bg-rose-100 border-rose-200 text-[8px] font-extrabold px-1.5 h-4 uppercase">Leave</Badge>
                                                                     </div>
                                                                 ) : taskCount > 0 ? (
-                                                                    <div className="flex flex-wrap justify-center gap-1 px-1">
+                                                                    <div className="flex flex-wrap justify-center gap-1.5 px-1">
                                                                         {tasks.slice(0, 3).map((task, i) => (
-                                                                            <div
+                                                                            <motion.div
                                                                                 key={i}
-                                                                                className="h-1.5 w-1.5 rounded-full shadow-sm ring-1 ring-white/50"
+                                                                                initial={{ scale: 0 }}
+                                                                                animate={{ scale: 1 }}
+                                                                                transition={{ delay: i * 0.05 }}
+                                                                                className="h-2.5 w-2.5 rounded-full shadow-md ring-2 ring-white"
                                                                                 style={{ backgroundColor: getTaskColor(task) }}
                                                                             />
                                                                         ))}
                                                                         {taskCount > 3 && (
-                                                                            <span className="text-[8px] font-black text-slate-400 leading-none">+{taskCount - 3}</span>
+                                                                            <span className="text-[9px] font-black text-slate-600 dark:text-slate-300 leading-none">+{taskCount - 3}</span>
                                                                         )}
-
-                                                                        {/* Heatmap background for heavy loads */}
-                                                                        <div className={cn(
-                                                                            "absolute inset-0 z-[-1] opacity-10",
-                                                                            taskCount >= 5 ? "bg-rose-500" :
-                                                                                taskCount >= 3 ? "bg-amber-500" :
-                                                                                    "bg-indigo-500"
-                                                                        )} />
                                                                     </div>
                                                                 ) : null}
                                                             </div>
@@ -331,7 +333,7 @@ export default function TimelineView() {
                                                 );
                                             })}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         </div>
@@ -339,7 +341,7 @@ export default function TimelineView() {
                 </div>
 
                 {/* Refined Legend Section */}
-                <div className="bg-white/40 glass-effect p-4 rounded-xl border border-white/20 shadow-sm">
+                <div className="bg-card p-4 rounded-xl border border-border shadow-sm">
                     <div className="flex flex-wrap items-center justify-center gap-6">
                         <div className="flex items-center gap-2">
                             <div className="h-3 w-3 rounded-full bg-slate-100 border border-slate-200" />

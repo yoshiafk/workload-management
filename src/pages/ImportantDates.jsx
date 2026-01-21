@@ -408,7 +408,7 @@ export default function ImportantDates() {
 
                 {/* Public Holidays Section */}
                 <div className="space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm transition-all hover:bg-white/50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm transition-all hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
                                 <CalendarDays className="h-6 w-6" />
@@ -441,8 +441,8 @@ export default function ImportantDates() {
                         </div>
                     </div>
 
-                    <div className="bg-white/40 glass-effect rounded-2xl border border-white/20 shadow-xl overflow-hidden min-h-[400px]">
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 bg-white/20">
+                    <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden min-h-[400px]">
+                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 rounded-xl border border-slate-200/50 text-slate-500">
                                 <Calendar className="h-3.5 w-3.5" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Filter By Year</span>
@@ -502,7 +502,7 @@ export default function ImportantDates() {
 
                 {/* Team Leaves Section */}
                 <div className="space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 glass-effect p-6 rounded-2xl border border-white/20 shadow-sm transition-all hover:bg-white/50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm transition-all hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-600 border border-emerald-100">
                                 <Users className="h-6 w-6" />
@@ -525,8 +525,8 @@ export default function ImportantDates() {
                         </div>
                     </div>
 
-                    <div className="bg-white/40 glass-effect rounded-2xl border border-white/20 shadow-xl overflow-hidden min-h-[400px]">
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 bg-white/20">
+                    <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden min-h-[400px]">
+                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 rounded-xl border border-slate-200/50 text-slate-500 w-full max-w-[240px]">
                                 <Search className="h-3.5 w-3.5" />
                                 <span className="text-[10px] font-black uppercase tracking-widest shrink-0">By Member</span>

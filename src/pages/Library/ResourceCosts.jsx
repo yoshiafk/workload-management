@@ -280,7 +280,7 @@ export default function ResourceCosts() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Banknote className="h-6 w-6" />
@@ -300,7 +300,7 @@ export default function ResourceCosts() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Cost Tracking Settings Card */}
                 <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-glass-bg backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-6">
+                    <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                                 <Settings className="h-4 w-4" />
@@ -351,19 +351,19 @@ export default function ResourceCosts() {
                 {/* Table Container */}
                 <div className="lg:col-span-2 space-y-4">
                     {/* Filter Bar */}
-                    <div className="flex items-center bg-glass-bg glass-effect p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="flex items-center bg-card p-3 rounded-xl border border-border shadow-sm">
                         <div className="relative flex-1 group">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                             <Input
                                 placeholder="Search costs..."
-                                className="pl-9 bg-slate-500/5 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg h-9 focus-visible:ring-indigo-500"
+                                className="pl-9 bg-muted border-slate-200 dark:border-slate-800 rounded-lg h-9 focus-visible:ring-indigo-500"
                                 value={globalFilter}
                                 onChange={(e) => setGlobalFilter(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
+                    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                         <Table>
                             <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
@@ -463,7 +463,7 @@ export default function ResourceCosts() {
                                     type="number"
                                     value={formData.monthlyCost}
                                     onChange={(e) => handleChange('monthlyCost', e.target.value)}
-                                    className={cn("pl-9 pr-4 rounded-lg h-10 font-bold text-slate-900 dark:text-slate-100 dark:bg-slate-900 dark:border-slate-800 group-focus-within:ring-emerald-500", errors.monthlyCost && "border-red-500")}
+                                    className={cn("pl-9 pr-4 rounded-lg h-10 font-bold text-slate-900 dark:text-slate-100 bg-muted dark:border-slate-800 group-focus-within:ring-emerald-500", errors.monthlyCost && "border-red-500")}
                                 />
                             </div>
                             <div className="flex justify-between items-center text-[10px] px-1">
@@ -473,7 +473,7 @@ export default function ResourceCosts() {
                             {errors.monthlyCost && <p className="text-[10px] text-red-500 font-bold text-right">{errors.monthlyCost}</p>}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 bg-slate-500/5 dark:bg-indigo-950/20 p-4 rounded-xl border border-slate-200 dark:border-indigo-900/50">
+                        <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-xl border border-border">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
                                     <Calculator className="h-3 w-3" />

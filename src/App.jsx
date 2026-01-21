@@ -21,6 +21,7 @@ const TaskTemplates = lazy(() => import('./pages/Library/TaskTemplates'));
 const Complexity = lazy(() => import('./pages/Library/Complexity'));
 const ResourceCosts = lazy(() => import('./pages/Library/ResourceCosts'));
 const MemberTaskHistory = lazy(() => import('./pages/MemberTaskHistory'));
+const ProjectCostCalculator = lazy(() => import('./pages/ProjectCostCalculator'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 import './index.css';
@@ -42,6 +43,7 @@ function App() {
                   <Route path="timeline" element={<TimelineView />} />
                   <Route path="dates" element={<ImportantDates />} />
                   <Route path="member/:memberId" element={<MemberTaskHistory />} />
+                  <Route path="cost-calculator" element={<ProjectCostCalculator />} />
 
                   {/* Library (Config) */}
                   <Route path="library/members" element={<TeamMembers />} />

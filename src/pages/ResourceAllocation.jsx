@@ -536,7 +536,7 @@ export default function ResourceAllocation() {
     return (
         <div className="allocation-page space-y-6 animate-in fade-in duration-500">
             {/* Action bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-4 px-6 rounded-2xl border border-glass-border shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-4 px-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-indigo-500" />
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Actions & Bulk Operations</span>
@@ -574,7 +574,7 @@ export default function ResourceAllocation() {
             </div>
 
             {/* Filter Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-glass-bg glass-effect p-4 rounded-xl border border-glass-border shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-card p-4 rounded-xl border border-border shadow-sm">
                 <div className="md:col-span-5 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
@@ -636,7 +636,7 @@ export default function ResourceAllocation() {
             </div>
 
             {/* Table */}
-            <div className="rounded-xl border border-glass-border bg-glass-bg backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

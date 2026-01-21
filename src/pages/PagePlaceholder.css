@@ -9,8 +9,8 @@
     justify-content: center;
     min-height: 400px;
     text-align: center;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-8);
 }
@@ -21,10 +21,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-tertiary);
+    background: hsl(var(--muted));
     border-radius: var(--radius-xl);
     margin-bottom: var(--spacing-4);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
 }
 
 .page-placeholder h2 {
@@ -33,13 +33,13 @@
 }
 
 .page-placeholder p {
-    color: var(--color-text-secondary);
+    color: hsl(var(--muted-foreground));
     margin-bottom: var(--spacing-2);
     max-width: 400px;
 }
 
 .coming-soon {
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     font-weight: var(--font-weight-medium);
 }
 
@@ -55,8 +55,8 @@
 }
 
 .dates-section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     padding: var(--spacing-6);
 }
@@ -64,13 +64,13 @@
 .section-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     margin: 0 0 var(--spacing-1) 0;
 }
 
 .section-subtitle {
     font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
+    color: hsl(var(--muted-foreground));
     margin-bottom: var(--spacing-4);
 }
 
@@ -89,27 +89,27 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-3);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: hsl(var(--muted) / 0.5);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-sm);
 }
 
 .holiday-date,
 .leave-date {
     font-size: var(--font-size-sm);
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     font-family: var(--font-family-mono);
     font-weight: var(--font-weight-medium);
 }
 
 .holiday-name {
     font-size: var(--font-size-sm);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
 }
 
 .leave-member {
     font-size: var(--font-size-sm);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     font-weight: var(--font-weight-medium);
 }
 
@@ -117,6 +117,6 @@
 .no-data {
     text-align: center;
     font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+    color: hsl(var(--muted-foreground));
     padding: var(--spacing-4);
 }

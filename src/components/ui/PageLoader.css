@@ -21,15 +21,15 @@
 .loader-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid var(--color-border, #e5e7eb);
-    border-top-color: var(--color-primary, #3b82f6);
+    border: 3px solid hsl(var(--border));
+    border-top-color: hsl(var(--primary));
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
 
 .loader-text {
-    color: var(--color-text-secondary, #6b7280);
-    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    font-size: var(--font-size-sm);
     font-weight: 500;
 }
 

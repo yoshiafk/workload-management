@@ -133,8 +133,8 @@ export default function Settings() {
             {/* Notifications */}
             {importStatus && (
                 <div className={cn(
-                    "fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border shadow-2xl animate-in slide-in-from-right duration-300 backdrop-blur-xl",
-                    importStatus === 'success' ? "bg-emerald-500/90 text-white border-emerald-400" : "bg-red-500/90 text-white border-red-400"
+                    "fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border shadow-2xl animate-in slide-in-from-right duration-300",
+                    importStatus === 'success' ? "bg-emerald-500 text-white border-emerald-400" : "bg-red-500 text-white border-red-400"
                 )}>
                     {importStatus === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                     <span className="font-bold text-sm">{importMessage}</span>
@@ -159,7 +159,7 @@ export default function Settings() {
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 min-w-[200px]">
-                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Storage Usage</p>
                             <div className="flex items-end justify-between">
                                 <span className="text-2xl font-black">Local</span>
@@ -177,7 +177,7 @@ export default function Settings() {
 
                 {/* Left Column: Data Overview */}
                 <div className="lg:col-span-2 space-y-8">
-                    <Card className="border-none glass-effect bg-white/40 shadow-xl rounded-3xl overflow-hidden overflow-hidden">
+                    <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden">
                         <CardHeader className="p-8 pb-4">
                             <div className="flex items-center gap-3 mb-2">
                                 <LayoutDashboard className="h-5 w-5 text-slate-400" />
@@ -188,7 +188,7 @@ export default function Settings() {
                         <CardContent className="p-8 pt-4">
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 {stats.map(stat => (
-                                    <div key={stat.label} className="group p-5 rounded-2xl bg-white/30 border border-white/40 hover:bg-white/50 hover:border-indigo-200 transition-all hover:-translate-y-1 shadow-sm">
+                                    <div key={stat.label} className="group p-5 rounded-2xl bg-muted/50 border border-border hover:bg-muted hover:border-indigo-200 transition-all hover:-translate-y-1 shadow-sm">
                                         <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", stat.bg, stat.color)}>
                                             <stat.icon className="h-5 w-5" />
                                         </div>
@@ -202,7 +202,7 @@ export default function Settings() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Export Card */}
-                        <Card className="border-none glass-effect bg-white/40 shadow-xl rounded-3xl overflow-hidden hover:bg-white/50 transition-all">
+                        <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden hover:bg-muted/50 transition-all">
                             <CardHeader className="p-8">
                                 <div className="h-12 w-12 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 mb-4">
                                     <Download className="h-6 w-6" />
@@ -225,7 +225,7 @@ export default function Settings() {
                         </Card>
 
                         {/* Import Card */}
-                        <Card className="border-none glass-effect bg-white/40 shadow-xl rounded-3xl overflow-hidden hover:bg-white/50 transition-all">
+                        <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden hover:bg-muted/50 transition-all">
                             <CardHeader className="p-8">
                                 <div className="h-12 w-12 rounded-2xl bg-purple-600/10 flex items-center justify-center text-purple-600 border border-purple-100 mb-4">
                                     <Upload className="h-6 w-6" />
@@ -295,7 +295,7 @@ export default function Settings() {
                         </CardFooter>
                     </Card>
 
-                    <Card className="border-none glass-effect bg-white/20 shadow-sm rounded-3xl p-6 text-center">
+                    <Card className="border-border bg-muted/20 shadow-sm rounded-3xl p-6 text-center">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 italic">End of Settings</p>
                         <p className="text-[9px] font-bold text-slate-400">
                             Designed & Developed by Yosy Aliffakry

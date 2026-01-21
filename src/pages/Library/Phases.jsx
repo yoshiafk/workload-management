@@ -136,7 +136,7 @@ export default function Phases() {
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-glass-bg glass-effect p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-900">
                         <Layers className="h-6 w-6" />
@@ -158,7 +158,7 @@ export default function Phases() {
                     <div
                         key={phase.id}
                         className={cn(
-                            "group flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-glass-bg backdrop-blur-sm transition-all hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800",
+                            "group flex items-center gap-4 p-4 rounded-xl border border-border bg-card transition-all hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800",
                             phase.isTerminal && "opacity-80 grayscale-[0.2]"
                         )}
                     >
@@ -213,7 +213,7 @@ export default function Phases() {
                 ))}
 
                 {state.phases.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-surface-sunken dark:bg-white/5 text-slate-400">
+                    <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-border bg-muted/50 text-slate-400">
                         <Layers className="h-10 w-10 mb-2 opacity-20" />
                         <p className="font-medium">No phases defined yet.</p>
                         <Button variant="link" onClick={handleAdd} className="text-indigo-500 dark:text-indigo-400 font-bold">Add your first phase</Button>
