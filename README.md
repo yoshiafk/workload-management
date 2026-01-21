@@ -95,3 +95,6 @@ Shows a member's total workload relative to their individual maximum capacity.
 - Check modal for Date Picker Implementation
 - Update the Date Filter Function on Dashboard View
 - Fix typo on URL
+- Add Search DM if Support Issue (since likely issue related to demand) not mandatory
+- If Task Allocation phase selected, calculate the span until phase Completed
+- update at Capacity into Over Capacity to handle more than >100% Utilize
