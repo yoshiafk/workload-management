@@ -98,3 +98,4 @@ Shows a member's total workload relative to their individual maximum capacity.
 - Add Search DM if Support Issue (since likely issue related to demand) not mandatory
 - If Task Allocation phase selected, calculate the span until phase Completed
 - update at Capacity into Over Capacity to handle more than >100% Utilize
+- Create new feature named Project Cost Calculator, if inputed resource type with its cost tier with it complexcity, you can calculated the project cost needed from Start to Completed Phase
