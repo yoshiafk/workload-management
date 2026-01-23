@@ -305,7 +305,7 @@ export default function TaskTemplates() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add template
                 </Button>
@@ -496,7 +496,7 @@ export default function TaskTemplates() {
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                            className="shadow-lg px-8 font-bold"
                         >
                             {currentTask ? 'Update' : 'Create'} template
                         </Button>

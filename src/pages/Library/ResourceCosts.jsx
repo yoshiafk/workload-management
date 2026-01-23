@@ -291,7 +291,7 @@ export default function ResourceCosts() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add cost tier
                 </Button>
@@ -501,7 +501,7 @@ export default function ResourceCosts() {
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                            className="shadow-lg px-8 font-bold"
                         >
                             {editingCost ? 'Update' : 'Confirm'} tier
                         </Button>

@@ -1,9 +1,34 @@
 /**
- * Sidebar Component
- * Professional navigation menu with clean design
+ * Sidebar Component - Redesigned with Design Tokens
+ * Professional navigation with lucide-react icons and collapsible mode
  */
 
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+    LayoutGrid,
+    ClipboardList,
+    CalendarDays,
+    CalendarClock,
+    Calculator,
+    Users,
+    Layers,
+    ListTodo,
+    SlidersHorizontal,
+    Coins,
+    Settings,
+    X,
+    PanelLeftClose,
+    PanelLeft
+} from 'lucide-react';
 import logo from '../../assets/logo.svg';
 import './Sidebar.css';
 
@@ -11,183 +36,226 @@ const navItems = [
     {
         title: 'Overview',
         items: [
-            { path: '/', label: 'Dashboard', icon: 'dashboard' },
+            { path: '/', label: 'Dashboard', icon: LayoutGrid },
         ],
     },
     {
         title: 'Management',
         items: [
-            { path: '/allocation', label: 'Resource Allocation', icon: 'assignment' },
-            { path: '/timeline', label: 'Timeline', icon: 'timeline' },
-            { path: '/dates', label: 'Important Dates', icon: 'calendar' },
-            { path: '/cost-calculator', label: 'Cost Calculator', icon: 'calculator' },
+            { path: '/allocation', label: 'Resource Allocation', icon: ClipboardList },
+            { path: '/timeline', label: 'Timeline', icon: CalendarDays },
+            { path: '/dates', label: 'Important Dates', icon: CalendarClock },
+            { path: '/cost-calculator', label: 'Cost Calculator', icon: Calculator },
         ],
     },
     {
         title: 'Configuration',
         items: [
-            { path: '/library/members', label: 'Team Members', icon: 'people' },
-            { path: '/library/phases', label: 'Phases', icon: 'layers' },
-            { path: '/library/tasks', label: 'Task Templates', icon: 'list' },
-            { path: '/library/complexity', label: 'Complexity', icon: 'tune' },
-            { path: '/library/costs', label: 'Resource Costs', icon: 'payments' },
+            { path: '/library/members', label: 'Team Members', icon: Users },
+            { path: '/library/phases', label: 'Phases', icon: Layers },
+            { path: '/library/tasks', label: 'Task Templates', icon: ListTodo },
+            { path: '/library/complexity', label: 'Complexity', icon: SlidersHorizontal },
+            { path: '/library/costs', label: 'Resource Costs', icon: Coins },
         ],
     },
     {
         title: 'System',
         items: [
-            { path: '/settings', label: 'Settings', icon: 'settings' },
+            { path: '/settings', label: 'Settings', icon: Settings },
         ],
     },
 ];
 
-// Simple SVG icons for professional look
-const icons = {
-    dashboard: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-        </svg>
-    ),
-    assignment: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-            <line x1="9" y1="12" x2="15" y2="12" />
-            <line x1="9" y1="16" x2="15" y2="16" />
-        </svg>
-    ),
-    calendar: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-    ),
-    people: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    ),
-    layers: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2" />
-            <polyline points="2 17 12 22 22 17" />
-            <polyline points="2 12 12 17 22 12" />
-        </svg>
-    ),
-    list: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
-        </svg>
-    ),
-    tune: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="21" x2="4" y2="14" />
-            <line x1="4" y1="10" x2="4" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12" y2="3" />
-            <line x1="20" y1="21" x2="20" y2="16" />
-            <line x1="20" y1="12" x2="20" y2="3" />
-            <line x1="1" y1="14" x2="7" y2="14" />
-            <line x1="9" y1="8" x2="15" y2="8" />
-            <line x1="17" y1="16" x2="23" y2="16" />
-        </svg>
-    ),
-    payments: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-            <line x1="1" y1="10" x2="23" y2="10" />
-        </svg>
-    ),
-    timeline: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <rect x="5" y="4" width="8" height="4" rx="1" fill="currentColor" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <rect x="8" y="10" width="10" height="4" rx="1" fill="currentColor" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-            <rect x="4" y="16" width="6" height="4" rx="1" fill="currentColor" />
-        </svg>
-    ),
-    settings: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-    ),
-    calculator: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2" />
-            <line x1="8" y1="6" x2="16" y2="6" />
-            <line x1="8" y1="10" x2="8" y2="10.01" />
-            <line x1="12" y1="10" x2="12" y2="10.01" />
-            <line x1="16" y1="10" x2="16" y2="10.01" />
-            <line x1="8" y1="14" x2="8" y2="14.01" />
-            <line x1="12" y1="14" x2="12" y2="14.01" />
-            <line x1="16" y1="14" x2="16" y2="14.01" />
-            <line x1="8" y1="18" x2="8" y2="18.01" />
-            <line x1="12" y1="18" x2="12" y2="18.01" />
-            <line x1="16" y1="18" x2="16" y2="18.01" />
-        </svg>
-    ),
-};
+// Keyboard shortcut hook
+function useKeyboardShortcut(key, callback, modifiers = ['metaKey']) {
+    useEffect(() => {
+        function handleKeyDown(event) {
+            const allModifiersPressed = modifiers.every(mod => event[mod]);
+            if (allModifiersPressed && event.key.toLowerCase() === key.toLowerCase()) {
+                event.preventDefault();
+                callback();
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [key, callback, modifiers]);
+}
+
+// Nav item with tooltip for collapsed mode
+function NavItem({ item, isActive, isCollapsed, onClick }) {
+    const Icon = item.icon;
+
+    const linkContent = (
+        <NavLink
+            to={item.path}
+            onClick={onClick}
+            className={cn(
+                "sidebar-nav-link",
+                isActive && "sidebar-nav-link--active",
+                isCollapsed && "sidebar-nav-link--collapsed"
+            )}
+        >
+            <Icon className={cn(
+                "sidebar-nav-icon",
+                isCollapsed && "sidebar-nav-icon--collapsed"
+            )} />
+            {!isCollapsed && (
+                <span className="sidebar-nav-label">{item.label}</span>
+            )}
+        </NavLink>
+    );
+
+    if (isCollapsed) {
+        return (
+            <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                    {linkContent}
+                </TooltipTrigger>
+                <TooltipContent side="right" className="font-medium">
+                    {item.label}
+                </TooltipContent>
+            </Tooltip>
+        );
+    }
+
+    return linkContent;
+}
 
 export default function Sidebar({ isOpen, onClose }) {
+    const location = useLocation();
+
+    // Collapsible state - persisted to localStorage
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebar-collapsed');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    // Persist collapsed state
+    useEffect(() => {
+        localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
+    }, [isCollapsed]);
+
+    // Keyboard shortcut: Cmd+B to toggle
+    useKeyboardShortcut('b', () => setIsCollapsed(prev => !prev));
+
+    const toggleCollapse = () => setIsCollapsed(prev => !prev);
+
     return (
-        <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
-            <div className="sidebar-header">
-                <div className="logo">
-                    <img src={logo} alt="Workload" className="h-8 w-auto" />
-                </div>
-                <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-
-            <nav className="sidebar-nav">
-                {navItems.map((section) => (
-                    <div key={section.title} className="nav-section">
-                        <h3 className="nav-section-title">{section.title}</h3>
-                        <ul className="nav-list">
-                            {section.items.map((item) => (
-                                <li key={item.path}>
-                                    <NavLink
-                                        to={item.path}
-                                        className={({ isActive }) =>
-                                            `nav-link ${isActive ? 'active' : ''}`
-                                        }
-                                    >
-                                        <span className="nav-icon">{icons[item.icon]}</span>
-                                        <span className="nav-label">{item.label}</span>
-                                    </NavLink>
-                                </li>
-                            ))}
-                        </ul>
+        <TooltipProvider>
+            <aside
+                className={cn(
+                    "sidebar",
+                    isCollapsed && "sidebar--collapsed",
+                    isOpen && "sidebar--mobile-open"
+                )}
+            >
+                {/* Header - Always show logo and branding */}
+                <div className={cn(
+                    "sidebar-header",
+                    isCollapsed && "sidebar-header--collapsed"
+                )}>
+                    <div className="sidebar-logo-container">
+                        {isCollapsed ? (
+                            /* Show just the W icon when collapsed */
+                            <div className="sidebar-logo-icon">
+                                <span className="sidebar-logo-letter">W</span>
+                            </div>
+                        ) : (
+                            /* Show full logo when expanded - logo uses currentColor */
+                            <img
+                                src={logo}
+                                alt="Workload"
+                                className="sidebar-logo-full"
+                            />
+                        )}
                     </div>
-                ))}
-            </nav>
 
-            <div className="sidebar-footer">
-                <div className="sidebar-footer-content">
-                    <span className="version-label">Version</span>
-                    <span className="version-number">1.1.0</span>
+                    {/* Desktop collapse button */}
+                    {!isCollapsed && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleCollapse}
+                            className="sidebar-collapse-btn hidden md:flex"
+                            title="Collapse sidebar (⌘B)"
+                        >
+                            <PanelLeftClose className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    {/* Mobile close button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onClose}
+                        className="sidebar-close-btn md:hidden"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
                 </div>
-            </div>
-        </aside>
+
+                {/* Expand button when collapsed */}
+                {isCollapsed && (
+                    <div className="sidebar-expand-container hidden md:flex">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleCollapse}
+                            className="sidebar-expand-btn"
+                            title="Expand sidebar (⌘B)"
+                        >
+                            <PanelLeft className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+
+                {/* Navigation */}
+                <nav className="sidebar-nav">
+                    {navItems.map((section) => (
+                        <div key={section.title} className="sidebar-section">
+                            {!isCollapsed && (
+                                <h3 className="sidebar-section-title">
+                                    {section.title}
+                                </h3>
+                            )}
+                            <ul className="sidebar-nav-list">
+                                {section.items.map((item) => {
+                                    const isActive = location.pathname === item.path ||
+                                        (item.path !== '/' && location.pathname.startsWith(item.path));
+
+                                    return (
+                                        <li key={item.path}>
+                                            <NavItem
+                                                item={item}
+                                                isActive={isActive}
+                                                isCollapsed={isCollapsed}
+                                                onClick={() => onClose?.()}
+                                            />
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div className={cn(
+                    "sidebar-footer",
+                    isCollapsed && "sidebar-footer--collapsed"
+                )}>
+                    {!isCollapsed ? (
+                        <div className="sidebar-version">
+                            <span>Version</span>
+                            <span className="sidebar-version-number">1.1.0</span>
+                        </div>
+                    ) : (
+                        <div className="sidebar-version-collapsed">
+                            1.1
+                        </div>
+                    )}
+                </div>
+            </aside>
+        </TooltipProvider>
     );
 }

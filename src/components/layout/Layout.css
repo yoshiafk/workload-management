@@ -5,6 +5,10 @@
 .layout {
     display: flex;
     min-height: 100vh;
+    max-width: 100vw;
+    /* Never exceed viewport width */
+    overflow-x: hidden;
+    /* CRITICAL: Prevent horizontal scroll at root level */
 }
 
 .layout--loading {
@@ -35,18 +39,29 @@
 
 .layout-main {
     flex: 1;
-    margin-left: var(--sidebar-width);
+    /* margin-left is now controlled by inline style for collapsible sidebar */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-width: 0;
+    /* Allow flex item to shrink */
+    max-width: 100%;
+    /* Never exceed parent width */
+    overflow-x: hidden;
+    /* Prevent horizontal overflow */
     background: hsl(var(--background));
 }
 
 .layout-content {
     flex: 1;
     padding: var(--spacing-6);
-    max-width: var(--content-max-width);
     width: 100%;
+    min-width: 0;
+    /* Allow shrinking */
+    max-width: 100%;
+    /* Never exceed parent */
+    overflow-x: hidden;
+    /* Contain any overflow */
     animation: fadeIn var(--transition-normal);
 }
 

@@ -218,7 +218,7 @@ export default function Settings() {
                                 </p>
                             </CardContent>
                             <CardFooter className="p-8">
-                                <Button onClick={handleExport} className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black uppercase tracking-widest text-xs shadow-lg shadow-indigo-100 border-none transition-all active:scale-95">
+                                <Button onClick={handleExport} className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg border-none transition-all active:scale-95">
                                     Export JSON
                                 </Button>
                             </CardFooter>

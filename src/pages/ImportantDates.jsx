@@ -402,27 +402,27 @@ export default function ImportantDates() {
     const totalLeaveDays = filteredLeaves.reduce((sum, l) => sum + calculateDays(l.startDate, l.endDate), 0);
 
     return (
-        <div className="important-dates-page space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-20">
             {/* Split Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* Public Holidays Section */}
                 <div className="space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm transition-all hover:bg-muted/50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                            <div className="h-12 w-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
                                 <CalendarDays className="h-6 w-6" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900 leading-none mb-1.5">Public Holidays</h2>
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">{totalHolidayDays} Scheduled Events</p>
+                                <h2 className="text-xl font-bold tracking-tight">Public Holidays</h2>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{totalHolidayDays} Scheduled Events</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-9 px-3 rounded-xl bg-white/50 border-slate-200/60 font-medium text-slate-600 hover:text-indigo-600"
+                                className="h-9 px-3 rounded-xl bg-muted/30 border-border/50 font-bold hover:text-indigo-500 transition-colors"
                                 onClick={handleRefreshHolidays}
                                 disabled={isRefreshing}
                             >
@@ -432,7 +432,7 @@ export default function ImportantDates() {
                             <Button
                                 variant="default"
                                 size="sm"
-                                className="h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 border-none font-bold"
+                                className="h-9 px-4 rounded-xl shadow-lg font-black uppercase tracking-wider text-[10px]"
                                 onClick={handleAddHoliday}
                             >
                                 <Plus className="h-4 w-4 mr-2" />
@@ -442,15 +442,15 @@ export default function ImportantDates() {
                     </div>
 
                     <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden min-h-[400px]">
-                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 rounded-xl border border-slate-200/50 text-slate-500">
+                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/10">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-xl border border-border/50 text-muted-foreground">
                                 <Calendar className="h-3.5 w-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Filter By Year</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Year</span>
                                 <Select value={yearFilter} onValueChange={setYearFilter}>
-                                    <SelectTrigger className="h-6 w-auto border-none bg-transparent p-0 text-slate-900 font-bold focus:ring-0">
+                                    <SelectTrigger className="h-6 w-auto border-none bg-transparent p-0 text-foreground font-black focus:ring-0 text-[11px]">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="bg-popover border-border">
                                         <SelectItem value="all">All Years</SelectItem>
                                         {availableYears.map(year => (
                                             <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
@@ -460,13 +460,13 @@ export default function ImportantDates() {
                             </div>
                         </div>
 
-                        <div className="max-h-[500px] overflow-auto relative scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                        <div className="max-h-[500px] overflow-auto relative custom-scrollbar">
                             <Table>
-                                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                                <TableHeader className="bg-muted/10 sticky top-0 z-10">
                                     {holidayTable.getHeaderGroups().map(headerGroup => (
-                                        <TableRow key={headerGroup.id} className="hover:bg-transparent border-slate-100">
+                                        <TableRow key={headerGroup.id} className="hover:bg-transparent border-border/40">
                                             {headerGroup.headers.map(header => (
-                                                <TableHead key={header.id} className="text-[10px] uppercase font-black tracking-widest text-slate-400 py-3 px-6 h-auto bg-slate-50">
+                                                <TableHead key={header.id} className="text-[9px] uppercase font-black tracking-widest text-muted-foreground py-4 px-6 h-auto">
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                 </TableHead>
                                             ))}
@@ -476,9 +476,9 @@ export default function ImportantDates() {
                                 <TableBody>
                                     {holidayTable.getRowModel().rows.length ? (
                                         holidayTable.getRowModel().rows.map(row => (
-                                            <TableRow key={row.id} className="group hover:bg-white/30 border-slate-100">
+                                            <TableRow key={row.id} className="group hover:bg-muted/5 transition-colors border-border/40">
                                                 {row.getVisibleCells().map(cell => (
-                                                    <TableCell key={cell.id} className="px-6 py-3.5">
+                                                    <TableCell key={cell.id} className="px-6 py-4">
                                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </TableCell>
                                                 ))}
@@ -487,9 +487,9 @@ export default function ImportantDates() {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={holidayColumns.length} className="h-32 text-center">
-                                                <div className="flex flex-col items-center gap-2 text-slate-400 opacity-60">
+                                                <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
                                                     <Calendar className="h-8 w-8" />
-                                                    <p className="text-sm font-medium uppercase tracking-widest">No holidays found</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest">No holidays found</p>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -502,21 +502,21 @@ export default function ImportantDates() {
 
                 {/* Team Leaves Section */}
                 <div className="space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm transition-all hover:bg-muted/50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-600 border border-emerald-100">
+                            <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                                 <Users className="h-6 w-6" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900 leading-none mb-1.5">Team Leaves</h2>
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">{totalLeaveDays} Total Days Away</p>
+                                <h2 className="text-xl font-bold tracking-tight">Team Leaves</h2>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{totalLeaveDays} Total Days Away</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="default"
                                 size="sm"
-                                className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200 border-none font-bold"
+                                className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 border-none font-black uppercase tracking-wider text-[10px]"
                                 onClick={handleAddLeave}
                             >
                                 <Plus className="h-4 w-4 mr-2" />
@@ -526,15 +526,15 @@ export default function ImportantDates() {
                     </div>
 
                     <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden min-h-[400px]">
-                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 rounded-xl border border-slate-200/50 text-slate-500 w-full max-w-[240px]">
+                        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/10">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-xl border border-border/50 text-muted-foreground w-full max-w-[240px]">
                                 <Search className="h-3.5 w-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest shrink-0">By Member</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest shrink-0">Member</span>
                                 <Select value={memberFilter} onValueChange={setMemberFilter}>
-                                    <SelectTrigger className="h-6 w-full border-none bg-transparent p-0 text-slate-900 font-bold focus:ring-0">
+                                    <SelectTrigger className="h-6 w-full border-none bg-transparent p-0 text-foreground font-black focus:ring-0 text-[11px]">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="bg-popover border-border">
                                         <SelectItem value="all">All Members</SelectItem>
                                         {state.members.map(member => (
                                             <SelectItem key={member.id} value={member.id}>{member.name}</SelectItem>
@@ -544,13 +544,13 @@ export default function ImportantDates() {
                             </div>
                         </div>
 
-                        <div className="max-h-[500px] overflow-auto relative scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                        <div className="max-h-[500px] overflow-auto relative custom-scrollbar">
                             <Table>
-                                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                                <TableHeader className="bg-muted/10 sticky top-0 z-10">
                                     {leaveTable.getHeaderGroups().map(headerGroup => (
-                                        <TableRow key={headerGroup.id} className="hover:bg-transparent border-slate-100">
+                                        <TableRow key={headerGroup.id} className="hover:bg-transparent border-border/40">
                                             {headerGroup.headers.map(header => (
-                                                <TableHead key={header.id} className="text-[10px] uppercase font-black tracking-widest text-slate-400 py-3 px-6 h-auto bg-slate-50">
+                                                <TableHead key={header.id} className="text-[9px] uppercase font-black tracking-widest text-muted-foreground py-4 px-6 h-auto">
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                 </TableHead>
                                             ))}
@@ -560,9 +560,9 @@ export default function ImportantDates() {
                                 <TableBody>
                                     {leaveTable.getRowModel().rows.length ? (
                                         leaveTable.getRowModel().rows.map(row => (
-                                            <TableRow key={row.id} className="group hover:bg-white/30 border-slate-100">
+                                            <TableRow key={row.id} className="group hover:bg-muted/5 transition-colors border-border/40">
                                                 {row.getVisibleCells().map(cell => (
-                                                    <TableCell key={cell.id} className="px-6 py-3.5">
+                                                    <TableCell key={cell.id} className="px-6 py-4">
                                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </TableCell>
                                                 ))}
@@ -571,9 +571,9 @@ export default function ImportantDates() {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={leaveColumns.length} className="h-32 text-center">
-                                                <div className="flex flex-col items-center gap-2 text-slate-400 opacity-60">
+                                                <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
                                                     <Users className="h-8 w-8" />
-                                                    <p className="text-sm font-medium uppercase tracking-widest">No leave records</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest">No leave records</p>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -587,56 +587,56 @@ export default function ImportantDates() {
 
             {/* Holiday Dialog */}
             <Dialog open={isHolidayFormOpen} onOpenChange={setIsHolidayFormOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                <CalendarDays className="h-4 w-4 text-indigo-600" />
+                <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 pb-0">
+                        <DialogTitle className="flex items-center gap-3 text-lg font-black tracking-tight">
+                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                <CalendarDays className="h-5 w-5 text-indigo-500" />
                             </div>
                             {editingHoliday ? 'Edit Holiday' : 'Add Holiday'}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-muted-foreground font-medium text-xs mt-1">
                             Configure a holiday event for the resource calendar.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="p-8 space-y-5 pt-4">
+                    <div className="p-6 space-y-5">
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Event Date</Label>
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Event Date</Label>
                             <Input
                                 type="date"
                                 value={holidayForm.date}
                                 onChange={(e) => handleHolidayChange('date', e.target.value)}
-                                className={cn("bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl font-bold h-11 transition-all", holidayErrors.date && "border-red-400")}
+                                className={cn("bg-muted/20 border-border/40 focus:border-indigo-500 rounded-xl font-bold h-11 transition-all", holidayErrors.date && "border-red-500/50")}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Holiday Name</Label>
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Holiday Name</Label>
                             <Input
                                 value={holidayForm.name}
                                 onChange={(e) => handleHolidayChange('name', e.target.value)}
                                 placeholder="e.g., Independence Day"
-                                className={cn("bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl font-bold h-11 transition-all", holidayErrors.name && "border-red-400")}
+                                className={cn("bg-muted/20 border-border/40 focus:border-indigo-500 rounded-xl font-bold h-11 transition-all", holidayErrors.name && "border-red-500/50")}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Category</Label>
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</Label>
                             <Select
                                 value={holidayForm.type}
                                 onValueChange={(v) => handleHolidayChange('type', v)}
                             >
-                                <SelectTrigger className="bg-slate-50/50 border-slate-200 rounded-xl font-bold h-11">
+                                <SelectTrigger className="bg-muted/20 border-border/40 rounded-xl font-bold h-11">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-slate-200">
+                                <SelectContent className="rounded-xl border-border bg-popover">
                                     <SelectItem value="national" className="font-bold">National Holiday</SelectItem>
                                     <SelectItem value="mass-leave" className="font-bold">Mass Leave</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsHolidayFormOpen(false)} className="font-bold">Cancel</Button>
-                        <Button onClick={handleHolidaySubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 font-bold shadow-lg shadow-indigo-100">
+                    <DialogFooter className="p-6 bg-muted/10 border-t border-border mt-0">
+                        <Button variant="ghost" onClick={() => setIsHolidayFormOpen(false)} className="font-bold rounded-xl h-11">Cancel</Button>
+                        <Button onClick={handleHolidaySubmit} className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-primary/20 bg-indigo-600 hover:bg-indigo-700 border-none">
                             {editingHoliday ? 'Save Changes' : 'Add Holiday'}
                         </Button>
                     </DialogFooter>
@@ -645,29 +645,29 @@ export default function ImportantDates() {
 
             {/* Leave Dialog */}
             <Dialog open={isLeaveFormOpen} onOpenChange={setIsLeaveFormOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                <FileText className="h-4 w-4 text-indigo-600" />
+                <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 pb-0">
+                        <DialogTitle className="flex items-center gap-3 text-lg font-black tracking-tight">
+                            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                <FileText className="h-5 w-5 text-emerald-500" />
                             </div>
                             {editingLeave ? 'Edit Leave' : 'Add Leave'}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-muted-foreground font-medium text-xs mt-1">
                             Configure a planned leave or absence for a team member.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="p-8 space-y-5 pt-4">
+                    <div className="p-6 space-y-5">
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Team Member</Label>
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Team Member</Label>
                             <Select
                                 value={leaveForm.memberId}
                                 onValueChange={(v) => handleLeaveChange('memberId', v)}
                             >
-                                <SelectTrigger className={cn("bg-slate-50/50 border-slate-200 rounded-xl font-bold h-11", leaveErrors.memberId && "border-red-400")}>
+                                <SelectTrigger className={cn("bg-muted/20 border-border/40 rounded-xl font-bold h-11", leaveErrors.memberId && "border-red-500/50")}>
                                     <SelectValue placeholder="Select member..." />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-slate-200">
+                                <SelectContent className="rounded-xl border-border bg-popover">
                                     {state.members.map(m => (
                                         <SelectItem key={m.id} value={m.id} className="font-bold">{m.name}</SelectItem>
                                     ))}
@@ -676,43 +676,43 @@ export default function ImportantDates() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Start Date</Label>
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Date</Label>
                                 <Input
                                     type="date"
                                     value={leaveForm.startDate}
                                     onChange={(e) => handleLeaveChange('startDate', e.target.value)}
-                                    className={cn("bg-slate-50/50 border-slate-200 focus:border-emerald-500 rounded-xl font-bold h-11", leaveErrors.startDate && "border-red-400")}
+                                    className={cn("bg-muted/20 border-border/40 focus:border-emerald-500 rounded-xl font-bold h-11", leaveErrors.startDate && "border-red-500/50")}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">End Date</Label>
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Date</Label>
                                 <Input
                                     type="date"
                                     value={leaveForm.endDate}
                                     onChange={(e) => handleLeaveChange('endDate', e.target.value)}
-                                    className={cn("bg-slate-50/50 border-slate-200 focus:border-emerald-500 rounded-xl font-bold h-11", leaveErrors.endDate && "border-red-400")}
+                                    className={cn("bg-muted/20 border-border/40 focus:border-emerald-500 rounded-xl font-bold h-11", leaveErrors.endDate && "border-red-500/50")}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-emerald-600/60">Estimated Days</Label>
-                            <div className="h-11 flex items-center px-4 bg-emerald-50/50 rounded-xl border border-emerald-100 text-emerald-700 font-black text-sm tabular-nums">
-                                {calculateDays(leaveForm.startDate, leaveForm.endDate)} workday(s)
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80 ml-1">Duration Projection</Label>
+                            <div className="h-11 flex items-center px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400 font-black text-xs tabular-nums tracking-widest uppercase">
+                                {calculateDays(leaveForm.startDate, leaveForm.endDate)} workday(s) total
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Reason / Notes</Label>
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reason / Notes</Label>
                             <Input
                                 value={leaveForm.reason}
                                 onChange={(e) => handleLeaveChange('reason', e.target.value)}
                                 placeholder="Optional notes..."
-                                className="bg-slate-50/50 border-slate-200 focus:border-emerald-500 rounded-xl font-bold h-11"
+                                className="bg-muted/20 border-border/40 focus:border-emerald-500 rounded-xl font-bold h-11"
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsLeaveFormOpen(false)} className="font-bold">Cancel</Button>
-                        <Button onClick={handleLeaveSubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 font-bold shadow-lg shadow-indigo-100">
+                    <DialogFooter className="p-6 bg-muted/10 border-t border-border mt-0">
+                        <Button variant="ghost" onClick={() => setIsLeaveFormOpen(false)} className="font-bold rounded-xl h-11">Cancel</Button>
+                        <Button onClick={handleLeaveSubmit} className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 border-none">
                             {editingLeave ? 'Save Changes' : 'Add Leave'}
                         </Button>
                     </DialogFooter>
@@ -721,41 +721,32 @@ export default function ImportantDates() {
 
             {/* Delete Dialogs */}
             <Dialog open={isHolidayDeleteOpen} onOpenChange={setIsHolidayDeleteOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader className="items-center text-center sm:text-center">
-                        <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2">
-                            <Trash2 className="h-8 w-8" />
-                        </div>
-                        <DialogTitle>Delete Holiday?</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this holiday? This cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="sm:justify-center">
-                        <Button variant="ghost" onClick={() => setIsHolidayDeleteOpen(false)} className="font-bold">Cancel</Button>
-                        <Button variant="destructive" onClick={handleHolidayDeleteConfirm} className="px-8 font-bold">Delete</Button>
-                    </DialogFooter>
+                <DialogContent className="sm:max-w-xs bg-card border-border shadow-2xl p-6 text-center">
+                    <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-4 border border-red-500/20">
+                        <Trash2 className="h-8 w-8" />
+                    </div>
+                    <h3 className="text-lg font-black tracking-tight mb-2">Delete Holiday?</h3>
+                    <p className="text-xs text-muted-foreground font-medium mb-6">This action cannot be undone. Are you sure?</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button variant="ghost" onClick={() => setIsHolidayDeleteOpen(false)} className="font-bold h-11 rounded-xl">No, Cancel</Button>
+                        <Button variant="destructive" onClick={handleHolidayDeleteConfirm} className="font-black h-11 rounded-xl shadow-lg shadow-red-500/20 uppercase tracking-widest text-[10px]">Yes, Delete</Button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isLeaveDeleteOpen} onOpenChange={setIsLeaveDeleteOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader className="items-center text-center sm:text-center">
-                        <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2">
-                            <Trash2 className="h-8 w-8" />
-                        </div>
-                        <DialogTitle>Delete Leave Record?</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this leave record? This cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="sm:justify-center">
-                        <Button variant="ghost" onClick={() => setIsLeaveDeleteOpen(false)} className="font-bold">Cancel</Button>
-                        <Button variant="destructive" onClick={handleLeaveDeleteConfirm} className="px-8 font-bold">Delete</Button>
-                    </DialogFooter>
+                <DialogContent className="sm:max-w-xs bg-card border-border shadow-2xl p-6 text-center">
+                    <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-4 border border-red-500/20">
+                        <Trash2 className="h-8 w-8" />
+                    </div>
+                    <h3 className="text-lg font-black tracking-tight mb-2">Delete Record?</h3>
+                    <p className="text-xs text-muted-foreground font-medium mb-6">This will remove the leave entry permanently.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button variant="ghost" onClick={() => setIsLeaveDeleteOpen(false)} className="font-bold h-11 rounded-xl">No, Cancel</Button>
+                        <Button variant="destructive" onClick={handleLeaveDeleteConfirm} className="font-black h-11 rounded-xl shadow-lg shadow-red-500/20 uppercase tracking-widest text-[10px]">Yes, Delete</Button>
+                    </div>
                 </DialogContent>
             </Dialog>
-
         </div>
     );
 }

@@ -250,8 +250,8 @@
 }
 
 .category-low {
-    background: hsl(142 76% 36% / 0.1);
-    color: hsl(142 76% 36%);
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
 }
 
 .category-medium {
@@ -260,14 +260,14 @@
 }
 
 .category-high {
-    background: hsl(38 92% 50% / 0.1);
-    color: hsl(38 92% 50%);
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning));
 }
 
 .category-sophisticated {
-    background: #4b2c20;
-    color: #ff8c00;
-    border: 1px solid hsl(38 92% 50% / 0.2);
+    background: hsl(var(--chart-7) / 0.15);
+    color: hsl(var(--chart-7));
+    border: 1px solid hsl(var(--chart-7) / 0.3);
 }
 
 /* Work Category Styles */
@@ -278,15 +278,15 @@
 }
 
 .category-support {
-    background: hsl(142 76% 36% / 0.1);
-    color: hsl(142 76% 36%);
-    border: 1px solid hsl(142 76% 36% / 0.2);
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+    border: 1px solid hsl(var(--success) / 0.2);
 }
 
 .category-maintenance {
-    background: hsl(38 92% 50% / 0.1);
-    color: hsl(38 92% 50%);
-    border: 1px solid hsl(38 92% 50% / 0.2);
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning));
+    border: 1px solid hsl(var(--warning) / 0.2);
 }
 
 /* Workload Badge */
@@ -347,11 +347,11 @@
 }
 
 .sla-within-sla {
-    color: hsl(142 76% 36%);
+    color: hsl(var(--success));
 }
 
 .sla-at-risk {
-    color: hsl(38 92% 50%);
+    color: hsl(var(--warning));
 }
 
 .sla-breached {

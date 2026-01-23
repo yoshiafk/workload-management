@@ -10,16 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-indigo-600 text-white shadow hover:bg-indigo-700 active:scale-95",
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90 active:scale-[0.98]",
         destructive:
-          "bg-rose-500 text-white shadow-sm hover:bg-rose-600 active:scale-95",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]",
         outline:
-          "border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-100 active:scale-95",
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground active:scale-[0.98]",
         secondary:
-          "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95",
-        ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 active:scale-95",
-        link: "text-indigo-600 underline-offset-4 hover:underline",
-        success: "bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 active:scale-95",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 active:scale-[0.98]",
+        ghost: "hover:bg-accent hover:text-accent-foreground active:scale-[0.98]",
+        link: "text-primary underline-offset-4 hover:underline",
+        success: "bg-success text-success-foreground shadow-sm hover:bg-success/90 active:scale-[0.98]",
+        warning: "bg-warning text-warning-foreground shadow-sm hover:bg-warning/90 active:scale-[0.98]",
       },
       size: {
         default: "h-9 px-4 py-2",

@@ -89,6 +89,7 @@ Shows a member's total workload relative to their individual maximum capacity.
 - 
 
 ## Revise
+- Add Project Cost Center Track, related to project alignment to see remaining from total cost center
 - Set SLA map to Priority
 - Remove Complexcity Calculation except for Project Task
 - Align the color for Member Load Status

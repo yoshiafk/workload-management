@@ -213,7 +213,7 @@ export default function Complexity() {
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                            className="shadow-lg px-8 font-bold"
                         >
                             Update settings
                         </Button>

@@ -1,372 +1,249 @@
 import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { defaultRoleTiers } from '../data';
+import { Timeline } from '@/components/ui/timeline-v2';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
     ChevronLeft,
     ChevronRight,
     CalendarDays,
-    Info,
     Calendar,
-    Users,
-    Activity
+    Search,
+    Filter,
 } from "lucide-react";
+import {
+    format,
+    addDays,
+    subDays,
+    startOfToday,
+    eachDayOfInterval,
+    addMonths,
+    subMonths
+} from 'date-fns';
 import { cn } from "@/lib/utils";
-import './TimelineView.css';
-
-// Get date range for the timeline
-const getDateRange = (startDate, days) => {
-    const dates = [];
-    const start = new Date(startDate);
-    for (let i = 0; i < days; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        dates.push(date);
-    }
-    return dates;
-};
-
-// Format date for display
-const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-const formatDayShort = (date) => {
-    return date.toLocaleDateString('en-US', { weekday: 'short' });
-};
-
-// Check if date is weekend
-const isWeekend = (date) => {
-    const day = date.getDay();
-    return day === 0 || day === 6;
-};
-
-// Check if date is today
-const isToday = (date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-};
+import { Input } from "@/components/ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+    DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function TimelineView() {
-    const { state } = useApp();
-    const { members, allocations, leaves, holidays } = state;
+    const { state, dispatch } = useApp();
+    const { members, allocations, holidays } = state;
 
     // View state
-    const [viewDays, setViewDays] = useState(14); // 14 days by default
-    const [startOffset, setStartOffset] = useState(-3); // Start 3 days before today
+    const [zoom, setZoom] = useState('day'); // 'day' | 'week' | 'month'
+    const [density, setDensity] = useState('comfortable'); // 'comfortable' | 'compact'
+    const [centerDate, setCenterDate] = useState(startOfToday());
+    const [searchQuery, setSearchQuery] = useState("");
 
-    // Calculate date range
+    // Calculate date range based on zoom level
     const dateRange = useMemo(() => {
-        const today = new Date();
-        const startDate = new Date(today);
-        startDate.setDate(today.getDate() + startOffset);
-        return getDateRange(startDate, viewDays);
-    }, [viewDays, startOffset]);
+        let start, end;
 
-    // Get allocations for a member on a specific date
-    const getMemberTasks = (memberName, date) => {
-        const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        if (zoom === 'day') {
+            start = subDays(centerDate, 15);
+            end = addDays(centerDate, 15);
+        } else if (zoom === 'week') {
+            start = subDays(centerDate, 35);
+            end = addDays(centerDate, 35);
+        } else {
+            start = subMonths(centerDate, 2);
+            end = addMonths(centerDate, 2);
+        }
 
-        return allocations.filter(a => {
-            if (a.resource !== memberName) return false;
-            if (a.taskName === 'Idle' || a.taskName === 'Completed') return false;
+        return eachDayOfInterval({ start, end });
+    }, [zoom, centerDate]);
 
-            const start = a.plan?.taskStart ? new Date(a.plan.taskStart) : null;
-            const end = a.plan?.taskEnd ? new Date(a.plan.taskEnd) : null;
+    // Calculate cell width based on zoom
+    const cellWidth = useMemo(() => {
+        return zoom === 'day' ? 50 : zoom === 'week' ? 100 : 200;
+    }, [zoom]);
 
-            if (!start || !end) return false;
+    // Calculate row height based on density
+    const rowHeight = useMemo(() => {
+        return density === 'comfortable' ? 60 : 40;
+    }, [density]);
 
-            const startOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-            const endOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-
-            return dateOnly >= startOnly && dateOnly <= endOnly;
+    // Handle task update from drag-and-drop
+    const handleTaskUpdate = (updatedTask) => {
+        dispatch({
+            type: 'UPDATE_ALLOCATION',
+            payload: updatedTask
         });
-    };
-
-    // Check if date is a holiday
-    const getHoliday = (date) => {
-        const dateString = date.toISOString().split('T')[0];
-        return (holidays || []).find(h => h.date === dateString);
-    };
-
-    // Check if member is on leave
-    const isOnLeave = (memberName, date) => {
-        const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-        return (leaves || []).some(l => {
-            if (l.memberName !== memberName) return false;
-
-            const start = l.startDate ? new Date(l.startDate) : null;
-            const end = l.endDate ? new Date(l.endDate) : null;
-
-            if (!start || !end) return false;
-
-            const startOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-            const endOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-
-            return dateOnly >= startOnly && dateOnly <= endOnly;
-        });
-    };
-
-    // Get task color based on category
-    const getTaskColor = (task) => {
-        const colors = {
-            'Project': '#4f46e5',    /* indigo-600 */
-            'Support': '#10b981',    /* emerald-500 */
-            'Maintenance': '#f59e0b', /* amber-500 */
-        };
-        return colors[task.category] || '#8b5cf6';
     };
 
     // Navigation handlers
-    const handlePrevious = () => setStartOffset(prev => prev - 7);
-    const handleNext = () => setStartOffset(prev => prev + 7);
-    const handleToday = () => setStartOffset(-3);
+    const handlePrevious = () => {
+        if (zoom === 'day') setCenterDate(prev => subDays(prev, 7));
+        else if (zoom === 'week') setCenterDate(prev => subDays(prev, 21));
+        else setCenterDate(prev => subMonths(prev, 1));
+    };
 
-    // Active members only
-    const activeMembers = members.filter(m => m.isActive);
+    const handleNext = () => {
+        if (zoom === 'day') setCenterDate(prev => addDays(prev, 7));
+        else if (zoom === 'week') setCenterDate(prev => addDays(prev, 21));
+        else setCenterDate(prev => addMonths(prev, 1));
+    };
+
+    const handleToday = () => setCenterDate(startOfToday());
+
+    // Filter members based on search
+    const filteredMembers = useMemo(() => {
+        return members.filter(m =>
+            m.isActive &&
+            m.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [members, searchQuery]);
 
     return (
         <TooltipProvider>
-            <div className="timeline-page space-y-6 animate-in fade-in duration-500">
-                {/* Modern Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-100">
-                            <CalendarDays className="h-6 w-6" />
+            <div className="flex flex-col h-[calc(100vh-8rem)] space-y-4 animate-in fade-in duration-500 overflow-hidden">
+                {/* Control Bar */}
+                <div className="flex justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border shadow-sm shrink-0">
+                    {/* Left Side - Title */}
+                    <div className="flex items-center gap-4 shrink-0">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                            <CalendarDays className="h-5 w-5" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Resource Timeline</h2>
-                            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                                <Calendar className="h-3.5 w-3.5" />
-                                <span>{formatDate(dateRange[0])} — {formatDate(dateRange[dateRange.length - 1])}</span>
+                            <h2 className="text-xl font-bold tracking-tight">Timeline View</h2>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(dateRange[0], 'MMM d')} — {format(dateRange[dateRange.length - 1], 'MMM d, yyyy')}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex bg-slate-100/50 p-1 rounded-xl border border-slate-200/50">
+                    {/* Right Side - Controls */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        {/* Search Field */}
+                        <div className="relative w-64 hidden xl:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search team..."
+                                className="pl-9 h-9 bg-muted/50 border-transparent focus-visible:ring-primary/20"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Density Toggle */}
+                        <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
                             <Button
-                                variant={viewDays === 7 ? "secondary" : "ghost"}
+                                variant={density === 'comfortable' ? "secondary" : "ghost"}
                                 size="sm"
-                                className={cn("rounded-lg h-8 text-xs font-bold", viewDays === 7 && "bg-white shadow-sm")}
-                                onClick={() => setViewDays(7)}
+                                className={cn("rounded-md h-7 w-7 p-0", density === 'comfortable' && "bg-background shadow-sm")}
+                                onClick={() => setDensity('comfortable')}
+                                title="Comfortable View"
                             >
-                                1 Week
+                                <div className="flex flex-col gap-0.5">
+                                    <div className="w-3 h-1 bg-current rounded-full opacity-60" />
+                                    <div className="w-3 h-1 bg-current rounded-full" />
+                                    <div className="w-3 h-1 bg-current rounded-full opacity-60" />
+                                </div>
                             </Button>
                             <Button
-                                variant={viewDays === 14 ? "secondary" : "ghost"}
+                                variant={density === 'compact' ? "secondary" : "ghost"}
                                 size="sm"
-                                className={cn("rounded-lg h-8 text-xs font-bold", viewDays === 14 && "bg-white shadow-sm")}
-                                onClick={() => setViewDays(14)}
+                                className={cn("rounded-md h-7 w-7 p-0", density === 'compact' && "bg-background shadow-sm")}
+                                onClick={() => setDensity('compact')}
+                                title="Compact View"
                             >
-                                2 Weeks
+                                <div className="flex flex-col gap-px">
+                                    <div className="w-3 h-0.5 bg-current rounded-full opacity-40" />
+                                    <div className="w-3 h-0.5 bg-current rounded-full opacity-70" />
+                                    <div className="w-3 h-0.5 bg-current rounded-full" />
+                                    <div className="w-3 h-0.5 bg-current rounded-full opacity-70" />
+                                    <div className="w-3 h-0.5 bg-current rounded-full opacity-40" />
+                                </div>
                             </Button>
                         </div>
 
+                        <div className="h-4 w-px bg-border mx-1" />
+
+                        {/* Zoom Controls */}
+                        <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
+                            <Button
+                                variant={zoom === 'day' ? "secondary" : "ghost"}
+                                size="sm"
+                                className={cn("rounded-md h-7 text-[10px] font-black uppercase tracking-widest px-3", zoom === 'day' && "bg-background shadow-sm")}
+                                onClick={() => setZoom('day')}
+                            >
+                                Day
+                            </Button>
+                            <Button
+                                variant={zoom === 'week' ? "secondary" : "ghost"}
+                                size="sm"
+                                className={cn("rounded-md h-7 text-[10px] font-black uppercase tracking-widest px-3", zoom === 'week' && "bg-background shadow-sm")}
+                                onClick={() => setZoom('week')}
+                            >
+                                Week
+                            </Button>
+                            <Button
+                                variant={zoom === 'month' ? "secondary" : "ghost"}
+                                size="sm"
+                                className={cn("rounded-md h-7 text-[10px] font-black uppercase tracking-widest px-3", zoom === 'month' && "bg-background shadow-sm")}
+                                onClick={() => setZoom('month')}
+                            >
+                                Month
+                            </Button>
+                        </div>
+
+                        {/* Navigation */}
                         <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9 rounded-lg">
+                            <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9">
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={handleToday} className="h-9 font-bold px-4 rounded-lg">
+                            <Button variant="outline" size="sm" onClick={handleToday} className="h-9 font-bold px-3">
                                 Today
                             </Button>
-                            <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9 rounded-lg">
+                            <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
                 </div>
 
-                {/* Timeline Visualization */}
-                <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <div className="min-w-[800px]">
-                            {/* Date Header Row */}
-                            <div className="flex border-b border-slate-200/60 bg-slate-50/50">
-                                <div className="w-64 p-4 flex items-center gap-2 border-r border-slate-200/60">
-                                    <Users className="h-4 w-4 text-slate-400" />
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Team Member</span>
-                                </div>
-                                <div className="flex-1 flex">
-                                    {dateRange.map((date, idx) => {
-                                        const holiday = getHoliday(date);
-                                        return (
-                                            <div
-                                                key={idx}
-                                                className={cn(
-                                                    "flex-1 flex flex-col items-center justify-center py-3 border-r border-slate-200/60 transition-colors",
-                                                    isWeekend(date) && "bg-slate-100/30",
-                                                    isToday(date) && "bg-indigo-50/50",
-                                                    holiday && "bg-emerald-50/50"
-                                                )}
-                                            >
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">
-                                                    {formatDayShort(date)}
-                                                </span>
-                                                <div className={cn(
-                                                    "h-7 w-7 rounded-lg flex items-center justify-center text-sm font-black tabular-nums transition-all",
-                                                    isToday(date) ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-slate-600"
-                                                )}>
-                                                    {date.getDate()}
-                                                </div>
-                                                {holiday && (
-                                                    <Badge className="mt-1 h-1 w-1 p-0 bg-emerald-500 rounded-full" />
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Member Rows */}
-                            <div className="divide-y divide-slate-100">
-                                {activeMembers.map((member, memberIdx) => (
-                                    <motion.div
-                                        key={member.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: memberIdx * 0.03, duration: 0.3 }}
-                                        className="flex hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group"
-                                    >
-                                        <div className="w-64 p-4 flex items-center gap-3 border-r border-slate-100 dark:border-slate-800 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-800/30 transition-colors">
-                                            <Avatar className="h-9 w-9 ring-2 ring-white dark:ring-slate-800 shadow-sm">
-                                                <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase">
-                                                    {member.name.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate leading-tight">{member.name}</span>
-                                                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tight truncate">
-                                                    {defaultRoleTiers[member.type]?.name || member.type}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 flex">
-                                            {dateRange.map((date, idx) => {
-                                                const tasks = getMemberTasks(member.name, date);
-                                                const onLeave = isOnLeave(member.name, date);
-                                                const holiday = getHoliday(date);
-                                                const taskCount = tasks.length;
-
-                                                return (
-                                                    <Tooltip key={idx}>
-                                                        <TooltipTrigger asChild>
-                                                            <div className={cn(
-                                                                "flex-1 min-h-[56px] border-r border-slate-100 p-1 flex flex-col items-center justify-center cursor-pointer transition-all",
-                                                                isWeekend(date) && "bg-slate-50/20",
-                                                                onLeave && "bg-rose-50/40",
-                                                                holiday && "bg-emerald-50/20",
-                                                                taskCount > 0 && "group-hover:opacity-100"
-                                                            )}>
-                                                                {onLeave ? (
-                                                                    <div className="w-full h-full rounded-md flex items-center justify-center">
-                                                                        <Badge className="bg-rose-100 text-rose-600 hover:bg-rose-100 border-rose-200 text-[8px] font-extrabold px-1.5 h-4 uppercase">Leave</Badge>
-                                                                    </div>
-                                                                ) : taskCount > 0 ? (
-                                                                    <div className="flex flex-wrap justify-center gap-1.5 px-1">
-                                                                        {tasks.slice(0, 3).map((task, i) => (
-                                                                            <motion.div
-                                                                                key={i}
-                                                                                initial={{ scale: 0 }}
-                                                                                animate={{ scale: 1 }}
-                                                                                transition={{ delay: i * 0.05 }}
-                                                                                className="h-2.5 w-2.5 rounded-full shadow-md ring-2 ring-white"
-                                                                                style={{ backgroundColor: getTaskColor(task) }}
-                                                                            />
-                                                                        ))}
-                                                                        {taskCount > 3 && (
-                                                                            <span className="text-[9px] font-black text-slate-600 dark:text-slate-300 leading-none">+{taskCount - 3}</span>
-                                                                        )}
-                                                                    </div>
-                                                                ) : null}
-                                                            </div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent className="bg-slate-900 border-slate-800 text-white p-3 rounded-xl shadow-2xl min-w-[200px]" side="bottom">
-                                                            <div className="space-y-2">
-                                                                <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-                                                                    <span className="text-xs font-black uppercase tracking-widest opacity-50">{formatDate(date)}</span>
-                                                                    {holiday && <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[9px] px-1.5 py-0">Holiday</Badge>}
-                                                                </div>
-                                                                {onLeave ? (
-                                                                    <div className="flex items-center gap-2 text-rose-400 font-bold">
-                                                                        <Info className="h-3 w-3" />
-                                                                        <span className="text-sm">{member.name} is on leave</span>
-                                                                    </div>
-                                                                ) : taskCount > 0 ? (
-                                                                    <div className="space-y-2">
-                                                                        <div className="flex items-center gap-2 text-blue-400">
-                                                                            <Activity className="h-3.5 w-3.5" />
-                                                                            <span className="text-sm font-bold">{taskCount} Assigned Activities</span>
-                                                                        </div>
-                                                                        <ul className="space-y-1.5">
-                                                                            {tasks.map((t, i) => (
-                                                                                <li key={i} className="flex gap-2 text-[11px] leading-tight">
-                                                                                    <span className="h-1 w-1 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: getTaskColor(t) }} />
-                                                                                    <div>
-                                                                                        <p className="font-bold text-white">{t.activityName}</p>
-                                                                                        <p className="opacity-50 font-medium">{t.taskName} ({t.category})</p>
-                                                                                    </div>
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="flex items-center gap-2 text-emerald-400 font-bold">
-                                                                        <Calendar className="h-3 w-3" />
-                                                                        <span className="text-sm">Available for work</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                );
-                                            })}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                {/* Timeline Component */}
+                <div className="flex-1 bg-card rounded-xl border border-border shadow-xl overflow-hidden max-w-full">
+                    <Timeline
+                        resources={filteredMembers}
+                        tasks={allocations}
+                        dateRange={dateRange}
+                        cellWidth={cellWidth}
+                        rowHeight={rowHeight}
+                        holidays={holidays}
+                        onTaskUpdate={handleTaskUpdate}
+                    />
                 </div>
 
-                {/* Refined Legend Section */}
-                <div className="bg-card p-4 rounded-xl border border-border shadow-sm">
-                    <div className="flex flex-wrap items-center justify-center gap-6">
+                {/* Legend */}
+                <div className="flex items-center justify-between px-2 bg-transparent">
+                    <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-slate-100 border border-slate-200" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Available</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Project</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">1-2 Tasks</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8_rgba(16,185,129,0.4)]" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Support</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-amber-500 shadow-sm shadow-amber-200" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">3-4 Tasks</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Maintenance</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-rose-500 shadow-sm shadow-rose-200" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overloaded (5+)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-3.5 w-8 rounded-md bg-rose-100 border border-rose-200" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">On Leave</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Holiday</span>
-                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <Badge variant="outline" className="h-5 text-[9px] font-black uppercase tracking-tighter bg-muted/30 border-border/50 text-muted-foreground/60">
+                            {filteredMembers.length} Resources Active
+                        </Badge>
                     </div>
                 </div>
             </div>

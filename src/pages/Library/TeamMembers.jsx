@@ -252,7 +252,7 @@ export default function TeamMembers() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Add member
                 </Button>
@@ -402,7 +402,7 @@ export default function TeamMembers() {
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold"
+                            className="shadow-lg px-8 font-bold"
                         >
                             {editingMember ? 'Update' : 'Add'} member
                         </Button>

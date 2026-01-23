@@ -18,16 +18,15 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    getExpandedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+    DataTable,
+    DataTablePagination,
+    DataTableToolbar,
+    DataTableViewOptions,
+} from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input.jsx"
 import {
@@ -45,6 +44,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog.jsx"
 import { Label } from "@/components/ui/label.jsx"
 import { Textarea } from "@/components/ui/textarea.jsx"
@@ -57,9 +57,16 @@ import {
     Edit2,
     AlertCircle,
     Download,
-    FileSpreadsheet
+    FileSpreadsheet,
+    ChevronDown,
+    ChevronRight,
+    Calendar,
+    Save,
+    X as CloseIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useDensity } from "@/context/DensityContext"
+import { exportToCsv } from "@/utils/export"
 
 import './ResourceAllocation.css';
 
@@ -362,7 +369,30 @@ export default function ResourceAllocation() {
         });
     };
 
+    const { isDense } = useDensity();
+    const [columnVisibility, setColumnVisibility] = useState({});
+    const [expanded, setExpanded] = useState({});
+
     const columns = useMemo(() => [
+        {
+            id: "expander",
+            header: () => null,
+            cell: ({ row }) => (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 hover:bg-muted"
+                    onClick={() => row.toggleExpanded()}
+                >
+                    {row.getIsExpanded() ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                </Button>
+            ),
+            enableHiding: false,
+        },
         {
             id: "select",
             header: ({ table }) => (
@@ -371,7 +401,7 @@ export default function ResourceAllocation() {
                         type="checkbox"
                         checked={table.getIsAllPageRowsSelected()}
                         onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
-                        className="rounded border-slate-300 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-border h-4 w-4 text-primary focus:ring-primary/20"
                     />
                 </div>
             ),
@@ -381,7 +411,7 @@ export default function ResourceAllocation() {
                         type="checkbox"
                         checked={row.getIsSelected()}
                         onChange={(e) => row.toggleSelected(!!e.target.checked)}
-                        className="rounded border-slate-300 dark:border-slate-700 h-4 w-4 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-900"
+                        className="rounded border-border h-4 w-4 text-primary focus:ring-primary/20 bg-background"
                     />
                 </div>
             ),
@@ -390,8 +420,8 @@ export default function ResourceAllocation() {
         },
         {
             accessorKey: "demandNumber",
-            header: "Demand Number",
-            cell: ({ row }) => <div className="font-bold text-slate-900 tabular-nums">{row.getValue("demandNumber") || "—"}</div>,
+            header: "Demand #",
+            cell: ({ row }) => <div className="font-bold text-foreground tabular-nums opacity-80">{row.getValue("demandNumber") || "—"}</div>,
         },
         {
             accessorKey: "category",
@@ -400,9 +430,9 @@ export default function ResourceAllocation() {
                 const category = row.getValue("category");
                 return (
                     <Badge variant={
-                        category === 'Support' ? "success" :
-                            category === 'Maintenance' ? "warning" : "default"
-                    } className="font-semibold px-3">
+                        category === 'Support' ? "info" :
+                            category === 'Maintenance' ? "warning" : "primary"
+                    } className="font-bold px-2 py-0 h-5 text-[10px] uppercase tracking-wider">
                         {category}
                     </Badge>
                 )
@@ -410,13 +440,13 @@ export default function ResourceAllocation() {
         },
         {
             accessorKey: "activityName",
-            header: "Activity / Ticket",
+            header: "Activity/Ticket",
             cell: ({ row }) => (
                 <div className="flex flex-col gap-0.5 max-w-[200px]">
                     {row.original.category === 'Support' && (
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{row.original.ticketId}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{row.original.ticketId}</span>
                     )}
-                    <span className="font-semibold text-slate-900 truncate" title={row.getValue("activityName")}>
+                    <span className="font-bold text-foreground truncate" title={row.getValue("activityName")}>
                         {row.getValue("activityName")}
                     </span>
                 </div>
@@ -425,85 +455,149 @@ export default function ResourceAllocation() {
         {
             accessorKey: "resource",
             header: "Resource",
-        },
-        {
-            accessorKey: "complexity",
-            header: "Complexity",
             cell: ({ row }) => {
-                const comp = row.getValue("complexity")?.toLowerCase();
-                const label = complexity[comp]?.label || comp;
+                const value = row.getValue("resource");
                 return (
-                    <Badge variant="secondary" className="font-medium px-2 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
-                        {label.charAt(0).toUpperCase() + label.slice(1)}
-                    </Badge>
-                )
-            },
+                    <Select
+                        value={value}
+                        onValueChange={(newValue) => {
+                            dispatch({
+                                type: ACTIONS.UPDATE_ALLOCATION,
+                                payload: { ...row.original, resource: newValue }
+                            });
+                        }}
+                    >
+                        <SelectTrigger className="h-7 bg-transparent border-none shadow-none px-0 focus:ring-0 text-sm font-medium hover:bg-muted/50 rounded-md transition-colors w-full justify-start gap-2">
+                            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-black text-primary">
+                                {value?.charAt(0)}
+                            </div>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {members.map(m => (
+                                <SelectItem key={m.id} value={m.name} className="text-xs">{m.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                );
+            }
         },
         {
-            accessorKey: "taskName",
-            header: "Task / SLA",
-            cell: ({ row }) => (
-                <div className="flex flex-col gap-1">
-                    {row.original.category === 'Support' && (
-                        <div className="flex gap-1 items-center">
-                            <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: getPriorityColor(row.original.priority) }}
-                                title={`Priority: ${row.original.priority}`}
-                            />
-                            <span className="text-[10px] font-medium text-slate-500">{row.original.slaStatus}</span>
-                        </div>
-                    )}
-                    <span className="text-xs text-slate-600 line-clamp-1">{row.getValue("taskName")}</span>
-                </div>
-            ),
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const status = row.getValue("status");
+                const options = getStatusOptions();
+                const option = options.find(o => o.value === status) || { label: status, variant: 'secondary' };
+
+                return (
+                    <Select
+                        value={status}
+                        onValueChange={(newValue) => {
+                            dispatch({
+                                type: ACTIONS.UPDATE_ALLOCATION,
+                                payload: { ...row.original, status: newValue }
+                            });
+                        }}
+                    >
+                        <SelectTrigger className="h-7 bg-transparent border-none shadow-none px-0 focus:ring-0 rounded-md hover:bg-muted/50 transition-colors w-[120px] justify-start">
+                            <Badge variant={option.variant || "secondary"} className="font-bold py-0 h-5 text-[10px] uppercase tracking-wider cursor-pointer">
+                                {option.label}
+                                <ChevronDown className="ml-1 h-3 w-3 opacity-50" />
+                            </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {options.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value} className="text-xs font-bold uppercase tracking-widest">
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                );
+            }
         },
         {
             accessorKey: "plan.taskStart",
-            header: "Plan Start",
-            cell: ({ row }) => <span className="text-slate-600 tabular-nums">{formatDate(row.original.plan?.taskStart)}</span>,
+            header: "Start",
+            cell: ({ row }) => <span className="text-muted-foreground font-medium tabular-nums">{formatDate(row.original.plan?.taskStart)}</span>,
         },
         {
             accessorKey: "plan.taskEnd",
-            header: "Plan End",
-            cell: ({ row }) => <span className="text-slate-600 tabular-nums">{formatDate(row.original.plan?.taskEnd)}</span>,
+            header: "End",
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="text-foreground font-bold tabular-nums">{formatDate(row.original.plan?.taskEnd)}</span>
+                    {row.original.category === 'Support' && (
+                        <span className={cn(
+                            "text-[9px] font-black uppercase tracking-widest",
+                            row.original.slaStatus === 'Violated' ? "text-destructive" : "text-success"
+                        )}>
+                            {row.original.slaStatus}
+                        </span>
+                    )}
+                </div>
+            ),
         },
         {
             accessorKey: "plan.costProject",
             header: "Cost",
-            cell: ({ row }) => <div className="text-right font-medium tabular-nums">{formatCurrency(row.original.plan?.costProject || 0)}</div>,
+            cell: ({ row }) => (
+                <div className="text-right font-bold tabular-nums text-primary/80">
+                    {row.original.category === 'Project' ? formatCurrency(row.original.plan?.costProject || 0) : '—'}
+                </div>
+            ),
         },
         {
             id: "actions",
-            header: "Actions",
+            header: () => <div className="text-right pr-4">Actions</div>,
             cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)} className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
+                <div className="flex items-center justify-end gap-1 pr-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(row.original)}
+                        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                    >
                         <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(row.original)} className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(row.original)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                    >
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
             ),
+            enableHiding: false,
         },
-    ], [phases, tasks, complexity]);
+    ], [phases, tasks, complexity, isDense, members, dispatch]);
 
     const [sorting, setSorting] = useState([])
     const [rowSelection, setRowSelection] = useState({})
+    const [columnFilters, setColumnFilters] = useState([])
 
     const table = useReactTable({
         data: filteredAllocations,
         columns,
         onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onExpandedChange: setExpanded,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        getExpandedRowModel: getExpandedRowModel(),
         onRowSelectionChange: setRowSelection,
         state: {
             sorting,
             rowSelection,
+            columnFilters,
+            columnVisibility,
+            expanded,
         },
     })
 
@@ -534,143 +628,127 @@ export default function ResourceAllocation() {
     };
 
     return (
-        <div className="allocation-page space-y-6 animate-in fade-in duration-500">
-            {/* Action bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-4 px-6 rounded-2xl border border-border shadow-sm">
-                <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4 text-indigo-500" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Actions & Bulk Operations</span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                    {hasSelection && (
-                        <div className="flex items-center gap-2 mr-2 bg-slate-500/10 p-1 rounded-xl border border-slate-500/20">
-                            <span className="text-xs font-semibold px-2 text-slate-600 dark:text-slate-400">{selectedRows.length} selected</span>
-                            <Select onValueChange={handleBulkStatusChange}>
-                                <SelectTrigger className="h-8 w-[140px] bg-transparent border-none shadow-none text-xs text-slate-700 dark:text-slate-200">
-                                    <SelectValue placeholder="Update Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getStatusOptions().map(opt => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleBulkDeleteClick}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
-
-                    <Button variant="outline" className="rounded-xl shadow-sm border-slate-200">
-                        <Download className="mr-2 h-4 w-4 text-slate-500" />
-                        Export
-                    </Button>
-                    <Button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100" onClick={handleAdd}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add allocation
-                    </Button>
-                </div>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-card p-4 rounded-xl border border-border shadow-sm">
-                <div className="md:col-span-5 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                        placeholder="Search activity, demand #, phase..."
-                        className="pl-9 bg-slate-500/5 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                </div>
-
-                <div className="md:col-span-3">
-                    <Select value={filterResource} onValueChange={setFilterResource}>
-                        <SelectTrigger className="bg-slate-500/5 border-slate-500/20 rounded-lg text-slate-700 dark:text-slate-200">
-                            <SelectValue placeholder="All Resources" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Resources</SelectItem>
-                            {members.map(m => (
-                                <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="md:col-span-3">
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="bg-slate-500/5 border-slate-500/20 rounded-lg text-slate-700 dark:text-slate-200">
-                            <SelectValue placeholder="All Statuses" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            {getStatusOptions().map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="md:col-span-1 flex items-center justify-end">
-                    {(searchText || filterResource || filterStatus || filterCategory || filterComplexity) ? (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-slate-500 h-9"
-                            onClick={() => {
-                                setSearchText('');
-                                setFilterResource('');
-                                setFilterStatus('');
-                                setFilterCategory('');
-                                setFilterComplexity('');
-                            }}
-                        >
-                            Reset
-                        </Button>
-                    ) : (
-                        <div className="text-xs font-semibold text-slate-400 px-2 uppercase tracking-wider">{filteredAllocations.length} items</div>
-                    )}
-                </div>
-            </div>
-
-            {/* Table */}
-            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
+        <div className="allocation-page space-y-4 animate-in fade-in duration-500">
+            {/* Action Bar & Toolbar */}
+            <DataTableToolbar
+                table={table}
+                searchKey="activityName"
+                searchPlaceholder="Search activities..."
+                filters={
+                    <div className="flex items-center gap-2">
+                        <Select value={filterResource} onValueChange={setFilterResource}>
+                            <SelectTrigger className={cn("bg-muted/30 border-none shadow-none text-xs font-bold", isDense ? "h-8 w-[140px]" : "h-10 w-[160px]")}>
+                                <SelectValue placeholder="All Resources" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Resources</SelectItem>
+                                {members.map(m => (
+                                    <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
                                 ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-3 px-4 text-sm align-middle">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-32 text-center align-middle text-slate-400">
-                                    <FileSpreadsheet className="h-8 w-8 mx-auto mb-2 opacity-20" />
-                                    No results found.
-                                </TableCell>
-                            </TableRow>
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                            <SelectTrigger className={cn("bg-muted/30 border-none shadow-none text-xs font-bold", isDense ? "h-8 w-[140px]" : "h-10 w-[160px]")}>
+                                <SelectValue placeholder="All Statuses" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                {getStatusOptions().map(opt => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                }
+                actions={
+                    <div className="flex items-center gap-2">
+                        {hasSelection && (
+                            <div className="flex items-center gap-1 bg-primary/5 p-1 rounded-xl border border-primary/10 mr-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest px-2 text-primary/60">{selectedRows.length} Selected</span>
+                                <Select onValueChange={handleBulkStatusChange}>
+                                    <SelectTrigger className="h-8 w-[130px] bg-transparent border-none shadow-none text-xs font-bold">
+                                        <SelectValue placeholder="Update Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getStatusOptions().map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={handleBulkDeleteClick}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
                         )}
-                    </TableBody>
-                </Table>
-            </div>
+
+                        <DataTableViewOptions table={table} />
+
+                        <Button
+                            variant="outline"
+                            className={cn("rounded-xl font-bold uppercase tracking-wider text-xs", isDense ? "h-8" : "h-10")}
+                            onClick={() => exportToCsv(filteredAllocations, 'allocations.csv')}
+                        >
+                            <Download className="mr-2 h-4 w-4 opacity-60" />
+                            Export
+                        </Button>
+
+                        <Button
+                            className={cn("rounded-xl font-bold uppercase tracking-wider text-xs shadow-lg shadow-primary/20", isDense ? "h-8" : "h-10")}
+                            onClick={handleAdd}
+                        >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Entry
+                        </Button>
+                    </div>
+                }
+            />
+
+            {/* Main Table */}
+            <DataTable
+                table={table}
+                columns={columns}
+                isLoading={false}
+                renderSubComponent={({ row }) => (
+                    <div className="p-4 px-12 bg-muted/20 border-t border-border/40 grid grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Remarks & Notes</h4>
+                            <p className="text-xs font-medium text-foreground/80 leading-relaxed italic">
+                                {row.original.remarks || "No remarks provided for this allocation."}
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Actual Progress</h4>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-muted-foreground">Start:</span>
+                                        <span className="text-foreground">{formatDate(row.original.actual?.taskStart)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-muted-foreground">End:</span>
+                                        <span className="text-foreground">{formatDate(row.original.actual?.taskEnd) || "In Progress"}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-2 text-right">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 text-right">Actual Cost</h4>
+                                <p className="text-lg font-black text-primary tabular-nums">
+                                    {row.original.category === 'Project' ? formatCurrency(row.original.actual?.costProject || 0) : "N/A"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            />
+
+            {/* Pagination */}
+            <DataTablePagination table={table} />
 
             {/* Form Dialog */}
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -815,7 +893,7 @@ export default function ResourceAllocation() {
 
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setIsFormOpen(false)} className="font-bold">Cancel</Button>
-                        <Button onClick={handleSubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 px-8 font-bold">Save Allocation</Button>
+                        <Button onClick={handleSubmit} className="shadow-lg px-8 font-bold">Save Allocation</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

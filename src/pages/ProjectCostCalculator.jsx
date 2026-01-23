@@ -182,45 +182,49 @@ export default function ProjectCostCalculator() {
 
     return (
         <motion.div
-            className="max-w-4xl mx-auto space-y-6"
+            className="space-y-8 animate-in fade-in duration-500 pb-20"
             initial="hidden"
             animate="visible"
             variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
             {/* Header */}
-            <motion.div variants={fadeIn} className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30 mb-2">
-                    <Calculator className="h-7 w-7" />
+            <motion.div variants={fadeIn} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
+                        <Calculator className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight">Project Cost Calculator</h2>
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Manday & Budget Estimation</p>
+                    </div>
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                    Project Cost Calculator
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400">
-                    Estimate costs and mandays from phase start to completion
-                </p>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-xl border border-border/50 text-muted-foreground">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Confidence Score: High</span>
+                </div>
             </motion.div>
 
             {/* Hero Results Section */}
             <motion.div
                 variants={fadeIn}
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
                 {/* Total Cost */}
                 <motion.div
                     variants={numberAnimation}
-                    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl"
+                    className="relative overflow-hidden rounded-2xl bg-indigo-600 p-8 text-white shadow-2xl group transition-all hover:scale-[1.01]"
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-all" />
                     <div className="relative">
-                        <div className="flex items-center gap-2 text-emerald-100 mb-1">
+                        <div className="flex items-center gap-2 text-indigo-100/60 mb-2">
                             <TrendingUp className="h-4 w-4" />
-                            <span className="text-xs font-semibold uppercase tracking-wider">Total Cost</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Total Estimated Budget</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-black tracking-tight">
+                        <div className="text-4xl md:text-5xl font-black tracking-tighter mb-4">
                             {formatCurrency(calculations.totalCost)}
                         </div>
-                        <div className="mt-2 text-sm text-emerald-100">
-                            {resources.length} resource{resources.length > 1 ? 's' : ''} × {calculations.phaseSpan} phase{calculations.phaseSpan > 1 ? 's' : ''}
+                        <div className="flex items-center gap-2 text-xs font-bold text-indigo-100/80 bg-white/5 w-fit px-3 py-1.5 rounded-lg border border-white/10">
+                            {resources.length} resource{resources.length > 1 ? 's' : ''} • {calculations.phaseSpan} phase{calculations.phaseSpan > 1 ? 's' : ''}
                         </div>
                     </div>
                 </motion.div>
@@ -228,347 +232,261 @@ export default function ProjectCostCalculator() {
                 {/* Total Mandays */}
                 <motion.div
                     variants={numberAnimation}
-                    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 p-6 text-white shadow-xl"
+                    className="relative overflow-hidden rounded-2xl bg-emerald-600 p-8 text-white shadow-2xl group transition-all hover:scale-[1.01]"
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-all" />
                     <div className="relative">
-                        <div className="flex items-center gap-2 text-indigo-100 mb-1">
+                        <div className="flex items-center gap-2 text-emerald-100/60 mb-2">
                             <Clock className="h-4 w-4" />
-                            <span className="text-xs font-semibold uppercase tracking-wider">Total Mandays</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Total Project Effort</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-black tracking-tight">
-                            {calculations.totalMandays} days
+                        <div className="text-4xl md:text-5xl font-black tracking-tighter mb-4">
+                            {calculations.totalMandays} <span className="text-xl md:text-2xl opacity-60">Mandays</span>
                         </div>
-                        <div className="mt-2 text-sm text-indigo-100">
-                            ~{Math.ceil(parseFloat(calculations.totalMandays) / WORKING_DAYS_PER_MONTH)} month{Math.ceil(parseFloat(calculations.totalMandays) / WORKING_DAYS_PER_MONTH) > 1 ? 's' : ''} of work
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-100/80 bg-white/5 w-fit px-3 py-1.5 rounded-lg border border-white/10">
+                            ~{Math.ceil(parseFloat(calculations.totalMandays) / WORKING_DAYS_PER_MONTH)} month{Math.ceil(parseFloat(calculations.totalMandays) / WORKING_DAYS_PER_MONTH) > 1 ? 's' : ''} duration
                         </div>
                     </div>
                 </motion.div>
             </motion.div>
 
-            {/* Phase Flow Visualization */}
-            <motion.div variants={fadeIn} className="flex items-center justify-center gap-2 flex-wrap py-2">
-                {phasesCovered.map((phase, index) => (
-                    <div key={phase.id} className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                            {phase.name}
-                        </Badge>
-                        {index < phasesCovered.length - 1 && (
-                            <ArrowRight className="h-4 w-4 text-slate-400" />
-                        )}
+            {/* Timeline Flow */}
+            <motion.div variants={fadeIn} className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground border border-border/50">
+                        <Briefcase className="h-4 w-4" />
                     </div>
-                ))}
-                <ArrowRight className="h-4 w-4 text-emerald-500" />
-                <Badge className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-semibold">
-                    Completed ✓
-                </Badge>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phases Covered</span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                    {phasesCovered.map((phase, index) => (
+                        <div key={phase.id} className="flex items-center gap-2">
+                            <div className="px-4 py-2 bg-muted/30 border border-border/50 rounded-xl text-xs font-bold transition-all hover:bg-muted/50 cursor-default">
+                                {phase.name}
+                            </div>
+                            {index < phasesCovered.length - 1 && (
+                                <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
+                            )}
+                        </div>
+                    ))}
+                    <div className="flex items-center gap-2 ml-4 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs font-black text-emerald-500 uppercase tracking-widest">
+                        Ready for Production <TrendingUp className="h-3 w-3 ml-1" />
+                    </div>
+                </div>
             </motion.div>
 
-            {/* Configuration Section (Collapsible) */}
-            <motion.div variants={fadeIn}>
-                <button
-                    onClick={() => setIsConfigExpanded(!isConfigExpanded)}
-                    className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                            <Briefcase className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            {/* Config & Resources Split */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                {/* Sidebar Configuration */}
+                <motion.div variants={fadeIn} className="lg:col-span-1 space-y-6">
+                    <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
+                        <div className="p-6 border-b border-border bg-muted/10">
+                            <h3 className="font-black uppercase tracking-widest text-[10px] text-muted-foreground">Parameters</h3>
                         </div>
-                        <div className="text-left">
-                            <div className="font-semibold text-slate-900 dark:text-slate-100">Project Configuration</div>
-                            <div className="text-sm text-slate-500">
-                                {phasesCovered[0]?.name || 'Planning'} start • {complexitySettings[selectedComplexity]?.label || 'Medium'} complexity
+                        <div className="p-6 space-y-6">
+                            <div className="space-y-3">
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Phase Entry Point</Label>
+                                <Select value={startPhase} onValueChange={setStartPhase}>
+                                    <SelectTrigger className="h-11 bg-muted/20 border-border/40 font-bold rounded-xl focus:ring-indigo-500">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover border-border">
+                                        {projectPhases.map(phase => (
+                                            <SelectItem key={phase.id} value={phase.id.toString()} className="font-bold">
+                                                {phase.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-3">
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Complexity Tier</Label>
+                                <Select value={selectedComplexity} onValueChange={setSelectedComplexity}>
+                                    <SelectTrigger className="h-11 bg-muted/20 border-border/40 font-bold rounded-xl focus:ring-indigo-500">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover border-border">
+                                        {Object.entries(complexitySettings).map(([key, data]) => (
+                                            <SelectItem key={key} value={key} className="font-bold">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn("h-2 w-2 rounded-full", getComplexityColor(key))} />
+                                                    {data.label}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <div className="p-4 bg-muted/20 rounded-xl border border-border/40 text-[10px] font-bold text-muted-foreground">
+                                    Estimation Scale: {complexityData.hours}h per Phase
+                                </div>
                             </div>
                         </div>
                     </div>
-                    {isConfigExpanded ? (
-                        <ChevronUp className="h-5 w-5 text-slate-400" />
-                    ) : (
-                        <ChevronDown className="h-5 w-5 text-slate-400" />
-                    )}
-                </button>
 
-                <AnimatePresence>
-                    {isConfigExpanded && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="p-4 bg-white dark:bg-slate-900 border border-t-0 border-slate-200 dark:border-slate-800 rounded-b-xl space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Start Phase</Label>
-                                        <Select value={startPhase} onValueChange={setStartPhase}>
-                                            <SelectTrigger className="h-11">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {projectPhases.map(phase => (
-                                                    <SelectItem key={phase.id} value={phase.id.toString()}>
-                                                        {phase.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                    <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-2xl p-6">
+                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Note</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed leading-5">
+                            Estimates are based on {WORKING_HOURS_PER_DAY}h working days and {WORKING_DAYS_PER_MONTH} days/month. Calculated from phase start until Support handover.
+                        </p>
+                    </div>
+                </motion.div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Complexity</Label>
-                                        <Select value={selectedComplexity} onValueChange={setSelectedComplexity}>
-                                            <SelectTrigger className="h-11">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(complexitySettings).map(([key, data]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        <span className="flex items-center gap-2">
-                                                            <span className={cn("h-2 w-2 rounded-full", getComplexityColor(key))} />
-                                                            {data.label} ({data.hours}h/phase)
-                                                        </span>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                {/* Main Content Area */}
+                <motion.div variants={fadeIn} className="lg:col-span-2 space-y-6">
+                    <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden h-fit">
+                        <div className="p-6 border-b border-border bg-muted/10 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground border border-border/50">
+                                    <Users className="h-5 w-5" />
                                 </div>
+                                <div>
+                                    <h3 className="font-black uppercase tracking-widest text-[10px]">Project Manpower</h3>
+                                    <p className="text-[10px] font-medium text-muted-foreground">{resources.length} active allocations</p>
+                                </div>
+                            </div>
+                            <Button
+                                onClick={addResource}
+                                className="h-10 px-4 rounded-xl shadow-lg bg-indigo-600 hover:bg-indigo-700 border-none font-black uppercase tracking-wider text-[10px]"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Resource
+                            </Button>
+                        </div>
+
+                        {resources.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-24 px-6 opacity-40">
+                                <UserPlus className="h-12 w-12 mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-widest">No resources assigned</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-auto custom-scrollbar">
+                                <Table>
+                                    <TableHeader className="bg-muted/10">
+                                        <TableRow className="border-border/40">
+                                            <TableHead className="w-12 text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">#</TableHead>
+                                            <TableHead className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Role</TableHead>
+                                            <TableHead className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Tier</TableHead>
+                                            <TableHead className="text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6">Total Cost</TableHead>
+                                            <TableHead className="w-12"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <AnimatePresence mode="popLayout">
+                                            {calculations.resourceBreakdown.map((item, index) => (
+                                                <TableRow
+                                                    key={item.id}
+                                                    className="border-border/40 hover:bg-muted/5 transition-colors group"
+                                                >
+                                                    <TableCell className="text-center font-bold text-muted-foreground opacity-30 tabular-nums text-xs">
+                                                        {index + 1}
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <Select
+                                                            value={resources[index].roleType}
+                                                            onValueChange={(v) => updateResource(item.id, 'roleType', v)}
+                                                        >
+                                                            <SelectTrigger className="border-none bg-transparent p-0 h-auto font-black uppercase tracking-widest text-[11px] focus:ring-0">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="bg-popover border-border">
+                                                                {getRoleOptions().map(opt => (
+                                                                    <SelectItem key={opt.value} value={opt.value} className="font-bold">
+                                                                        {opt.label}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Select
+                                                            value={resources[index].tierLevel.toString()}
+                                                            onValueChange={(v) => updateResource(item.id, 'tierLevel', parseInt(v))}
+                                                        >
+                                                            <SelectTrigger className="border-none bg-transparent p-0 h-auto font-bold text-xs focus:ring-0 text-muted-foreground">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="bg-popover border-border">
+                                                                {getTierOptions(resources[index].roleType).map(opt => (
+                                                                    <SelectItem key={opt.value} value={opt.value} className="font-bold">
+                                                                        {opt.label}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-black text-slate-100 tabular-nums px-6">
+                                                        {formatCurrency(item.cost)}
+                                                    </TableCell>
+                                                    <TableCell className="px-6">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => removeResource(item.id)}
+                                                            className="h-8 w-8 text-muted-foreground/30 hover:text-red-500 hover:bg-red-500/10 transition-all rounded-lg"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </AnimatePresence>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+
+                        {resources.length > 0 && (
+                            <div className="p-6 bg-muted/10 border-t border-border flex justify-end gap-12">
+                                <div className="text-right">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Combined Effort</p>
+                                    <p className="text-xl font-black text-emerald-500 tabular-nums tracking-tight">
+                                        {calculations.totalMandays} <span className="text-[10px] opacity-60">DAYS</span>
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Grand Total</p>
+                                    <p className="text-xl font-black text-indigo-400 tabular-nums tracking-tight">
+                                        {formatCurrency(calculations.totalCost)}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Secondary Calculation Detail Card */}
+                    {resources.length > 0 && (
+                        <motion.div variants={fadeIn} className="bg-card rounded-2xl border border-border p-6 space-y-4">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground border border-border/50">
+                                    <PieChart className="h-4 w-4" />
+                                </div>
+                                <h3 className="font-black uppercase tracking-widest text-[10px]">Resource Contribution</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {calculations.resourceBreakdown.map((item, index) => (
+                                    <div key={item.id} className="p-4 bg-muted/10 rounded-xl border border-border/40 flex justify-between items-center group hover:border-indigo-500/30 transition-all">
+                                        <div>
+                                            <p className="text-xs font-black text-slate-100 uppercase tracking-widest mb-1">{item.roleName}</p>
+                                            <p className="text-[9px] font-bold text-muted-foreground">{item.tierName} • {formatCurrency(item.perHourCost)}/hr</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-black text-indigo-400 tabular-nums">{formatCurrency(item.cost)}</p>
+                                            <p className="text-[9px] font-bold text-muted-foreground opacity-60 italic">{item.mandays} days</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </motion.div>
                     )}
-                </AnimatePresence>
-            </motion.div>
-
-            {/* Resources Table */}
-            <motion.div variants={fadeIn} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <div>
-                            <div className="font-semibold text-slate-900 dark:text-slate-100">Resources</div>
-                            <div className="text-sm text-slate-500">{resources.length} team member{resources.length > 1 ? 's' : ''}</div>
-                        </div>
-                    </div>
-                    <Button
-                        onClick={addResource}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Resource
-                    </Button>
-                </div>
-
-                {resources.length === 0 ? (
-                    /* Empty State */
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col items-center justify-center py-16 px-4"
-                    >
-                        <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                            <UserPlus className="h-8 w-8 text-slate-400" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                            No resources added
-                        </h3>
-                        <p className="text-slate-500 text-center max-w-sm mb-6">
-                            Add team members to calculate the total project cost and effort estimation.
-                        </p>
-                        <Button
-                            onClick={addResource}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add First Resource
-                        </Button>
-                    </motion.div>
-                ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-slate-50 dark:bg-slate-800/50">
-                                <TableHead className="w-12 text-center">#</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Tier</TableHead>
-                                <TableHead className="text-right">Cost</TableHead>
-                                <TableHead className="text-right">Mandays</TableHead>
-                                <TableHead className="w-12"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <AnimatePresence mode="popLayout">
-                                {calculations.resourceBreakdown.map((item, index) => (
-                                    <motion.tr
-                                        key={item.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="border-b border-slate-100 dark:border-slate-800"
-                                    >
-                                        <TableCell className="text-center font-medium text-slate-400">
-                                            {index + 1}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Select
-                                                value={resources[index].roleType}
-                                                onValueChange={(v) => updateResource(item.id, 'roleType', v)}
-                                            >
-                                                <SelectTrigger className="border-0 bg-transparent p-0 h-auto font-medium">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {getRoleOptions().map(opt => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Select
-                                                value={resources[index].tierLevel.toString()}
-                                                onValueChange={(v) => updateResource(item.id, 'tierLevel', parseInt(v))}
-                                            >
-                                                <SelectTrigger className="border-0 bg-transparent p-0 h-auto">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {getTierOptions(resources[index].roleType).map(opt => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
-                                        <TableCell className="text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-                                            {formatCurrency(item.cost)}
-                                        </TableCell>
-                                        <TableCell className="text-right text-slate-500 tabular-nums">
-                                            {item.mandays} days
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => removeResource(item.id)}
-                                                className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </motion.tr>
-                                ))}
-                            </AnimatePresence>
-                        </TableBody>
-                    </Table>
-                )}
-
-                {/* Summary Row - only visible when resources exist */}
-                {resources.length > 0 && (
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-8">
-                        <div className="text-right">
-                            <div className="text-xs font-medium text-slate-500 uppercase">Total Cost</div>
-                            <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                                {formatCurrency(calculations.totalCost)}
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-xs font-medium text-slate-500 uppercase">Total Mandays</div>
-                            <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
-                                {calculations.totalMandays} days
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </motion.div>
-
-            {/* Cost Breakdown Section - Prominent */}
-            {resources.length > 0 && (
-                <motion.div variants={fadeIn} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                                <PieChart className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                            </div>
-                            <div>
-                                <div className="font-semibold text-slate-900 dark:text-slate-100">Cost Breakdown</div>
-                                <div className="text-sm text-slate-500">Detailed cost analysis per resource</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="p-4 space-y-3">
-                        {calculations.resourceBreakdown.map((item, index) => (
-                            <motion.div
-                                key={item.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold">
-                                        {index + 1}
-                                    </div>
-                                    <div>
-                                        <div className="font-semibold text-slate-900 dark:text-slate-100">
-                                            {item.tierName}
-                                        </div>
-                                        <div className="text-sm text-slate-500">
-                                            {item.roleName} • {formatCurrency(item.perHourCost)}/hr
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-lg font-bold text-slate-900 dark:text-slate-100 tabular-nums">
-                                        {formatCurrency(item.cost)}
-                                    </div>
-                                    <div className="text-sm text-slate-500 tabular-nums">
-                                        {item.mandays} mandays
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Grand Total */}
-                    <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border-t border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center justify-between">
-                            <div className="font-semibold text-slate-600 dark:text-slate-300">
-                                Total Project Estimate
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <div className="text-right">
-                                    <div className="text-xs font-medium text-slate-500 uppercase">Total Cost</div>
-                                    <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                                        {formatCurrency(calculations.totalCost)}
-                                    </div>
-                                </div>
-                                <div className="h-8 w-px bg-slate-300 dark:bg-slate-600" />
-                                <div className="text-right">
-                                    <div className="text-xs font-medium text-slate-500 uppercase">Total Mandays</div>
-                                    <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
-                                        {calculations.totalMandays} days
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </motion.div>
-            )}
+            </div>
 
-            {/* Calculation Info */}
-            <motion.div variants={fadeIn} className="text-center text-sm text-slate-400 dark:text-slate-500">
-                {resources.length > 0 ? (
-                    <>Calculations: {complexityData.hours}h/phase × {calculations.phaseSpan} phases × hourly rate</>
-                ) : (
-                    <>Add resources above to see cost calculations</>
-                )}
+            {/* Footer Calculation Meta */}
+            <motion.div variants={fadeIn} className="flex justify-center flex-col items-center gap-2 py-8 opacity-40">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Computation Method: Resource Density × Phase Span</p>
+                <div className="h-1 w-12 bg-border/40 rounded-full" />
             </motion.div>
         </motion.div>
     );
