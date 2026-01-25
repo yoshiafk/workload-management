@@ -9,6 +9,8 @@ export { defaultTaskTemplates } from './defaultTasks';
 export { defaultResourceCosts } from './defaultCosts';
 export { defaultComplexity, complexityLevels } from './defaultComplexity';
 export { defaultRoleTiers, getTierByRoleAndLevel, getTierOptionsForRole, getRoleOptions, roleHasCostTracking } from './defaultRoleTiers';
+export { defaultCostCenters } from './defaultCostCenters';
+export { defaultCOA } from './defaultCOA';
 
 /**
  * Initial application state with all default data
