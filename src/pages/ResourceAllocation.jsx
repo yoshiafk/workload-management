@@ -107,6 +107,10 @@ const emptyAllocation = {
     },
     workload: 0,
     remarks: '',
+    
+    // Cost center integration
+    costCenterId: '',
+    costCenterSnapshot: null,
 };
 
 export default function ResourceAllocation() {
@@ -192,11 +196,20 @@ export default function ResourceAllocation() {
     // Calculate plan values when relevant form data changes
     const calculatedPlan = useMemo(() => {
         if (!formData.plan?.taskStart || !formData.resource || !formData.complexity) {
-            return { taskEnd: '', costProject: 0, costMonthly: 0 };
+            return { taskEnd: '', costProject: 0, costMonthly: 0, costCenterSnapshot: null };
         }
 
         const member = state.members.find(m => m.name === formData.resource);
         const costTierId = member?.costTierId;
+        const memberCostCenterId = member?.costCenterId;
+
+        // Find the cost center information
+        const costCenter = state.costCenters.find(cc => cc.id === memberCostCenterId);
+        const costCenterSnapshot = costCenter ? {
+            id: costCenter.id,
+            code: costCenter.code,
+            name: costCenter.name,
+        } : null;
 
         const taskEnd = calculatePlanEndDate(
             formData.plan.taskStart,
@@ -225,8 +238,9 @@ export default function ResourceAllocation() {
             taskEnd: taskEnd.toISOString().split('T')[0],
             costProject,
             costMonthly,
+            costCenterSnapshot,
         };
-    }, [formData.plan?.taskStart, formData.resource, formData.complexity, formData.category, holidays, leaves, complexity, costs, state.members]);
+    }, [formData.plan?.taskStart, formData.resource, formData.complexity, formData.category, holidays, leaves, complexity, costs, state.members, state.costCenters]);
 
     // Open add modal
     const handleAdd = () => {
@@ -333,6 +347,10 @@ export default function ResourceAllocation() {
             tasks
         );
 
+        // Get member's current cost center information
+        const member = state.members.find(m => m.name === formData.resource);
+        const memberCostCenterId = member?.costCenterId;
+
         const allocationData = {
             ...formData,
             plan: {
@@ -342,6 +360,9 @@ export default function ResourceAllocation() {
                 costMonthly: calculatedPlan.costMonthly,
             },
             workload,
+            // Cost center integration
+            costCenterId: memberCostCenterId || '',
+            costCenterSnapshot: calculatedPlan.costCenterSnapshot,
         };
 
         if (editingAllocation) {
@@ -479,6 +500,22 @@ export default function ResourceAllocation() {
                             ))}
                         </SelectContent>
                     </Select>
+                );
+            }
+        },
+        {
+            accessorKey: "costCenterSnapshot",
+            header: "Cost Center",
+            cell: ({ row }) => {
+                const costCenter = row.original.costCenterSnapshot;
+                if (!costCenter) {
+                    return <span className="text-xs text-muted-foreground">Not assigned</span>;
+                }
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-bold text-foreground">{costCenter.code}</span>
+                        <span className="text-[10px] text-muted-foreground">{costCenter.name}</span>
+                    </div>
                 );
             }
         },

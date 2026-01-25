@@ -14,6 +14,8 @@ const STORAGE_KEYS = {
     holidays: `${STORAGE_PREFIX}holidays`,
     leaves: `${STORAGE_PREFIX}leaves`,
     allocations: `${STORAGE_PREFIX}allocations`,
+    costCenters: `${STORAGE_PREFIX}costCenters`,
+    coa: `${STORAGE_PREFIX}coa`,
     settings: `${STORAGE_PREFIX}settings`,
     version: `${STORAGE_PREFIX}version`,
 };
@@ -95,6 +97,8 @@ export function exportAllData() {
         holidays: loadFromStorage('holidays', []),
         leaves: loadFromStorage('leaves', []),
         allocations: loadFromStorage('allocations', []),
+        costCenters: loadFromStorage('costCenters', []),
+        coa: loadFromStorage('coa', []),
         settings: loadFromStorage('settings', {}),
     };
 
@@ -141,6 +145,8 @@ export function importData(data) {
         if (data.holidays) saveToStorage('holidays', data.holidays);
         if (data.leaves) saveToStorage('leaves', data.leaves);
         if (data.allocations) saveToStorage('allocations', data.allocations);
+        if (data.costCenters) saveToStorage('costCenters', data.costCenters);
+        if (data.coa) saveToStorage('coa', data.coa);
         if (data.settings) saveToStorage('settings', data.settings);
         if (data.version) saveToStorage('version', data.version);
 

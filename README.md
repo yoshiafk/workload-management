@@ -89,14 +89,11 @@ Shows a member's total workload relative to their individual maximum capacity.
 - 
 
 ## Revise
-- Add Project Cost Center Track, related to project alignment to see remaining from total cost center
-- Set SLA map to Priority
+- Set SLA time mapping to Priority
 - Remove Complexcity Calculation except for Project Task
 - Align the color for Member Load Status
 - Check modal for Date Picker Implementation
 - Update the Date Filter Function on Dashboard View
-- Fix typo on URL
-- Add Search DM if Support Issue (since likely issue related to demand) not mandatory
+- Add Search Demand Number if Support Issue (since likely issue related to demand) not mandatory
 - If Task Allocation phase selected, calculate the span until phase Completed
-- update at Capacity into Over Capacity to handle more than >100% Utilize
-- Create new feature named Project Cost Calculator, if inputed resource type with its cost tier with it complexcity, you can calculated the project cost needed from Start to Completed Phase
+- update At Capacity word into Over Capacity to handle more than >100% Utilize

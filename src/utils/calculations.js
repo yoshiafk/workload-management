@@ -410,3 +410,153 @@ export function getMemberTaskAvailability(allocations, teamMembers, maxConcurren
         };
     });
 }
+
+/**
+ * Aggregate costs by cost center
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} costCenters - Cost center records
+ * @returns {Array} Array of cost center aggregation objects
+ */
+export function aggregateCostsByCostCenter(allocations, costCenters) {
+    const costCenterMap = new Map();
+
+    // Initialize cost centers
+    costCenters.forEach(cc => {
+        costCenterMap.set(cc.id, {
+            costCenter: cc,
+            totalProjectCost: 0,
+            totalMonthlyCost: 0,
+            allocationCount: 0,
+            activeAllocationCount: 0,
+            allocations: []
+        });
+    });
+
+    // Add unassigned category
+    costCenterMap.set('unassigned', {
+        costCenter: { id: 'unassigned', code: 'UNASSIGNED', name: 'Unassigned', isActive: true },
+        totalProjectCost: 0,
+        totalMonthlyCost: 0,
+        allocationCount: 0,
+        activeAllocationCount: 0,
+        allocations: []
+    });
+
+    // Aggregate allocations by cost center
+    allocations.forEach(allocation => {
+        const costCenterId = allocation.costCenterId || 'unassigned';
+        const aggregation = costCenterMap.get(costCenterId);
+
+        if (aggregation) {
+            aggregation.totalProjectCost += allocation.plan?.costProject || 0;
+            aggregation.totalMonthlyCost += allocation.plan?.costMonthly || 0;
+            aggregation.allocationCount += 1;
+            
+            if (allocation.status !== 'completed' && allocation.status !== 'cancelled') {
+                aggregation.activeAllocationCount += 1;
+            }
+            
+            aggregation.allocations.push(allocation);
+        }
+    });
+
+    return Array.from(costCenterMap.values()).filter(agg => agg.allocationCount > 0);
+}
+
+/**
+ * Get project-level cost center breakdown
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {string} projectIdentifier - Project identifier (demandNumber or activityName)
+ * @param {Array} costCenters - Cost center records
+ * @returns {Object} Project cost center breakdown
+ */
+export function getProjectCostCenterBreakdown(allocations, projectIdentifier, costCenters) {
+    // Filter allocations for this project
+    const projectAllocations = allocations.filter(a => 
+        a.demandNumber === projectIdentifier || 
+        a.activityName === projectIdentifier
+    );
+
+    if (projectAllocations.length === 0) {
+        return {
+            projectIdentifier,
+            totalCost: 0,
+            totalMonthlyCost: 0,
+            costCenterBreakdown: []
+        };
+    }
+
+    // Aggregate by cost center
+    const breakdown = aggregateCostsByCostCenter(projectAllocations, costCenters);
+    
+    const totalCost = breakdown.reduce((sum, item) => sum + item.totalProjectCost, 0);
+    const totalMonthlyCost = breakdown.reduce((sum, item) => sum + item.totalMonthlyCost, 0);
+
+    // Add percentage calculations
+    const costCenterBreakdown = breakdown.map(item => ({
+        ...item,
+        costPercentage: totalCost > 0 ? (item.totalProjectCost / totalCost) * 100 : 0,
+        monthlyPercentage: totalMonthlyCost > 0 ? (item.totalMonthlyCost / totalMonthlyCost) * 100 : 0
+    }));
+
+    return {
+        projectIdentifier,
+        totalCost,
+        totalMonthlyCost,
+        costCenterBreakdown
+    };
+}
+
+/**
+ * Get cost center utilization metrics
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} teamMembers - Team member records
+ * @param {Array} costCenters - Cost center records
+ * @returns {Array} Array of cost center utilization objects
+ */
+export function getCostCenterUtilization(allocations, teamMembers, costCenters) {
+    return costCenters.map(costCenter => {
+        // Get members assigned to this cost center
+        const assignedMembers = teamMembers.filter(m => m.costCenterId === costCenter.id);
+        
+        // Get allocations for members in this cost center
+        const costCenterAllocations = allocations.filter(a => 
+            assignedMembers.some(m => m.name === a.resource)
+        );
+
+        // Calculate metrics
+        const totalMembers = assignedMembers.length;
+        const activeMembers = assignedMembers.filter(m => m.isActive).length;
+        const totalAllocations = costCenterAllocations.length;
+        const activeAllocations = costCenterAllocations.filter(a => 
+            a.status !== 'completed' && a.status !== 'cancelled'
+        ).length;
+
+        // Calculate total workload
+        const totalWorkload = costCenterAllocations.reduce((sum, a) => sum + (a.workload || 0), 0);
+        const maxCapacity = assignedMembers.reduce((sum, m) => sum + (m.maxHoursPerWeek || 40), 0) / 40; // Convert to workload units
+
+        const utilizationRate = maxCapacity > 0 ? (totalWorkload / maxCapacity) * 100 : 0;
+
+        // Calculate costs
+        const totalProjectCost = costCenterAllocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+        const totalMonthlyCost = costCenterAllocations.reduce((sum, a) => sum + (a.plan?.costMonthly || 0), 0);
+
+        return {
+            costCenter,
+            totalMembers,
+            activeMembers,
+            totalAllocations,
+            activeAllocations,
+            totalWorkload,
+            maxCapacity,
+            utilizationRate: Math.min(utilizationRate, 100), // Cap at 100%
+            totalProjectCost,
+            totalMonthlyCost,
+            allocations: costCenterAllocations
+        };
+    });
+}

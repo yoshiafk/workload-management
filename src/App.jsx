@@ -22,6 +22,9 @@ const Phases = lazy(() => import('./pages/Library/Phases'));
 const TaskTemplates = lazy(() => import('./pages/Library/TaskTemplates'));
 const Complexity = lazy(() => import('./pages/Library/Complexity'));
 const ResourceCosts = lazy(() => import('./pages/Library/ResourceCosts'));
+const CostCenters = lazy(() => import('./pages/Library/CostCenters'));
+const ChartOfAccounts = lazy(() => import('./pages/Library/ChartOfAccounts'));
+const CostCenterReports = lazy(() => import('./pages/Library/CostCenterReports'));
 const MemberTaskHistory = lazy(() => import('./pages/MemberTaskHistory'));
 const ProjectCostCalculator = lazy(() => import('./pages/ProjectCostCalculator'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -69,6 +72,9 @@ function App() {
                     <Route path="library/tasks" element={<TaskTemplates />} />
                     <Route path="library/complexity" element={<Complexity />} />
                     <Route path="library/costs" element={<ResourceCosts />} />
+                    <Route path="library/cost-centers" element={<CostCenters />} />
+                    <Route path="library/chart-of-accounts" element={<ChartOfAccounts />} />
+                    <Route path="library/cost-center-reports" element={<CostCenterReports />} />
 
                     {/* Settings */}
                     <Route path="settings" element={<Settings />} />

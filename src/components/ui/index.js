@@ -15,6 +15,9 @@ export { StatusBadge } from './status-badge';
 export { MetricBar } from './metric-bar';
 export { DataTable } from './data-table';
 
+// Form components
+export { FormField, FormGrid, FormSection } from './form-field';
+
 // Animation components
 export { SlidingNumber } from './sliding-number';
 export { BlurFade, FadeIn, ScaleIn } from './blur-fade';

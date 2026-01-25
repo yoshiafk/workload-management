@@ -24,9 +24,16 @@ export const getInitialState = () => ({
     holidays: [],
     leaves: [],
     allocations: [],
+    costCenters: [],
+    coa: [],
     settings: {
         currency: 'IDR',
         theme: 'dark',
+        costCenterSettings: {
+            requireManagerApproval: false,
+            allowBulkAssignment: true,
+            trackAssignmentHistory: true,
+        },
     },
     version: '1.0.0',
 });

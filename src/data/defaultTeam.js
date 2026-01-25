@@ -11,6 +11,7 @@ export const defaultTeamMembers = [
         type: 'FULLSTACK',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     {
@@ -19,6 +20,7 @@ export const defaultTeamMembers = [
         type: 'FULLSTACK',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // DevOps Engineer
@@ -28,6 +30,7 @@ export const defaultTeamMembers = [
         type: 'DEVOPS',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // FinOps Engineer
@@ -37,6 +40,7 @@ export const defaultTeamMembers = [
         type: 'FINOPS',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // Solution Architect
@@ -46,6 +50,7 @@ export const defaultTeamMembers = [
         type: 'ARCHITECT',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // Database Administrator
@@ -55,6 +60,7 @@ export const defaultTeamMembers = [
         type: 'DBA',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // Application Support
@@ -64,6 +70,7 @@ export const defaultTeamMembers = [
         type: 'APPSUPPORT',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     {
@@ -72,6 +79,7 @@ export const defaultTeamMembers = [
         type: 'APPSUPPORT',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     {
@@ -80,6 +88,7 @@ export const defaultTeamMembers = [
         type: 'APPSUPPORT',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
     // Helpdesk Management
@@ -89,6 +98,7 @@ export const defaultTeamMembers = [
         type: 'HELPDESK',
         maxHoursPerWeek: 40,
         costTierId: '',
+        costCenterId: '',
         isActive: true,
     },
 ];

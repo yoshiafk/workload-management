@@ -21,9 +21,10 @@ import {
  * @param {Array} holidays - Holiday records
  * @param {Array} leaves - Leave records
  * @param {Array} members - Team member records
+ * @param {Array} costCenters - Cost center records (optional)
  * @returns {Array} Updated allocations with recalculated values
  */
-export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = []) {
+export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = [], costCenters = []) {
     return allocations.map(allocation => {
         // Skip if missing required fields
         if (!allocation.plan?.taskStart || !allocation.resource || !allocation.complexity) {
@@ -31,9 +32,13 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
         }
 
         try {
-            // Find the member to get their costTierId
+            // Find the member to get their costTierId and costCenterId
             const member = members.find(m => m.name === allocation.resource);
             const costTierId = member?.costTierId;
+            const memberCostCenterId = member?.costCenterId;
+
+            // Find the cost center information
+            const costCenter = costCenters.find(cc => cc.id === memberCostCenterId);
 
             // Recalculate end date
             const taskEnd = calculatePlanEndDate(
@@ -68,6 +73,13 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                 tasks
             );
 
+            // Update cost center information
+            const costCenterSnapshot = costCenter ? {
+                id: costCenter.id,
+                code: costCenter.code,
+                name: costCenter.name,
+            } : null;
+
             return {
                 ...allocation,
                 plan: {
@@ -77,6 +89,9 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                     costMonthly,
                 },
                 workload,
+                // Cost center integration
+                costCenterId: memberCostCenterId || '',
+                costCenterSnapshot,
             };
         } catch (error) {
             console.error(`[Recalculate] Failed for allocation ${allocation.id}:`, error);
