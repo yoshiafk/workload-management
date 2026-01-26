@@ -212,6 +212,8 @@ export default function ResourceAllocation() {
             name: costCenter.name,
         } : null;
 
+        const { capacityFactor, includeCutiBersama } = state.settings;
+
         const taskEnd = calculatePlanEndDate(
             formData.plan.taskStart,
             formData.complexity,
@@ -219,7 +221,9 @@ export default function ResourceAllocation() {
             holidays,
             leaves,
             complexity,
-            formData.category
+            formData.category,
+            capacityFactor ?? 0.85,
+            includeCutiBersama ?? true
         );
 
         const isProject = formData.category === 'Project';
@@ -237,11 +241,15 @@ export default function ResourceAllocation() {
             taskEnd
         );
 
+        // Add PERT estimate for reference (Recommendation 2.4)
+        const pert = isProject ? threePointEstimate(formData.complexity, complexity) : null;
+
         return {
             taskEnd: taskEnd.toISOString().split('T')[0],
             costProject,
             costMonthly,
             costCenterSnapshot,
+            pert,
         };
     }, [formData.plan?.taskStart, formData.resource, formData.complexity, formData.category, holidays, leaves, complexity, costs, state.members, state.costCenters]);
 

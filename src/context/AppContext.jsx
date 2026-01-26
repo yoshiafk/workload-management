@@ -11,6 +11,7 @@ import {
 import { migrateData, CURRENT_VERSION } from '../utils/migration';
 import { recalculateAllocations } from '../utils/recalculate';
 import { getHolidaysWithFallback } from '../utils/holidayService';
+import { logCostChange } from '../utils/calculations';
 import {
     defaultTeamMembers,
     defaultPhases,
@@ -89,6 +90,10 @@ const ACTIONS = {
     // Settings
     UPDATE_SETTINGS: 'UPDATE_SETTINGS',
 
+    // Audit Log
+    ADD_AUDIT_LOG: 'ADD_AUDIT_LOG',
+    CLEAR_AUDIT_LOG: 'CLEAR_AUDIT_LOG',
+
     // UI State
     SET_DIALOG_STATE: 'SET_DIALOG_STATE',
 };
@@ -123,10 +128,13 @@ const initialState = {
             allowBulkAssignment: true,
             trackAssignmentHistory: true,
         },
+        capacityFactor: 0.85,
+        includeCutiBersama: true,
     },
     ui: {
         isDialogOpen: false,
     },
+    auditLog: [],
     isLoaded: false,
 };
 
@@ -533,6 +541,7 @@ function appReducer(state, action) {
                 coa: defaultCOA,
                 leaves: [],
                 allocations: [],
+                auditLog: [],
                 isLoaded: true,
             };
 
@@ -540,8 +549,16 @@ function appReducer(state, action) {
         case ACTIONS.SET_MEMBERS:
             return { ...state, members: action.payload };
         case ACTIONS.ADD_MEMBER:
+            // Custom validation for Recommendation 2.1
+            if (!action.payload.costCenterId) {
+                console.warn('[AppContext] Team member added without cost center. Business rules recommend mandatory assignment.');
+            }
             return { ...state, members: [...state.members, action.payload] };
         case ACTIONS.UPDATE_MEMBER:
+            // Custom validation for Recommendation 2.1
+            if (!action.payload.costCenterId) {
+                console.warn('[AppContext] Team member updated without cost center. Business rules recommend mandatory assignment.');
+            }
             return {
                 ...state,
                 members: state.members.map(m =>
@@ -605,6 +622,12 @@ function appReducer(state, action) {
         case ACTIONS.ADD_COST:
             return { ...state, costs: [...state.costs, action.payload] };
         case ACTIONS.UPDATE_COST:
+            const oldCost = state.costs.find(c => c.id === action.payload.id);
+            if (oldCost && oldCost.perHourCost !== action.payload.perHourCost) {
+                // We'll log this in a follow-up since we can't easily dispatch multiple actions in a reducer
+                // but we can prepare the state update
+                console.log(`[Audit] Cost Tier ${action.payload.resourceName} rate changed: ${oldCost.perHourCost} -> ${action.payload.perHourCost}`);
+            }
             return {
                 ...state,
                 costs: state.costs.map(c =>
@@ -757,6 +780,11 @@ function appReducer(state, action) {
                 }
             }
 
+            const oldCC = state.costCenters.find(cc => cc.id === action.payload.id);
+            if (oldCC && oldCC.monthlyBudget !== action.payload.monthlyBudget) {
+                console.log(`[Audit] Cost Center ${action.payload.name} budget changed: ${oldCC.monthlyBudget} -> ${action.payload.monthlyBudget}`);
+            }
+
             return {
                 ...state,
                 costCenters: state.costCenters.map(cc =>
@@ -792,6 +820,18 @@ function appReducer(state, action) {
             return {
                 ...state,
                 costCenters: state.costCenters.filter(cc => cc.id !== action.payload),
+            };
+
+        // Audit Log
+        case ACTIONS.ADD_AUDIT_LOG:
+            return {
+                ...state,
+                auditLog: [action.payload, ...state.auditLog].slice(0, 1000) // Keep last 1000 entries
+            };
+        case ACTIONS.CLEAR_AUDIT_LOG:
+            return {
+                ...state,
+                auditLog: []
             };
 
         // Chart of Accounts
@@ -903,6 +943,7 @@ export function AppProvider({ children }) {
             const allocations = loadFromStorage('allocations', []);
             const costCenters = loadFromStorage('costCenters', null);
             const coa = loadFromStorage('coa', null);
+            const auditLog = loadFromStorage('auditLog', []);
             const settings = loadFromStorage('settings', initialState.settings);
 
             // Fetch holidays from API (with cache and fallback)
@@ -930,6 +971,7 @@ export function AppProvider({ children }) {
                         allocations,
                         costCenters: costCenters || defaultCostCenters,
                         coa: coa || defaultCOA,
+                        auditLog,
                         settings,
                     },
                 });
@@ -953,6 +995,7 @@ export function AppProvider({ children }) {
         saveToStorage('allocations', state.allocations);
         saveToStorage('costCenters', state.costCenters);
         saveToStorage('coa', state.coa);
+        saveToStorage('auditLog', state.auditLog);
         saveToStorage('settings', state.settings);
     }, [state]);
 
@@ -998,7 +1041,8 @@ export function AppProvider({ children }) {
                 state.leaves,
                 state.members,
                 state.costCenters,
-                state.coa
+                state.coa,
+                state.settings
             );
 
             // Only dispatch if there are actual changes
@@ -1017,8 +1061,28 @@ export function AppProvider({ children }) {
             });
 
             if (hasChanges) {
-                console.log('[AppContext] Auto-recalculating allocations due to dependency changes');
+                console.log('[AppContext] Auto-recalculating allocations and budget actuals');
+
+                // Also update cost center actual totals
+                const updatedCostCenters = state.costCenters.map(cc => {
+                    const monthlyActual = updatedAllocations
+                        .filter(a => a.costCenterId === cc.id && a.status !== 'cancelled')
+                        .reduce((sum, a) => sum + (a.plan?.costMonthly || 0), 0);
+
+                    const yearlyActual = updatedAllocations
+                        .filter(a => a.costCenterId === cc.id && a.status !== 'cancelled')
+                        .reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+
+                    return {
+                        ...cc,
+                        actualMonthlyCost: monthlyActual,
+                        actualYearlyCost: yearlyActual,
+                        updatedAt: new Date().toISOString()
+                    };
+                });
+
                 dispatch({ type: ACTIONS.SET_ALLOCATIONS, payload: updatedAllocations });
+                dispatch({ type: ACTIONS.SET_COST_CENTERS, payload: updatedCostCenters });
             }
         }
     }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.members, state.costCenters, state.coa, state.allocations, state.isLoaded]);

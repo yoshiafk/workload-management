@@ -300,8 +300,10 @@ export default function TeamMembers() {
             newErrors.maxHoursPerWeek = 'Max hours must be at least 1';
         }
 
-        // Validate cost center assignment if selected
-        if (formData.costCenterId) {
+        // Validate cost center assignment (Mandatory per Recommendation 2.1)
+        if (!formData.costCenterId) {
+            newErrors.costCenterId = 'Cost Center assignment is mandatory';
+        } else {
             const costCenter = state.costCenters.find(cc => cc.id === formData.costCenterId);
             if (!costCenter) {
                 newErrors.costCenterId = 'Selected cost center does not exist';

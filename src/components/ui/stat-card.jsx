@@ -96,15 +96,15 @@ const StatCard = React.forwardRef(({
         <CardContent className={cn(
           isDense ? "px-3 pb-3" : "px-6 pb-6"
         )}>
-          <div className="flex items-baseline gap-2">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 overflow-hidden">
             <div className={cn(
-              "font-extrabold tracking-tight text-foreground transition-all duration-300",
+              "font-extrabold tracking-tight text-foreground transition-all duration-300 truncate",
               isDense ? "text-xl" : "text-3xl"
             )}>
               {value}
             </div>
             {subValue && (
-              <div className="text-xs text-muted-foreground/70 font-semibold">
+              <div className="text-[10px] lg:text-xs text-muted-foreground/70 font-semibold whitespace-nowrap">
                 {subValue}
               </div>
             )}

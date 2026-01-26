@@ -78,22 +78,81 @@ export function countWorkdays(startDate, endDate, holidays = []) {
  * @param {string} category - Work category (Project, Support, Maintenance)
  * @returns {Date} Calculated end date
  */
-export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings, category = 'Project') {
+/**
+ * Calculate Plan End Date
+ * Excel formula: =WORKDAY(StartDate, Days, ExcludedDates)
+ * Refined with Capacity Factor and Half-Day Leave support (Recommendation 1.3, 3.2, 3.3)
+ * 
+ * @param {string|Date} startDate - Plan start date
+ * @param {string} complexity - Complexity level
+ * @param {string} resourceName - Resource name (to find member-specific leaves)
+ * @param {Array} holidays - Holiday records 
+ * @param {Array} leaves - Leave records
+ * @param {Object} complexitySettings - Complexity settings
+ * @param {string} category - Project or Support
+ * @param {number} capacityFactor - Capacity factor (default 0.85)
+ * @param {boolean} includeCutiBersama - Whether to include cuti bersama (default true)
+ * @returns {Date} Calculated end date
+ */
+export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings, category = 'Project', capacityFactor = 0.85, includeCutiBersama = true) {
     const isProject = category === 'Project';
-    const durationDays = isProject ? (complexitySettings[complexity.toLowerCase()]?.days || 0) : 1; // Default to 1 day for non-projects
+    const complexityLevel = complexitySettings[complexity.toLowerCase()];
 
-    // Get member-specific leaves
-    const memberLeaves = leaves
+    // 1. Get base effort days
+    let effortDays = isProject ? (complexityLevel?.days || 0) : 1;
+
+    // 2. Adjust for Capacity Factor (Recommendation 1.3)
+    const realisticDays = calculateRealisticDuration(effortDays, capacityFactor);
+
+    // 3. Get member-specific leaves and expand ranges to individual dates
+    const memberLeaves = [];
+    leaves
         .filter(l => l.memberName === resourceName)
-        .map(l => l.date);
+        .forEach(l => {
+            const start = parseISO(l.startDate);
+            const end = parseISO(l.endDate);
+            let current = new Date(start);
+            while (current <= end) {
+                memberLeaves.push({
+                    date: current.toISOString().split('T')[0],
+                    type: l.category === 'half-day' ? 'Half' : 'Full',
+                    leaveType: l.type // e.g. 'annual', 'sick', 'unpaid'
+                });
+                current.setDate(current.getDate() + 1);
+            }
+        });
 
-    // Combine holidays and leaves
+    // 4. Extract full leaves and half-day leaves (Recommendation 3.2)
+    const fullLeaves = memberLeaves.filter(l => l.type !== 'Half').map(l => l.date);
+    const halfLeaves = memberLeaves.filter(l => l.type === 'Half').map(l => ({ date: l.date, period: 'AM' }));
+
+    // 5. Get Indonesian holidays (including Cuti Bersama if enabled) (Recommendation 3.3)
+    const nationalHolidays = holidays.filter(h => h.type === 'national' || !h.type).map(h => h.date);
+    const cutiBersama = includeCutiBersama ? holidays.filter(h => h.type === 'collective').map(h => h.date) : [];
+
+    // 6. Combine all excluded dates
     const excludedDates = [
-        ...holidays.map(h => h.date),
-        ...memberLeaves,
+        ...nationalHolidays,
+        ...cutiBersama,
+        ...fullLeaves,
     ];
 
-    return addWorkdays(startDate, durationDays, excludedDates);
+    // 7. Calculate end date using workdays
+    let endDate = addWorkdays(startDate, realisticDays, excludedDates);
+
+    // 8. Adjust for half-day leaves (extra padding if leave occurs during project)
+    const projectHalfDays = halfLeaves.filter(hl => {
+        const d = parseISO(hl.date);
+        const s = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+        return d >= s && d <= endDate;
+    }).length;
+
+    if (projectHalfDays > 0) {
+        const extraDays = Math.ceil(projectHalfDays * 0.5);
+        endDate = addWorkdays(endDate, extraDays, excludedDates);
+    }
+
+    return endDate;
 }
 
 /**
@@ -622,4 +681,351 @@ export function aggregateCostsByCOA(allocations, coa) {
     return Array.from(coaMap.values())
         .filter(agg => agg.allocationCount > 0)
         .sort((a, b) => b.totalProjectCost - a.totalProjectCost);
+}
+
+// ============================================================================
+// BUDGET VARIANCE TRACKING
+// ============================================================================
+
+/**
+ * Calculate actual cost for a cost center from allocations
+ * 
+ * @param {string} costCenterId - Cost center ID
+ * @param {Array} allocations - All allocations
+ * @param {string} period - 'monthly' or 'yearly'
+ * @returns {Object} Cost breakdown with actual cost and allocation details
+ */
+export function calculateActualCostCenterCost(costCenterId, allocations, period = 'monthly') {
+    const costCenterAllocations = allocations.filter(a =>
+        a.costCenterId === costCenterId &&
+        a.status !== 'cancelled'
+    );
+
+    const actualCost = costCenterAllocations.reduce((sum, a) => {
+        return sum + (period === 'monthly' ? (a.plan?.costMonthly || 0) : (a.plan?.costProject || 0));
+    }, 0);
+
+    return {
+        costCenterId,
+        period,
+        actualCost,
+        allocationCount: costCenterAllocations.length,
+        activeAllocationCount: costCenterAllocations.filter(a =>
+            a.status !== 'completed' && a.status !== 'cancelled'
+        ).length,
+        calculatedAt: new Date().toISOString()
+    };
+}
+
+/**
+ * Calculate budget variance for a cost center
+ * 
+ * @param {Object} costCenter - Cost center object with monthlyBudget
+ * @param {number} actualCost - Actual cost from allocations
+ * @returns {Object} Variance analysis with status and severity
+ */
+export function calculateBudgetVariance(costCenter, actualCost) {
+    const budget = costCenter.monthlyBudget || 0;
+
+    if (budget === 0) {
+        return {
+            costCenterId: costCenter.id,
+            costCenterName: costCenter.name,
+            budget: 0,
+            actualCost,
+            variance: null,
+            variancePercent: null,
+            status: 'no-budget',
+            severity: 'info'
+        };
+    }
+
+    const variance = budget - actualCost;
+    const variancePercent = (variance / budget) * 100;
+
+    let status, severity;
+    if (variance >= 0) {
+        status = 'under-budget';
+        severity = variancePercent >= 20 ? 'low' : 'medium';
+    } else {
+        status = 'over-budget';
+        severity = Math.abs(variancePercent) <= 10 ? 'medium' :
+            Math.abs(variancePercent) <= 25 ? 'high' : 'critical';
+    }
+
+    return {
+        costCenterId: costCenter.id,
+        costCenterName: costCenter.name,
+        budget,
+        actualCost,
+        variance,
+        variancePercent: parseFloat(variancePercent.toFixed(2)),
+        status,
+        severity,
+        utilizationPercent: parseFloat(((actualCost / budget) * 100).toFixed(2))
+    };
+}
+
+// ============================================================================
+// CAPACITY-ADJUSTED MANDAYS CALCULATION
+// ============================================================================
+
+const DEFAULT_CAPACITY_FACTOR = 0.85; // 85% effective working time
+
+/**
+ * Get effective working days with capacity factor
+ * Accounts for meetings, admin work, context switching, breaks
+ * 
+ * @param {Date|string} startDate - Start date
+ * @param {Date|string} endDate - End date
+ * @param {Array} holidays - Holiday dates to exclude
+ * @param {number} capacityFactor - Capacity factor (default 0.85 = 85%)
+ * @returns {number} Effective working days
+ */
+export function getEffectiveWorkdays(startDate, endDate, holidays, capacityFactor = DEFAULT_CAPACITY_FACTOR) {
+    const rawWorkdays = countWorkdays(startDate, endDate, holidays);
+    return Math.floor(rawWorkdays * capacityFactor);
+}
+
+/**
+ * Calculate realistic calendar duration from effort days
+ * Converts effort-based estimate to calendar days considering capacity
+ * 
+ * @param {number} effortDays - Number of effort days required
+ * @param {number} capacityFactor - Capacity factor (default 0.85)
+ * @returns {number} Realistic calendar working days needed
+ */
+export function calculateRealisticDuration(effortDays, capacityFactor = DEFAULT_CAPACITY_FACTOR) {
+    if (capacityFactor <= 0) return effortDays;
+    return Math.ceil(effortDays / capacityFactor);
+}
+
+/**
+ * Count workdays with half-day leave support
+ * 
+ * @param {Date|string} startDate - Start date
+ * @param {Date|string} endDate - End date  
+ * @param {Array} holidays - Holiday dates to exclude
+ * @param {Array} halfDayLeaves - Array of {date, period: 'AM'|'PM'} objects
+ * @returns {number} Working days with half-day adjustments
+ */
+export function countWorkdaysWithHalfDays(startDate, endDate, holidays, halfDayLeaves = []) {
+    const start = typeof startDate === 'string' ? parseISO(startDate) : new Date(startDate);
+    const end = typeof endDate === 'string' ? parseISO(endDate) : new Date(endDate);
+
+    const fullDays = countWorkdays(startDate, endDate, holidays);
+
+    const halfDayCount = halfDayLeaves.filter(leave => {
+        const leaveDate = typeof leave.date === 'string' ? parseISO(leave.date) : new Date(leave.date);
+        return leaveDate >= start && leaveDate <= end;
+    }).length;
+
+    return fullDays - (halfDayCount * 0.5);
+}
+
+// ============================================================================
+// VALIDATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate resource cost center assignment
+ * Ensures team members are assigned to valid, active cost centers
+ * 
+ * @param {Object} teamMember - Team member object
+ * @param {Array} costCenters - Available cost centers
+ * @returns {Object} Validation result with isValid and errors array
+ */
+export function validateResourceCostCenterAssignment(teamMember, costCenters) {
+    const errors = [];
+    const warnings = [];
+
+    if (!teamMember.costCenterId) {
+        warnings.push({
+            field: 'costCenterId',
+            message: 'Team member is not assigned to a cost center',
+            severity: 'warning'
+        });
+    } else {
+        const costCenter = costCenters.find(cc => cc.id === teamMember.costCenterId);
+
+        if (!costCenter) {
+            errors.push({
+                field: 'costCenterId',
+                message: 'Assigned cost center does not exist',
+                severity: 'error'
+            });
+        } else if (!costCenter.isActive && costCenter.status !== 'Active') {
+            errors.push({
+                field: 'costCenterId',
+                message: `Assigned cost center "${costCenter.name}" is inactive`,
+                severity: 'error'
+            });
+        }
+    }
+
+    return {
+        isValid: errors.length === 0,
+        hasWarnings: warnings.length > 0,
+        errors,
+        warnings
+    };
+}
+
+/**
+ * Split allocation cost across multiple cost centers
+ * Supports proportional cost distribution for shared resources
+ * 
+ * @param {Object} allocation - Allocation record
+ * @param {Array} costCenterSplits - Array of {costCenterId, percentage} objects
+ * @returns {Array} Array of split cost records
+ * @throws {Error} If percentages don't total 100%
+ */
+export function splitAllocationCost(allocation, costCenterSplits) {
+    if (!costCenterSplits || costCenterSplits.length === 0) {
+        return [{
+            allocationId: allocation.id,
+            costCenterId: allocation.costCenterId || 'unassigned',
+            percentage: 100,
+            projectCost: allocation.plan?.costProject || 0,
+            monthlyCost: allocation.plan?.costMonthly || 0
+        }];
+    }
+
+    const totalPercentage = costCenterSplits.reduce((sum, s) => sum + s.percentage, 0);
+
+    if (Math.abs(totalPercentage - 100) > 0.01) {
+        throw new Error(`Cost center splits must total 100% (got ${totalPercentage}%)`);
+    }
+
+    return costCenterSplits.map(split => ({
+        allocationId: allocation.id,
+        costCenterId: split.costCenterId,
+        percentage: split.percentage,
+        projectCost: (allocation.plan?.costProject || 0) * (split.percentage / 100),
+        monthlyCost: (allocation.plan?.costMonthly || 0) * (split.percentage / 100)
+    }));
+}
+
+// ============================================================================
+// THREE-POINT ESTIMATION (PERT)
+// ============================================================================
+
+/**
+ * Calculate three-point estimate using PERT formula
+ * PERT = (Optimistic + 4×Realistic + Pessimistic) / 6
+ * 
+ * @param {string} complexity - Complexity level (low/medium/high/sophisticated)
+ * @param {Object} complexitySettings - Complexity settings object
+ * @returns {Object} Three-point estimate with optimistic, realistic, pessimistic, and expected values
+ */
+export function threePointEstimate(complexity, complexitySettings) {
+    const level = complexity.toLowerCase();
+    const base = complexitySettings[level];
+
+    if (!base || !base.days) {
+        return {
+            complexity: level,
+            optimistic: 0,
+            realistic: 0,
+            pessimistic: 0,
+            expected: 0,
+            standardDeviation: 0,
+            range: { min: 0, max: 0 }
+        };
+    }
+
+    const optimistic = Math.floor(base.days * 0.7);    // Best case (-30%)
+    const realistic = base.days;                        // Most likely
+    const pessimistic = Math.ceil(base.days * 1.5);    // Worst case (+50%)
+
+    // PERT weighted average
+    const expected = Math.round((optimistic + 4 * realistic + pessimistic) / 6);
+
+    // Standard deviation for confidence intervals
+    const standardDeviation = Math.round((pessimistic - optimistic) / 6);
+
+    return {
+        complexity: level,
+        optimistic,
+        realistic,
+        pessimistic,
+        expected,
+        standardDeviation,
+        range: {
+            min: Math.max(1, expected - standardDeviation),
+            max: expected + standardDeviation
+        },
+        // Confidence intervals
+        confidence68: { min: expected - standardDeviation, max: expected + standardDeviation },
+        confidence95: { min: expected - 2 * standardDeviation, max: expected + 2 * standardDeviation }
+    };
+}
+
+/**
+ * Calculate project duration with contingency buffer
+ * Adds buffer percentage to base estimate for risk management
+ * 
+ * @param {string} complexity - Complexity level
+ * @param {Object} complexitySettings - Complexity settings
+ * @param {number} bufferPercent - Buffer percentage (default 0.15 = 15%)
+ * @returns {Object} Duration with buffer details
+ */
+export function calculateWithBuffer(complexity, complexitySettings, bufferPercent = 0.15) {
+    const level = complexity.toLowerCase();
+    const base = complexitySettings[level];
+
+    if (!base || !base.days) {
+        return {
+            baseDays: 0,
+            buffer: 0,
+            totalDays: 0,
+            bufferPercent: `+${(bufferPercent * 100).toFixed(0)}%`
+        };
+    }
+
+    const baseDays = base.days;
+    const buffer = Math.ceil(baseDays * bufferPercent);
+
+    return {
+        baseDays,
+        buffer,
+        totalDays: baseDays + buffer,
+        bufferPercent: `+${(bufferPercent * 100).toFixed(0)}%`,
+        bufferDays: buffer
+    };
+}
+
+// ============================================================================
+// AUDIT TRAIL
+// ============================================================================
+
+/**
+ * Log cost-related changes for audit trail
+ * Creates structured audit log entry for tracking changes
+ * 
+ * @param {Object} entity - Entity being changed {type, id, name}
+ * @param {string} field - Field being changed
+ * @param {*} oldValue - Previous value
+ * @param {*} newValue - New value
+ * @param {string} userId - User making the change
+ * @returns {Object} Audit log entry
+ */
+export function logCostChange(entity, field, oldValue, newValue, userId = 'system') {
+    const changeType = oldValue === null || oldValue === undefined ? 'create' :
+        newValue === null || newValue === undefined ? 'delete' : 'update';
+
+    return {
+        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        entity: {
+            type: entity.type,
+            id: entity.id,
+            name: entity.name || entity.id
+        },
+        field,
+        oldValue,
+        newValue,
+        changedBy: userId,
+        changeType
+    };
 }

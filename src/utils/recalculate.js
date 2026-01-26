@@ -25,7 +25,7 @@ import {
  * @param {Array} coa - Chart of accounts records (optional)
  * @returns {Array} Updated allocations with recalculated values
  */
-export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = [], costCenters = [], coa = []) {
+export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = [], costCenters = [], coa = [], settings = {}) {
     return allocations.map(allocation => {
         // Skip if missing required fields
         if (!allocation.plan?.taskStart || !allocation.resource || !allocation.complexity) {
@@ -51,7 +51,7 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
             // Find the COA information
             const coaEntry = coa.find(c => c.id === effectiveCoaId);
 
-            // Recalculate end date
+            // Recalculate end date with capacity factor and cuti bersama settings
             const taskEnd = calculatePlanEndDate(
                 allocation.plan.taskStart,
                 allocation.complexity,
@@ -59,7 +59,9 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                 holidays,
                 leaves,
                 complexity,
-                allocation.category
+                allocation.category,
+                settings?.capacityFactor ?? 0.85,
+                settings?.includeCutiBersama ?? true
             );
 
             // Support tasks have zero cost

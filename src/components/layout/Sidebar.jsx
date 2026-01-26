@@ -32,6 +32,7 @@ import {
     PanelLeftClose,
     PanelLeft
 } from 'lucide-react';
+import { CURRENT_VERSION } from '../../utils/migration';
 import logo from '../../assets/logo.svg';
 import './Sidebar.css';
 
@@ -253,11 +254,11 @@ export default function Sidebar({ isOpen, onClose }) {
                     {!isCollapsed ? (
                         <div className="sidebar-version">
                             <span>Version</span>
-                            <span className="sidebar-version-number">1.1.0</span>
+                            <span className="sidebar-version-number">{CURRENT_VERSION}</span>
                         </div>
                     ) : (
                         <div className="sidebar-version-collapsed">
-                            1.1
+                            {CURRENT_VERSION.split('.').slice(0, 2).join('.')}
                         </div>
                     )}
                 </div>

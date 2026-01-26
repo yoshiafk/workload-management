@@ -72,7 +72,7 @@ describe('Data Migration System', () => {
 
         // Check that default cost centers and COA were added
         expect(costCenters).toHaveLength(4); // Default cost centers
-        expect(coa).toHaveLength(5); // Default COA entries
+        expect(coa).toHaveLength(17); // Default COA entries (expanded in v1.4.0)
 
         // Verify cost center schema
         expect(costCenters[0]).toHaveProperty('status');
@@ -148,7 +148,7 @@ describe('Data Migration System', () => {
         expect(status.currentVersion).toBe('1.2.0');
         expect(status.targetVersion).toBe(CURRENT_VERSION);
         expect(status.needsMigration).toBe(true);
-        expect(status.migrationPath).toHaveLength(1);
+        expect(status.migrationPath).toHaveLength(5);
         expect(status.migrationPath[0].from).toBe('1.2.0');
         expect(status.migrationPath[0].to).toBe('1.3.0');
     });
@@ -203,5 +203,41 @@ describe('Data Migration System', () => {
         // Check 1.2.0 -> 1.3.0 migration (cost center integration)
         expect(migratedMembers[0]).toHaveProperty('costCenterId');
         expect(migratedAllocations[0]).toHaveProperty('costCenterId');
+    });
+
+    it('should migrate from version 2.1.0 to 2.2.0 with allocation enhancements', () => {
+        // Set up old data structure (v2.1.0)
+        const v21Allocations = [
+            {
+                id: 'ALLOC-210',
+                activityName: 'Existing Activity',
+                category: 'Project',
+                resource: 'Team Lead',
+                complexity: 'high'
+            }
+        ];
+
+        saveToStorage('version', '2.1.0');
+        saveToStorage('allocations', v21Allocations);
+
+        // Run migration
+        const result = migrateData();
+
+        // Verify migration result
+        expect(result.migrated).toBe(true);
+        expect(result.version).toBe('2.2.0');
+        expect(result.from).toBe('2.1.0');
+
+        // Verify migrated data
+        const migratedAllocations = loadFromStorage('allocations', []);
+        const a = migratedAllocations[0];
+
+        expect(a).toHaveProperty('demandNumber', '');
+        expect(a).toHaveProperty('ticketId', '');
+        expect(a).toHaveProperty('priority', '');
+        expect(a).toHaveProperty('tags');
+        expect(a.tags).toBeInstanceOf(Array);
+        expect(a).toHaveProperty('slaDeadline', '');
+        expect(a).toHaveProperty('slaStatus', 'Within SLA');
     });
 });

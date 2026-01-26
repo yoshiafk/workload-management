@@ -4,10 +4,10 @@
  */
 
 import { loadFromStorage, saveToStorage } from './storage';
-import { defaultComplexity, defaultCostCenters, defaultCOA } from '../data';
+import { defaultComplexity, defaultCostCenters, defaultCOA, defaultTaskTemplates } from '../data';
 
 // Current data version - increment when schema changes
-export const CURRENT_VERSION = '1.3.0';
+export const CURRENT_VERSION = '2.2.0';
 
 /**
  * Migration functions - each migrates from previous version to target version
@@ -52,7 +52,7 @@ const migrations = {
     // Migration from 1.2.0 to 1.3.0: Add cost center integration
     '1.2.0_1.3.0': (data) => {
         console.log('[Migration] Adding cost center integration...');
-        
+
         // Initialize cost centers if not present or empty
         if (!data.costCenters || data.costCenters.length === 0) {
             data.costCenters = [...defaultCostCenters];
@@ -137,6 +137,120 @@ const migrations = {
 
         return data;
     },
+    // Migration from 1.3.0 to 1.4.0: Complexity adjustment, COA expansion, and Cuti Bersama
+    '1.3.0_1.4.0': (data) => {
+        console.log('[Migration] Updating to v1.4.0 (Business Logic Enhancements)...');
+
+        // 1. Update Complexity Settings
+        // We preserve custom settings but ensure new levels (trivial, small) exist
+        if (data.complexity) {
+            data.complexity = {
+                ...defaultComplexity,
+                ...data.complexity
+            };
+
+            // Adjust 'low' if it still has the old 27 days value
+            if (data.complexity.low && data.complexity.low.days === 27) {
+                data.complexity.low.days = 10;
+                console.log('[Migration] Adjusted "low" complexity duration to 10 days');
+            }
+        }
+
+        // 2. Expand COA
+        // Add new accounts from defaultCOA while preserving existing ones
+        if (data.coa) {
+            const existingCodes = new Set(data.coa.map(item => item.code));
+            const newAccounts = defaultCOA.filter(item => !existingCodes.has(item.code));
+
+            if (newAccounts.length > 0) {
+                data.coa = [...data.coa, ...newAccounts];
+                console.log(`[Migration] Added ${newAccounts.length} new COA accounts`);
+            }
+
+            // Ensure all accounts have subcategory field
+            data.coa = data.coa.map(item => {
+                if (!item.subcategory) {
+                    const defaultItem = defaultCOA.find(d => d.code === item.code);
+                    return {
+                        ...item,
+                        subcategory: defaultItem?.subcategory || 'General'
+                    };
+                }
+                return item;
+            });
+        }
+
+        // 3. Initialize Cuti Bersama toggle in settings if not exists
+        if (!data.settings) data.settings = {};
+        if (data.settings.includeCutiBersama === undefined) {
+            data.settings.includeCutiBersama = true;
+            console.log('[Migration] Enabled cuti bersama by default in settings');
+        }
+
+        return data;
+    },
+    // Migration from 1.4.0 to 2.0.0: Financial integration and enhanced budgeting
+    '1.4.0_2.0.0': (data) => {
+        console.log('[Migration] Finalizing v2.0.0 (Global Finance & Audit)...');
+
+        // Ensure auditLog exists
+        if (!data.auditLog) {
+            data.auditLog = [];
+        }
+
+        // Initialize any missing settings for 2.0
+        if (!data.settings) data.settings = {};
+        if (data.settings.capacityFactor === undefined) data.settings.capacityFactor = 0.85;
+
+        data.auditLog.unshift({
+            timestamp: new Date().toISOString(),
+            type: 'info',
+            message: 'System upgraded to v2.0.0 (LTS). Enhanced financial logic and audit trail enabled.'
+        });
+
+        return data;
+    },
+    // Migration from 2.0.0 to 2.1.0: Realignment of Complexity and Workload
+    '2.0.0_2.1.0': (data) => {
+        console.log('[Migration] Applying Complexity & Workload Realignment (v2.1.0)...');
+
+        // 1. Force update complexity baselines to new market-aligned standards
+        data.complexity = { ...defaultComplexity };
+        console.log('[Migration] Updated complexity baselines in stored data');
+
+        // 2. Update existing task templates estimates if they match default names
+        if (data.tasks) {
+            data.tasks = data.tasks.map(task => {
+                const defaultTask = defaultTaskTemplates.find(t => t.name === task.name);
+                if (defaultTask) {
+                    return { ...task, estimates: { ...defaultTask.estimates } };
+                }
+                return task;
+            });
+            console.log('[Migration] Realignment applied to existing task templates in stored data');
+        }
+
+        return data;
+    },
+    // Migration from 2.1.0 to 2.2.0: Initialize new allocation fields (Demand Number, Support fields)
+    '2.1.0_2.2.0': (data) => {
+        console.log('[Migration] Initializing allocation enhancements (v2.2.0)...');
+
+        if (data.allocations) {
+            data.allocations = data.allocations.map(allocation => ({
+                ...allocation,
+                demandNumber: allocation.demandNumber || '',
+                ticketId: allocation.ticketId || '',
+                priority: allocation.priority || '',
+                tags: allocation.tags || [],
+                slaDeadline: allocation.slaDeadline || '',
+                slaStatus: allocation.slaStatus || 'Within SLA',
+            }));
+            console.log(`[Migration] Updated ${data.allocations.length} allocations with new fields`);
+        }
+
+        return data;
+    },
 };
 
 /**
@@ -158,7 +272,7 @@ function createBackup() {
         coa: loadFromStorage('coa', []),
         settings: loadFromStorage('settings', {}),
     };
-    
+
     // Store backup in localStorage with a special key
     try {
         localStorage.setItem('wrm_migration_backup', JSON.stringify(backup));
@@ -182,7 +296,7 @@ function restoreFromBackup() {
         }
 
         const backup = JSON.parse(backupData);
-        
+
         // Restore all data from backup
         if (backup.members) saveToStorage('members', backup.members);
         if (backup.phases) saveToStorage('phases', backup.phases);
@@ -230,7 +344,7 @@ function parseVersion(version) {
  */
 function getMigrationPath(fromVersion, toVersion) {
     const path = [];
-    const allVersions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0']; // Add new versions here in order
+    const allVersions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '2.0.0', '2.1.0', '2.2.0']; // Add new versions here in order
 
     const fromIndex = allVersions.indexOf(fromVersion);
     const toIndex = allVersions.indexOf(toVersion);
@@ -300,7 +414,7 @@ export function migrateData() {
                 data = migration.migrate(data);
             } catch (error) {
                 console.error(`[Migration] Failed at v${migration.from} → v${migration.to}:`, error);
-                
+
                 // Attempt rollback
                 if (backupCreated) {
                     console.log('[Migration] Attempting rollback...');
@@ -384,8 +498,8 @@ export function validateMigrationIntegrity() {
             }
 
             // Check if team members have cost center fields
-            const membersWithoutCostCenterFields = members.filter(m => 
-                m.costCenterId === undefined || 
+            const membersWithoutCostCenterFields = members.filter(m =>
+                m.costCenterId === undefined ||
                 m.costCenterHistory === undefined
             );
             if (membersWithoutCostCenterFields.length > 0) {
@@ -393,7 +507,7 @@ export function validateMigrationIntegrity() {
             }
 
             // Check if allocations have cost center tracking
-            const allocationsWithoutCostCenter = allocations.filter(a => 
+            const allocationsWithoutCostCenter = allocations.filter(a =>
                 a.costCenterId === undefined
             );
             if (allocationsWithoutCostCenter.length > 0) {
@@ -422,7 +536,7 @@ export function getMigrationStatus() {
     const storedVersion = loadFromStorage('version', '1.0.0');
     const needsUpdate = needsMigration();
     const hasBackup = localStorage.getItem('wrm_migration_backup') !== null;
-    
+
     return {
         currentVersion: storedVersion,
         targetVersion: CURRENT_VERSION,

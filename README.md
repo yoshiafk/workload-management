@@ -78,6 +78,17 @@ Shows a member's total workload relative to their individual maximum capacity.
 
 ---
 
+## ✨ Recent Updates (v2.2.0)
+
+The latest version introduces significant enhancements to support ticketing and financial tracking:
+
+- **SLA & Priority Integration**: Automatic SLA deadline calculation based on priority (P1-P4) for Support tasks.
+- **Demand Tracking**: New "Demand Number" field for tracking project requests and improved searchability across the platform.
+- **Optimized Costing**: Project cost calculations are now strictly isolated to the "Project" category to prevent inflation in maintenance/support tasks.
+- **Improved Capacity Terminology**: Updated visualization terminology to "Over Capacity" for better clarity on resource bottlenecks.
+- **Phase-Triggered Automation**: Selecting the "Task Allocation" phase automatically triggers start-date tracking to improve MTTR accuracy.
+- **Enhanced Dashboards**: Refined date filtering and color-coded utilization status for faster decision making.
+
 ## 🛠 Tech Stack
 
 - **Frontend**: React 18 + Vite
@@ -85,15 +96,23 @@ Shows a member's total workload relative to their individual maximum capacity.
 - **Icons**: Lucide React
 - **Charts**: Recharts
 - **Date Logic**: date-fns
-- **State Management**: React Context API
-- 
+- **Deployment**: Configured for GitHub Pages via `gh-pages`
 
-## Revise
-- Set SLA time mapping to Priority
-- Remove Complexcity Calculation except for Project Task
-- Align the color for Member Load Status
-- Check modal for Date Picker Implementation
-- Update the Date Filter Function on Dashboard View
-- Add Search Demand Number if Support Issue (since likely issue related to demand) not mandatory
-- If Task Allocation phase selected, calculate the span until phase Completed
-- update At Capacity word into Over Capacity to handle more than >100% Utilize
+---
+
+## 🏗 Setup & Deployment
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+## 📄 License
+
+MIT

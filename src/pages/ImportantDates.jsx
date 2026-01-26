@@ -65,12 +65,21 @@ const emptyHoliday = {
     year: new Date().getFullYear(),
 };
 
+const LEAVE_TYPES = [
+    { value: 'annual', label: 'Annual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'paid', label: 'Paid Leave' },
+    { value: 'unpaid', label: 'Unpaid Leave' },
+    { value: 'other', label: 'Other Leave' },
+];
+
 const emptyLeave = {
     id: '',
     memberId: '',
     memberName: '',
     startDate: '',
     endDate: '',
+    type: 'annual',
     reason: '',
 };
 
@@ -169,8 +178,8 @@ export default function ImportantDates() {
             cell: ({ row }) => {
                 const type = row.original.type;
                 return (
-                    <Badge variant={type === 'national' ? 'default' : 'success'} className="px-3">
-                        {type === 'national' ? 'National' : 'Mass Leave'}
+                    <Badge variant={type === 'national' ? 'default' : (type === 'collective' ? 'success' : 'outline')} className="px-3 whitespace-nowrap">
+                        {type === 'national' ? 'National' : (type === 'collective' ? 'Cuti Bersama' : 'Other')}
                     </Badge>
                 );
             }
@@ -207,11 +216,18 @@ export default function ImportantDates() {
             accessorKey: 'memberName',
             header: 'Team Member',
             cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
-                        {row.original.memberName?.charAt(0)}
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
+                            {row.original.memberName?.charAt(0)}
+                        </div>
+                        <span className="font-bold text-slate-900">{row.original.memberName}</span>
                     </div>
-                    <span className="font-bold text-slate-900">{row.original.memberName}</span>
+                    <div className="mt-1 ml-9">
+                        <Badge variant="outline" className="text-[8px] uppercase font-bold py-0 h-4 border-slate-200 text-slate-400">
+                            {LEAVE_TYPES.find(t => t.value === row.original.type)?.label || 'Annual Leave'}
+                        </Badge>
+                    </div>
                 </div>
             )
         },
@@ -694,10 +710,28 @@ export default function ImportantDates() {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80 ml-1">Duration Projection</Label>
-                            <div className="h-11 flex items-center px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400 font-black text-xs tabular-nums tracking-widest uppercase">
-                                {calculateDays(leaveForm.startDate, leaveForm.endDate)} workday(s) total
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Type of Leave</Label>
+                                <Select
+                                    value={leaveForm.type || 'annual'}
+                                    onValueChange={(v) => handleLeaveChange('type', v)}
+                                >
+                                    <SelectTrigger className="bg-muted/20 border-border/40 rounded-xl font-bold h-11">
+                                        <SelectValue placeholder="Select type..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-border bg-popover">
+                                        {LEAVE_TYPES.map(t => (
+                                            <SelectItem key={t.value} value={t.value} className="font-bold">{t.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80 ml-1">Duration Projection</Label>
+                                <div className="h-11 flex items-center px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400 font-black text-[10px] tabular-nums tracking-tighter uppercase">
+                                    {calculateDays(leaveForm.startDate, leaveForm.endDate)} day(s)
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2">

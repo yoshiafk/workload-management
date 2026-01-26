@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { FormField, FormSection } from "@/components/ui/form-field";
 import {
     Plus,
     Edit2,
@@ -20,7 +21,9 @@ import {
     ChevronUp,
     ChevronDown,
     Layers,
-    AlertCircle
+    AlertCircle,
+    Search,
+    Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import './LibraryPage.css';
@@ -45,6 +48,7 @@ export default function Phases() {
     // Form state
     const [formData, setFormData] = useState(emptyPhase);
     const [errors, setErrors] = useState({});
+    const [taskSearch, setTaskSearch] = useState('');
 
     // Get next available ID
     const getNextId = () => {
@@ -102,6 +106,7 @@ export default function Phases() {
             dispatch({ type: ACTIONS.ADD_PHASE, payload: formData });
         }
         setIsFormOpen(false);
+        setTaskSearch('');
     };
 
     // Confirm delete
@@ -222,31 +227,34 @@ export default function Phases() {
             </div>
 
             {/* Add/Edit Dialog */}
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogContent className="sm:max-w-md">
+            <Dialog open={isFormOpen} onOpenChange={(open) => {
+                setIsFormOpen(open);
+                if (!open) setTaskSearch('');
+            }}>
+                <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>
                             {editingPhase ? 'Edit Phase' : 'Add Phase'}
                         </DialogTitle>
                         <DialogDescription>
-                            Define a new project stage or lifecycle phase.
+                            Configure SDLC stage and link relevant task templates.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-8 space-y-4 pt-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Phase Name</Label>
+                    <FormSection className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        {/* Phase Name Input */}
+                        <FormField label="Phase Name" error={errors.name} required>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => handleChange('name', e.target.value)}
-                                className={cn("rounded-lg", errors.name && "border-red-500")}
+                                className={cn("rounded-lg h-9", errors.name && "border-red-500")}
                                 placeholder="e.g. Planning, Execution, Review"
                             />
-                            {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
-                        </div>
+                        </FormField>
 
-                        <div className="flex items-start space-x-3 p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
+                        {/* Terminal Switch Area */}
+                        <div className="flex items-start space-x-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 dark:bg-amber-500/10">
                             <Checkbox
                                 id="isTerminal"
                                 checked={formData.isTerminal}
@@ -262,7 +270,104 @@ export default function Phases() {
                                 </p>
                             </div>
                         </div>
-                    </div>
+
+                        {/* Task Template Selection */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Linked Templates</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="secondary" className="text-[10px] h-5 px-2 font-mono">
+                                            {formData.tasks.length} selected
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="relative w-48">
+                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                                    <Input
+                                        placeholder="Search tasks..."
+                                        className="h-8 pl-8 text-xs rounded-lg dark:bg-slate-900"
+                                        value={taskSearch}
+                                        onChange={(e) => setTaskSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="border rounded-xl p-2 bg-slate-500/5 overflow-hidden">
+                                <div className="max-h-[220px] overflow-y-auto px-1 space-y-4 custom-scrollbar">
+                                    {/* Grouped by Category */}
+                                    {['Project', 'Support', 'Terminal'].map(category => {
+                                        const categoryTasks = state.tasks.filter(t =>
+                                            t.category === category &&
+                                            t.name.toLowerCase().includes(taskSearch.toLowerCase())
+                                        );
+
+                                        if (categoryTasks.length === 0) return null;
+
+                                        return (
+                                            <div key={category} className="space-y-2">
+                                                <div className="px-2 pt-1">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block border-b border-border pb-1 mb-2">
+                                                        {category} Templates
+                                                    </span>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {categoryTasks.map(task => (
+                                                        <div
+                                                            key={task.id}
+                                                            className={cn(
+                                                                "flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer group",
+                                                                formData.tasks.includes(task.id)
+                                                                    ? "bg-indigo-600/5 shadow-sm border-indigo-500/20 ring-1 ring-indigo-500/10"
+                                                                    : "bg-background border-border hover:border-indigo-500/30"
+                                                            )}
+                                                            onClick={() => {
+                                                                const checked = !formData.tasks.includes(task.id);
+                                                                const newTasks = checked
+                                                                    ? [...formData.tasks, task.id]
+                                                                    : formData.tasks.filter(id => id !== task.id);
+                                                                handleChange('tasks', newTasks);
+                                                            }}
+                                                        >
+                                                            <Checkbox
+                                                                id={`task-${task.id}`}
+                                                                checked={formData.tasks.includes(task.id)}
+                                                                className="rounded-md"
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <Label
+                                                                    htmlFor={`task-${task.id}`}
+                                                                    className="text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer block truncate"
+                                                                >
+                                                                    {task.name}
+                                                                </Label>
+                                                                <div className="flex items-center gap-2 text-[9px] text-slate-400 font-bold tabular-nums">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Clock className="h-2 w-2" />
+                                                                        {task.estimates?.medium?.hours || 0}h
+                                                                    </div>
+                                                                    <span className="opacity-30">•</span>
+                                                                    <span>{task.id}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {state.tasks.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-10 text-slate-400 opacity-50">
+                                            <Layers className="h-8 w-8 mb-2" />
+                                            <p className="text-xs font-bold uppercase tracking-widest">No matching tasks</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </FormSection>
+
                     <DialogFooter>
                         <Button
                             variant="ghost"
@@ -275,7 +380,7 @@ export default function Phases() {
                             onClick={handleSubmit}
                             className="shadow-lg px-8 font-bold"
                         >
-                            {editingPhase ? 'Update' : 'Create'} phase
+                            {editingPhase ? 'Update' : 'Create'} Stage
                         </Button>
                     </DialogFooter>
                 </DialogContent>

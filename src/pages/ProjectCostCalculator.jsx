@@ -172,6 +172,8 @@ export default function ProjectCostCalculator() {
     // Complexity color
     const getComplexityColor = (level) => {
         const colors = {
+            trivial: 'bg-slate-400',
+            small: 'bg-emerald-400',
             low: 'bg-emerald-500',
             medium: 'bg-blue-500',
             high: 'bg-amber-500',
