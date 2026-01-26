@@ -13,7 +13,7 @@ import {
 import { useDensity } from "@/context/DensityContext";
 import { cn } from "@/lib/utils";
 
-export function CapacityHeatmap({ data, className }) {
+export function CapacityHeatmap({ data, title, className }) {
     const { isDense } = useDensity();
 
     if (!data || data.length === 0) return null;
@@ -25,14 +25,15 @@ export function CapacityHeatmap({ data, className }) {
                 isDense ? "px-4 py-2" : "px-6 py-4"
             )}>
                 <h3 className={cn("font-semibold", isDense ? "text-sm" : "text-lg")}>
-                    Team Capacity - Next 7 Days
+                    {title || "Team Capacity - Next 7 Days"}
                 </h3>
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <LegendItem status="available" label="Available" />
-                    <LegendItem status="busy" label="Busy" />
-                    <LegendItem status="limited" label="Limited" />
-                    <LegendItem status="at-capacity" label="Full" />
+                    <LegendItem status="light" label="Light" />
+                    <LegendItem status="moderate" label="Moderate" />
+                    <LegendItem status="heavy" label="Heavy" />
+                    <LegendItem status="over-capacity" label="Over Capacity" />
                     <LegendItem status="leave" label="Leave" />
                 </div>
             </div>
@@ -135,9 +136,10 @@ function LegendItem({ status, label }) {
 function getStatusClass(status) {
     switch (status) {
         case 'available': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400';
-        case 'busy': return 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400';
-        case 'limited': return 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
-        case 'at-capacity': return 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400';
+        case 'light': return 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400';
+        case 'moderate': return 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400';
+        case 'heavy': return 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
+        case 'over-capacity': return 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400';
         case 'leave': return 'bg-slate-100 dark:bg-slate-800 text-slate-400';
         default: return 'bg-muted/50';
     }
@@ -146,9 +148,10 @@ function getStatusClass(status) {
 function getStatusTextClass(status) {
     switch (status) {
         case 'available': return 'text-emerald-600';
-        case 'busy': return 'text-sky-600';
-        case 'limited': return 'text-amber-600';
-        case 'at-capacity': return 'text-rose-600';
+        case 'light': return 'text-sky-600';
+        case 'moderate': return 'text-blue-600';
+        case 'heavy': return 'text-amber-600';
+        case 'over-capacity': return 'text-rose-600';
         case 'leave': return 'text-slate-500';
         default: return 'text-muted-foreground';
     }

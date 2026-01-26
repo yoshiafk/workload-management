@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { startOfDay, parseISO, format } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
 import { useApp, ACTIONS } from '../context/AppContext';
 import {
@@ -8,7 +9,7 @@ import {
     calculateMonthlyCost,
     calculateWorkloadPercentage,
 } from '../utils/calculations';
-import { calculateSLAStatus, getPriorityColor } from '../utils/supportCalculations';
+import { calculateSLAStatus, getPriorityColor, calculateSLADeadline } from '../utils/supportCalculations';
 import { getStatusOptions } from '../data/defaultStatuses';
 import { getTagOptions } from '../data/defaultTags';
 
@@ -107,7 +108,7 @@ const emptyAllocation = {
     },
     workload: 0,
     remarks: '',
-    
+
     // Cost center integration
     costCenterId: '',
     costCenterSnapshot: null,
@@ -217,7 +218,8 @@ export default function ResourceAllocation() {
             formData.resource,
             holidays,
             leaves,
-            complexity
+            complexity,
+            formData.category
         );
 
         const isProject = formData.category === 'Project';
@@ -225,7 +227,8 @@ export default function ResourceAllocation() {
             formData.complexity,
             costTierId || formData.resource,
             complexity,
-            costs
+            costs,
+            formData.category
         ) : 0;
 
         const costMonthly = calculateMonthlyCost(
@@ -314,6 +317,32 @@ export default function ResourceAllocation() {
                 next.slaStatus = calculateSLAStatus(value);
             }
 
+            const isSlaTrigger = name === 'priority' || name === 'plan.taskStart';
+            if (isSlaTrigger && next.category === 'Support') {
+                if (next.plan?.taskStart && next.priority) {
+                    // Start from the beginning of the selected start date (explicit local parsing)
+                    const [year, month, day] = next.plan.taskStart.split('-').map(Number);
+                    const startTime = new Date(year, month - 1, day);
+                    const deadline = calculateSLADeadline(startTime, next.priority);
+
+                    // Format as local datetime-local string (YYYY-MM-DDTHH:mm)
+                    next.slaDeadline = format(deadline, "yyyy-MM-dd'T'HH:mm");
+                    next.slaStatus = calculateSLAStatus(next.slaDeadline);
+                } else {
+                    // Reset if either is missing
+                    next.slaDeadline = '';
+                    next.slaStatus = 'Within SLA';
+                }
+            }
+
+            // Task Allocation phase tracking
+            if (name === 'phase' && value === 'Task Allocation' && !next.actual?.taskStart) {
+                next.actual = {
+                    ...next.actual,
+                    taskStart: new Date().toISOString().split('T')[0]
+                };
+            }
+
             return next;
         });
 
@@ -344,7 +373,8 @@ export default function ResourceAllocation() {
         const workload = calculateWorkloadPercentage(
             formData.taskName,
             formData.complexity,
-            tasks
+            tasks,
+            formData.category
         );
 
         // Get member's current cost center information
@@ -531,9 +561,19 @@ export default function ResourceAllocation() {
                     <Select
                         value={status}
                         onValueChange={(newValue) => {
+                            const updatedAllocation = { ...row.original, status: newValue };
+
+                            // If status is completed, set actual task end
+                            if (newValue === 'completed' && !updatedAllocation.actual?.taskEnd) {
+                                updatedAllocation.actual = {
+                                    ...updatedAllocation.actual,
+                                    taskEnd: new Date().toISOString().split('T')[0]
+                                };
+                            }
+
                             dispatch({
                                 type: ACTIONS.UPDATE_ALLOCATION,
-                                payload: { ...row.original, status: newValue }
+                                payload: updatedAllocation
                             });
                         }}
                     >
@@ -906,8 +946,24 @@ export default function ResourceAllocation() {
 
                             <div className="p-6 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 grid grid-cols-3 gap-4">
                                 <div>
-                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Estimated End</p>
-                                    <p className="text-sm font-black text-slate-900">{calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—'}</p>
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">
+                                        {formData.category === 'Support' ? 'SLA Deadline' : 'Estimated End'}
+                                    </p>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {formData.category === 'Support'
+                                            ? (formData.slaDeadline ? format(parseISO(formData.slaDeadline), "MMM dd, yyyy HH:mm") : '—')
+                                            : (calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—')
+                                        }
+                                    </p>
+                                    {formData.category === 'Support' && formData.slaDeadline && formData.slaStatus && (
+                                        <p className={cn(
+                                            "text-[9px] font-bold mt-1 uppercase",
+                                            formData.slaStatus === 'Breached' ? 'text-red-600' :
+                                                formData.slaStatus === 'At Risk' ? 'text-amber-600' : 'text-emerald-600'
+                                        )}>
+                                            {formData.slaStatus}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Project Cost</p>

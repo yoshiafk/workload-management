@@ -75,10 +75,12 @@ export function countWorkdays(startDate, endDate, holidays = []) {
  * @param {Array} holidays - Holiday records
  * @param {Array} leaves - Leave records
  * @param {Object} complexitySettings - Complexity settings object
+ * @param {string} category - Work category (Project, Support, Maintenance)
  * @returns {Date} Calculated end date
  */
-export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings) {
-    const durationDays = complexitySettings[complexity.toLowerCase()]?.days || 0;
+export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings, category = 'Project') {
+    const isProject = category === 'Project';
+    const durationDays = isProject ? (complexitySettings[complexity.toLowerCase()]?.days || 0) : 1; // Default to 1 day for non-projects
 
     // Get member-specific leaves
     const memberLeaves = leaves
@@ -104,8 +106,11 @@ export function calculatePlanEndDate(startDate, complexity, resourceName, holida
  * @param {Array} resourceCosts - Resource cost records
  * @returns {number} Project cost in IDR
  */
-export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts) {
+export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, category = 'Project') {
     if (!complexity || !resourceReference) return 0;
+
+    const isProject = category === 'Project';
+    if (!isProject) return 0;
 
     // Get hours (BA rate) from complexity settings - this is the multiplier
     const hours = complexitySettings[complexity.toLowerCase()]?.hours || 0;
@@ -150,18 +155,24 @@ export function calculateMonthlyCost(projectCost, startDate, endDate) {
  * @param {Array} taskTemplates - Task template records
  * @returns {number} Workload percentage (0-1)
  */
-export function calculateWorkloadPercentage(taskName, complexity, taskTemplates) {
+export function calculateWorkloadPercentage(taskName, complexity, taskTemplates, category = 'Project') {
     const task = taskTemplates.find(t => t.name === taskName);
 
     if (!task) return 0;
 
+    const isProject = category === 'Project';
     const level = complexity.toLowerCase();
+
+    // If not project, use a flat 10% workload or similar if not specified in task template
+    // Actually, checking if task template has specific mapping
     const estimate = task.estimates[level];
 
     if (!estimate) return 0;
 
     // Formula: Estimated Hours / (Duration Days * 8 hours)
-    const durationHours = (estimate.days || 0) * 8;
+    // For non-projects, we might want to use a different base if durationDays is forced to 1
+    const durationDays = isProject ? (estimate.days || 1) : 1;
+    const durationHours = durationDays * 8;
 
     if (durationHours === 0) return 0;
 
@@ -389,12 +400,16 @@ export function getMemberTaskAvailability(allocations, teamMembers, maxConcurren
         const fifthTask = activeTasks[maxConcurrentTasks - 1];
         const availableFrom = hasCapacity ? null : fifthTask?.plan?.taskEnd;
 
-        // Determine status: green (0-2), amber (3-4), red (5+)
-        let status = 'available'; // green
+        // Determine status: green (<60%), blue (60-80%), amber (80-100%), red (>100%)
+        let status = 'available';
         if (currentTaskCount >= maxConcurrentTasks) {
-            status = 'at-capacity'; // red
+            status = 'over-capacity';
+        } else if (currentTaskCount >= 4) {
+            status = 'heavy';
         } else if (currentTaskCount >= 3) {
-            status = 'limited'; // amber
+            status = 'moderate';
+        } else if (currentTaskCount >= 1) {
+            status = 'light';
         }
 
         return {
@@ -404,7 +419,7 @@ export function getMemberTaskAvailability(allocations, teamMembers, maxConcurren
             activeTasks: activeTasks.slice(0, maxConcurrentTasks),
             currentTaskCount,
             maxConcurrentTasks,
-            hasCapacity,
+            hasCapacity: currentTaskCount < maxConcurrentTasks,
             availableFrom,
             status,
         };

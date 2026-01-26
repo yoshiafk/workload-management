@@ -58,7 +58,8 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                 allocation.resource,
                 holidays,
                 leaves,
-                complexity
+                complexity,
+                allocation.category
             );
 
             // Support tasks have zero cost
@@ -67,7 +68,8 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                 allocation.complexity,
                 costTierId || allocation.resource, // Fallback to name if no ID (for legacy/custom)
                 complexity,
-                costs
+                costs,
+                allocation.category
             ) : 0;
 
             // Recalculate monthly cost
@@ -81,7 +83,8 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
             const workload = calculateWorkloadPercentage(
                 allocation.taskName,
                 allocation.complexity,
-                tasks
+                tasks,
+                allocation.category
             );
 
             // Update cost center information

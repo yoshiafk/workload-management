@@ -11,7 +11,7 @@ import { useDensity } from "@/context/DensityContext";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 
-export function TeamPreview({ members, workloads, availability, heatmap, loading }) {
+export function TeamPreview({ members, workloads, availability, heatmap, subTitle, loading }) {
     const navigate = useNavigate();
     const { isDense } = useDensity();
 
@@ -30,7 +30,7 @@ export function TeamPreview({ members, workloads, availability, heatmap, loading
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className={cn("font-bold tracking-tight", isDense ? "text-lg" : "text-2xl")}>Team Overview</h2>
-                    <p className="text-sm text-muted-foreground">7-day availability at a glance (max 5 concurrent tasks)</p>
+                    <p className="text-sm text-muted-foreground">{subTitle || "7-day availability at a glance (max 5 concurrent tasks)"}</p>
                 </div>
             </div>
 
@@ -119,9 +119,10 @@ export function TeamPreview({ members, workloads, availability, heatmap, loading
 function getMiniStatusClass(status) {
     switch (status) {
         case 'available': return 'bg-emerald-500/20 group-hover:bg-emerald-500/40';
-        case 'busy': return 'bg-sky-500/30';
-        case 'limited': return 'bg-amber-500/40';
-        case 'at-capacity': return 'bg-rose-500/50';
+        case 'light': return 'bg-sky-500/30';
+        case 'moderate': return 'bg-blue-500/40';
+        case 'heavy': return 'bg-amber-500/40';
+        case 'over-capacity': return 'bg-rose-500/50';
         case 'leave': return 'bg-slate-200 dark:bg-slate-800';
         default: return 'bg-muted';
     }

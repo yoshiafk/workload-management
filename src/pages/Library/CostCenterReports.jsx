@@ -77,8 +77,11 @@ export default function CostCenterReports() {
         let onTrackCount = 0;
 
         const centerVariances = activeCostCenters.map(cc => {
+            // Find corresponding dynamic metric for this cost center
+            const utilizationItem = (metrics.utilizationData || []).find(item => item.costCenter.id === cc.id);
+
             const monthlyBudget = cc.monthlyBudget || 0;
-            const actualCost = cc.actualMonthlyCost || 0;
+            const actualCost = utilizationItem?.totalMonthlyCost || 0;
             const variance = actualCost - monthlyBudget;
             const variancePercent = monthlyBudget > 0 ? (variance / monthlyBudget) * 100 : 0;
 
@@ -91,6 +94,7 @@ export default function CostCenterReports() {
 
             return {
                 ...cc,
+                actualMonthlyCost: actualCost, // Override with dynamic value
                 variance,
                 variancePercent,
                 status: variancePercent > 10 ? 'over' : variancePercent < -10 ? 'under' : 'on-track'
@@ -107,7 +111,7 @@ export default function CostCenterReports() {
             onTrackCount,
             centerVariances
         };
-    }, [state.costCenters]);
+    }, [state.costCenters, metrics.utilizationData]);
 
     // Handle report generation
     const handleGenerateReport = async () => {

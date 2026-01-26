@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/calculations';
+import { differenceInDays, parseISO } from 'date-fns';
 import { defaultRoleTiers } from '../data';
 import './MemberTaskHistory.css';
 
@@ -122,6 +123,7 @@ export default function MemberTaskHistory() {
                                 <th>Complexity</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
+                                <th>Span (Days)</th>
                                 <th>Cost</th>
                                 <th>Status</th>
                             </tr>
@@ -156,6 +158,13 @@ export default function MemberTaskHistory() {
                                             </td>
                                             <td>{formatDate(allocation.plan?.taskStart)}</td>
                                             <td>{formatDate(allocation.plan?.taskEnd)}</td>
+                                            <td className="cell-span">
+                                                {allocation.actual?.taskStart && allocation.actual?.taskEnd ? (
+                                                    <span className="font-bold text-indigo-600">
+                                                        {differenceInDays(parseISO(allocation.actual.taskEnd), parseISO(allocation.actual.taskStart)) + 1}
+                                                    </span>
+                                                ) : '—'}
+                                            </td>
                                             <td className="cell-cost">{formatCurrency(allocation.plan?.costProject || 0)}</td>
                                             <td>
                                                 <span className={`status-badge ${isCompleted ? 'completed' : isActive ? 'active' : 'idle'}`}>
