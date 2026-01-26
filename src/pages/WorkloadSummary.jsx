@@ -8,6 +8,17 @@ import {
     calculateMonthlyTrend,
     getMemberTaskAvailability
 } from '../utils/calculations';
+import {
+    parseISO,
+    startOfDay,
+    endOfDay,
+    isAfter,
+    isBefore,
+    isWithinInterval,
+    addMonths,
+    addDays,
+    format
+} from 'date-fns';
 
 import { StatCard } from "@/components/ui/stat-card";
 import {
@@ -70,28 +81,44 @@ export default function WorkloadSummary() {
     const filteredAllocations = useMemo(() => {
         if (!dateFilter.start && !dateFilter.end) return allocations;
 
+        const filterStart = dateFilter.start ? startOfDay(parseISO(dateFilter.start)) : null;
+        const filterEnd = dateFilter.end ? endOfDay(parseISO(dateFilter.end)) : null;
+
         return allocations.filter(a => {
-            const taskStart = a.plan?.taskStart ? new Date(a.plan.taskStart) : null;
-            const taskEnd = a.plan?.taskEnd ? new Date(a.plan.taskEnd) : null;
+            if (!a.plan?.taskStart || !a.plan?.taskEnd) return false;
 
-            if (!taskStart || !taskEnd) return false;
+            const taskStart = startOfDay(parseISO(a.plan.taskStart));
+            const taskEnd = endOfDay(parseISO(a.plan.taskEnd));
 
-            const filterStart = dateFilter.start ? new Date(dateFilter.start) : null;
-            const filterEnd = dateFilter.end ? new Date(dateFilter.end) : null;
+            // Overlap logic: task starts before filter end AND task ends after filter start
+            const startsBeforeEnd = !filterEnd || !isAfter(taskStart, filterEnd);
+            const endsAfterStart = !filterStart || !isBefore(taskEnd, filterStart);
 
-            if (filterStart && taskEnd < filterStart) return false;
-            if (filterEnd && taskStart > filterEnd) return false;
-
-            return true;
+            return startsBeforeEnd && endsAfterStart;
         });
     }, [allocations, dateFilter]);
 
     const memberWorkloads = getMemberWorkloads(filteredAllocations, members);
-    const taskAvailability = getMemberTaskAvailability(allocations, members, 5);
+    const taskAvailability = getMemberTaskAvailability(filteredAllocations, members, 5);
+
+    // Period Formatting for display
+    const periodLabel = useMemo(() => {
+        if (!dateFilter.start && !dateFilter.end) return "Full Timeline";
+        const start = dateFilter.start ? format(parseISO(dateFilter.start), 'MMM d, yyyy') : '...';
+        const end = dateFilter.end ? format(parseISO(dateFilter.end), 'MMM d, yyyy') : '...';
+        return `${start} - ${end}`;
+    }, [dateFilter]);
+
+    // Heatmap Title
+    const heatmapTitle = useMemo(() => {
+        const baseDate = dateFilter.start ? parseISO(dateFilter.start) : new Date();
+        return `Team Capacity • Starting ${format(baseDate, 'MMM d, yyyy')}`;
+    }, [dateFilter.start]);
 
     // Calculate core stats
-    const activeCount = allocations.filter(a => a.taskName !== 'Completed' && a.taskName !== 'Idle').length;
-    const totalCost = allocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+    const activeInPeriod = filteredAllocations.filter(a => a.taskName !== 'Completed' && a.taskName !== 'Idle').length;
+    const portfolioValue = allocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+    const periodBurnRate = filteredAllocations.reduce((sum, a) => sum + (a.plan?.costMonthly || 0), 0);
 
     // Availability Summary
     const availabilitySummary = useMemo(() => {
@@ -152,19 +179,18 @@ export default function WorkloadSummary() {
     // heatmap data extraction
     const heatmapData = useMemo(() => {
         const days = [];
-        const today = new Date();
+        const today = dateFilter.start ? parseISO(dateFilter.start) : new Date();
 
         for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
+            const date = addDays(today, i);
             days.push({
                 date: date,
-                label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                label: format(date, 'EEE, MMM d')
             });
         }
 
         return members.map(member => {
-            const memberAllocations = allocations.filter(a => a.resource === member.name);
+            const memberAllocations = filteredAllocations.filter(a => a.resource === member.name);
             const memberLeaves = (leaves || []).filter(l => l.memberName === member.name);
 
             const daysData = days.map(day => {
@@ -188,9 +214,10 @@ export default function WorkloadSummary() {
                 }).length;
 
                 let status = 'available';
-                if (activeCount >= 5) status = 'at-capacity';
-                else if (activeCount >= 3) status = 'limited';
-                else if (activeCount >= 1) status = 'busy';
+                if (activeCount >= 5) status = 'over-capacity';
+                else if (activeCount >= 4) status = 'heavy';
+                else if (activeCount >= 3) status = 'moderate';
+                else if (activeCount >= 1) status = 'light';
 
                 return { date: day.label, count: activeCount, status };
             });
@@ -213,7 +240,18 @@ export default function WorkloadSummary() {
                     </div>
                     <div>
                         <h1 className="font-bold text-lg">Workload Summary</h1>
-                        <p className="text-xs text-muted-foreground font-medium">Core analytics and resource metrics</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground font-medium">Core analytics and resource metrics</p>
+                            <span className="h-1 w-1 rounded-full bg-border" />
+                            <span className={cn(
+                                "text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tight",
+                                (dateFilter.start || dateFilter.end)
+                                    ? "bg-primary/20 text-primary border border-primary/20"
+                                    : "bg-muted text-muted-foreground"
+                            )}>
+                                {periodLabel}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -246,6 +284,36 @@ export default function WorkloadSummary() {
                     </div>
 
                     <div className="flex gap-2">
+                        <div className="flex border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-10 px-3 rounded-none text-[10px] uppercase font-bold border-r border-border/50 hover:bg-primary/5"
+                                onClick={() => {
+                                    const now = new Date();
+                                    setDateFilter({
+                                        start: format(startOfDay(now), 'yyyy-MM-dd'),
+                                        end: format(endOfDay(addMonths(now, 1)), 'yyyy-MM-dd')
+                                    });
+                                }}
+                            >
+                                Next 30D
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-10 px-3 rounded-none text-[10px] uppercase font-bold hover:bg-primary/5"
+                                onClick={() => {
+                                    const now = new Date();
+                                    setDateFilter({
+                                        start: format(startOfDay(now), 'yyyy-MM-dd'),
+                                        end: format(endOfDay(addMonths(now, 3)), 'yyyy-MM-dd')
+                                    });
+                                }}
+                            >
+                                Next 90D
+                            </Button>
+                        </div>
                         <Button className="rounded-xl shadow-md h-10 px-6 gap-2" onClick={() => navigate('/allocation?action=add')}>
                             <Plus className="h-4 w-4" />
                             Add Allocation
@@ -273,7 +341,7 @@ export default function WorkloadSummary() {
                 />
                 <StatCard
                     title="Total Allocations"
-                    value={allocations.length}
+                    value={filteredAllocations.length}
                     icon={ListPlus}
                     color="info"
                     sparklineData={sparklineData}
@@ -281,25 +349,25 @@ export default function WorkloadSummary() {
                     variants={cardVariants}
                 />
                 <StatCard
-                    title="In Progress"
-                    value={activeCount}
+                    title="Active in Period"
+                    value={activeInPeriod}
                     icon={Activity}
                     color="warning"
                     trend={-5}
                     variants={cardVariants}
                 />
                 <StatCard
-                    title="Total Cost"
-                    value={formatCurrency(totalCost)}
+                    title="Portfolio Value"
+                    value={formatCurrency(portfolioValue)}
                     icon={TrendingUp}
                     color="success"
                     variants={cardVariants}
                 />
                 <StatCard
-                    title="Team Capacity"
-                    value={`${availabilitySummary.availableNow} / ${members.length}`}
-                    subValue="Available Now"
-                    icon={Clock}
+                    title="Period Burn Rate"
+                    subValue="Monthly Average"
+                    value={formatCurrency(periodBurnRate)}
+                    icon={TrendingUp}
                     color="primary"
                     variants={cardVariants}
                 />
@@ -322,7 +390,10 @@ export default function WorkloadSummary() {
                 }
             >
                 <div id="heatmap"> {/* Inner ID for cleaner capture */}
-                    <CapacityHeatmap data={heatmapData} />
+                    <CapacityHeatmap
+                        title={heatmapTitle}
+                        data={heatmapData}
+                    />
                 </div>
             </CollapsibleSection>
 
@@ -376,6 +447,7 @@ export default function WorkloadSummary() {
                     workloads={memberWorkloads}
                     availability={taskAvailability}
                     heatmap={heatmapData}
+                    subTitle={`${heatmapTitle} (max 5 concurrent tasks)`}
                 />
             </CollapsibleSection>
         </div>

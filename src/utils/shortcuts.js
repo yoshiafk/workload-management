@@ -46,6 +46,16 @@ export const APP_SHORTCUTS = {
         description: 'New allocation',
         category: 'action',
     },
+    NEW_COST_CENTER: {
+        key: 'n',
+        description: 'New cost center (when on cost centers page)',
+        category: 'action',
+    },
+    NEW_COA_ENTRY: {
+        key: 'n',
+        description: 'New chart of accounts entry (when on COA page)',
+        category: 'action',
+    },
     SEARCH: {
         key: '/',
         description: 'Focus search',

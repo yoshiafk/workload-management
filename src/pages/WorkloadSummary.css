@@ -336,14 +336,19 @@
     box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }
 
-.workload-summary .status-dot.limited {
-    background: var(--color-warning);
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+.workload-summary .status-dot.moderate {
+    background: hsl(var(--capacity-moderate));
+    box-shadow: 0 0 8px hsl(var(--capacity-moderate) / 0.4);
 }
 
-.workload-summary .status-dot.at-capacity {
-    background: var(--color-danger);
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+.workload-summary .status-dot.heavy {
+    background: hsl(var(--capacity-heavy));
+    box-shadow: 0 0 8px hsl(var(--capacity-heavy) / 0.4);
+}
+
+.workload-summary .status-dot.over-capacity {
+    background: hsl(var(--capacity-over));
+    box-shadow: 0 0 8px hsl(var(--capacity-over) / 0.4);
 }
 
 /* Member column */
@@ -404,14 +409,19 @@
     background: var(--color-success-light);
 }
 
-.workload-summary .task-count.limited {
-    color: var(--color-warning);
-    background: var(--color-warning-light);
+.workload-summary .task-count.moderate {
+    color: hsl(var(--capacity-moderate));
+    background: hsl(var(--capacity-moderate) / 0.1);
 }
 
-.workload-summary .task-count.at-capacity {
-    color: var(--color-danger);
-    background: var(--color-danger-light);
+.workload-summary .task-count.heavy {
+    color: hsl(var(--capacity-heavy));
+    background: hsl(var(--capacity-heavy) / 0.1);
+}
+
+.workload-summary .task-count.over-capacity {
+    color: hsl(var(--capacity-over));
+    background: hsl(var(--capacity-over) / 0.1);
 }
 
 /* Row status highlighting */
@@ -526,14 +536,19 @@
     color: var(--color-success);
 }
 
-.workload-summary .status-badge-compact.limited {
-    background: var(--color-warning-light);
-    color: #b45309;
+.workload-summary .status-badge-compact.moderate {
+    background: hsl(var(--capacity-moderate) / 0.1);
+    color: hsl(var(--capacity-moderate));
 }
 
-.workload-summary .status-badge-compact.at-capacity {
-    background: var(--color-danger-light);
-    color: var(--color-danger);
+.workload-summary .status-badge-compact.heavy {
+    background: hsl(var(--capacity-heavy) / 0.1);
+    color: hsl(var(--capacity-heavy));
+}
+
+.workload-summary .status-badge-compact.over-capacity {
+    background: hsl(var(--capacity-over) / 0.1);
+    color: hsl(var(--capacity-over));
 }
 
 /* Mini Heatmap */
@@ -583,22 +598,28 @@
     border: 1px solid rgba(16, 185, 129, 0.1);
 }
 
-.workload-summary .heatmap-cell-mini.busy {
-    background: var(--color-primary-light);
-    color: var(--color-primary);
-    border: 1px solid rgba(129, 140, 248, 0.1);
+.workload-summary .heatmap-cell-mini.light {
+    background: hsl(var(--capacity-light) / 0.1);
+    color: hsl(var(--capacity-light));
+    border: 1px solid hsl(var(--capacity-light) / 0.1);
 }
 
-.workload-summary .heatmap-cell-mini.limited {
-    background: var(--color-warning-light);
-    color: var(--color-warning);
-    border: 1px solid rgba(245, 158, 11, 0.1);
+.workload-summary .heatmap-cell-mini.moderate {
+    background: hsl(var(--capacity-moderate) / 0.1);
+    color: hsl(var(--capacity-moderate));
+    border: 1px solid hsl(var(--capacity-moderate) / 0.1);
 }
 
-.workload-summary .heatmap-cell-mini.at-capacity {
-    background: var(--color-danger-light);
-    color: var(--color-danger);
-    border: 1px solid rgba(244, 63, 94, 0.1);
+.workload-summary .heatmap-cell-mini.heavy {
+    background: hsl(var(--capacity-heavy) / 0.1);
+    color: hsl(var(--capacity-heavy));
+    border: 1px solid hsl(var(--capacity-heavy) / 0.1);
+}
+
+.workload-summary .heatmap-cell-mini.over-capacity {
+    background: hsl(var(--capacity-over) / 0.1);
+    color: hsl(var(--capacity-over));
+    border: 1px solid hsl(var(--capacity-over) / 0.1);
 }
 
 .workload-summary .heatmap-cell-mini.leave {

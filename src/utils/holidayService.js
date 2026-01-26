@@ -4,7 +4,7 @@
  * with localStorage caching and static data fallback
  */
 
-import { defaultHolidays } from '../data';
+import { defaultHolidays, getMergedHolidays } from '../data/indonesiaHolidays';
 
 // API endpoint for Indonesian holidays
 const HOLIDAY_API_BASE = 'https://api-harilibur.vercel.app/api';
@@ -20,17 +20,23 @@ const CACHE_EXPIRY_DAYS = 30; // Refresh cache after 30 days
  * @returns {Array} Transformed holidays
  */
 function transformApiResponse(data, year) {
-    // Filter only national holidays and transform
-    return data
+    // Strictly filter only national holidays to avoid region-specific (e.g., Bali) religious days
+    const nationalHolidays = data
         .filter(item => item.is_national_holiday === true)
         .map((item, index) => ({
-            id: `hd_${year}_${String(index + 1).padStart(3, '0')}`,
+            id: `hd_api_${year}_${String(index + 1).padStart(3, '0')}`,
             date: normalizeDate(item.holiday_date),
             name: item.holiday_name,
             type: 'national',
             year: year,
-        }))
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        }));
+
+    // The current API source (kalenderbali.com) often lacks Cuti Bersama (Collective Leave).
+    // We re-integrate our verified static Cuti Bersama here to ensure full compliance with SKB Tiga Menteri.
+    const cutiBersama = getMergedHolidays([], undefined, true)
+        .filter(h => h.year === year && h.type === 'collective');
+
+    return [...nationalHolidays, ...cutiBersama].sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
 /**
@@ -152,7 +158,7 @@ export async function getHolidaysWithFallback() {
 
     // Fallback to static data
     console.log('📅 Using static fallback holidays');
-    return defaultHolidays;
+    return getMergedHolidays();
 }
 
 /**
@@ -173,7 +179,7 @@ export async function refreshHolidays() {
         console.warn('📅 Failed to refresh holidays:', error.message);
     }
 
-    return defaultHolidays;
+    return getMergedHolidays();
 }
 
 export default {

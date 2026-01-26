@@ -70,6 +70,7 @@ const emptyCost = {
     monthlyCost: 10000000,
     perDayCost: 0,
     perHourCost: 0,
+    coaId: '',
 };
 
 export default function ResourceCosts() {
@@ -127,6 +128,21 @@ export default function ResourceCosts() {
             accessorKey: "perHourCost",
             header: () => <div className="text-right">Per Hour</div>,
             cell: ({ row }) => <div className="text-right font-medium text-slate-500 tabular-nums">{formatCurrency(row.getValue("perHourCost"))}</div>,
+        },
+        {
+            accessorKey: "coaId",
+            header: "Account (COA)",
+            cell: ({ row }) => {
+                const coa = state.coa.find(c => c.id === row.getValue("coaId"));
+                return coa ? (
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-700">{coa.code}</span>
+                        <span className="text-[10px] text-slate-400 truncate max-w-[120px]">{coa.name}</span>
+                    </div>
+                ) : (
+                    <span className="text-xs text-slate-400 italic">Not mapped</span>
+                );
+            }
         },
         {
             id: "actions",
@@ -453,6 +469,23 @@ export default function ResourceCosts() {
                                 className={cn("rounded-lg h-9", errors.resourceName && "border-red-500")}
                                 placeholder="e.g. Senior Backend Architect"
                             />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Default Account (COA)</Label>
+                            <Select value={formData.coaId || 'none'} onValueChange={(v) => handleChange('coaId', v === 'none' ? '' : v)}>
+                                <SelectTrigger className="rounded-lg h-9">
+                                    <SelectValue placeholder="Select account..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No account mapping</SelectItem>
+                                    {state.coa.filter(c => c.isActive).map(account => (
+                                        <SelectItem key={account.id} value={account.id}>
+                                            {account.code} - {account.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="space-y-2.5">

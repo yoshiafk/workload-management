@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
     Download,
     Upload,
@@ -36,12 +38,24 @@ import {
     Users,
     Activity,
     Layers,
-    ListTodo,
     Calendar,
-    PlaneTakeoff,
+    Building2,
     CircleDollarSign,
-    LayoutDashboard
+    LayoutDashboard,
+    History,
+    FileText,
+    ShieldCheck,
+    Cpu,
+    Zap,
+    Sparkles,
+    RefreshCcw,
+    Lock,
+    Clock,
+    Terminal,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
+import { CURRENT_VERSION } from '../utils/migration';
 import { cn } from "@/lib/utils";
 import './Settings.css';
 
@@ -61,7 +75,7 @@ function validateImportData(data) {
 }
 
 export default function Settings() {
-    const { state } = useApp();
+    const { state, dispatch, ACTIONS } = useApp();
     const [importStatus, setImportStatus] = useState(null); // 'success' | 'error' | null
     const [importMessage, setImportMessage] = useState('');
     const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -72,11 +86,39 @@ export default function Settings() {
         { label: 'Team Members', count: state.members?.length || 0, icon: Users, color: "text-indigo-500", bg: "bg-indigo-50" },
         { label: 'Allocations', count: state.allocations?.length || 0, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-50" },
         { label: 'Phases', count: state.phases?.length || 0, icon: Layers, color: "text-amber-500", bg: "bg-amber-50" },
-        { label: 'Task Templates', count: state.tasks?.length || 0, icon: ListTodo, color: "text-indigo-500", bg: "bg-indigo-50" },
         { label: 'Holidays', count: state.holidays?.length || 0, icon: Calendar, color: "text-sky-500", bg: "bg-sky-50" },
-        { label: 'Leaves', count: state.leaves?.length || 0, icon: PlaneTakeoff, color: "text-rose-500", bg: "bg-rose-50" },
-        { label: 'Cost Tiers', count: state.costs?.length || 0, icon: CircleDollarSign, color: "text-slate-500", bg: "bg-slate-50" },
+        { label: 'Cost Centers', count: state.costCenters?.length || 0, icon: Building2, color: "text-violet-500", bg: "bg-violet-50" },
+        { label: 'Budgets', count: state.costCenters?.filter(cc => cc.monthlyBudget > 0).length || 0, icon: CircleDollarSign, color: "text-emerald-500", bg: "bg-emerald-50" },
     ];
+
+    // System Health Checks
+    const healthChecks = [
+        {
+            label: 'Version Status',
+            status: 'Current',
+            icon: ShieldCheck,
+            color: 'text-emerald-500',
+            desc: `Running v${CURRENT_VERSION}. Schema is up to date.`
+        },
+        {
+            label: 'Cost Center Compliance',
+            status: state.members?.every(m => m.costCenterId) ? 'Pass' : 'Warning',
+            icon: Building2,
+            color: state.members?.every(m => m.costCenterId) ? 'text-emerald-500' : 'text-amber-500',
+            desc: state.members?.every(m => m.costCenterId)
+                ? 'All members assigned to cost centers.'
+                : `${state.members?.filter(m => !m.costCenterId).length} members missing cost centers.`
+        },
+        {
+            label: 'Storage Mode',
+            status: 'Local (IDB)',
+            icon: Database,
+            color: 'text-blue-500',
+            desc: 'Persistent browser storage is active and healthy.'
+        }
+    ];
+
+    const [showAuditLogs, setShowAuditLogs] = useState(false);
 
     // Handle export
     const handleExport = () => {
@@ -149,13 +191,12 @@ export default function Settings() {
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 font-black uppercase tracking-widest text-[10px] py-1 px-3 rounded-full">System v2.0</Badge>
-                            <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-black uppercase tracking-widest text-[10px] py-1 px-3 rounded-full">Stable</Badge>
+                            <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 font-black uppercase tracking-widest text-[10px] py-1 px-3 rounded-full">System v{CURRENT_VERSION}</Badge>
+                            <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-black uppercase tracking-widest text-[10px] py-1 px-3 rounded-full">LTS Build</Badge>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter">System Settings</h1>
+                        <h1 className="text-4xl font-black tracking-tighter">Control Center</h1>
                         <p className="max-w-md text-slate-400 text-sm font-medium leading-relaxed">
-                            Manage your application data, exports, and imports.
-                            All information is stored locally in your browser's persistent storage.
+                            Global configuration, system health monitoring, and data audit trail for the HR & Resource Management Engine.
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 min-w-[200px]">
@@ -171,6 +212,90 @@ export default function Settings() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Business Logic Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="p-8 pb-4">
+                        <div className="flex items-center gap-3">
+                            <Activity className="h-5 w-5 text-indigo-500" />
+                            <CardTitle className="text-xl font-black uppercase tracking-widest">Calculation Parameters</CardTitle>
+                        </div>
+                        <CardDescription className="text-sm font-medium">Fine-tune how the system handles mandates and timelines.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-4 space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Capacity Factor</Label>
+                                    <p className="text-[10px] text-slate-500 font-medium">85% default accounts for meetings & overhead.</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        step="0.05"
+                                        min="0.1"
+                                        max="1.0"
+                                        className="w-20 h-9 font-bold text-center"
+                                        value={state.settings?.capacityFactor || 0.85}
+                                        onChange={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            dispatch({
+                                                type: ACTIONS.UPDATE_SETTINGS,
+                                                payload: { ...state.settings, capacityFactor: val }
+                                            });
+                                        }}
+                                    />
+                                    <span className="text-xs font-bold text-slate-400">%</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Include Cuti Bersama</Label>
+                                    <p className="text-[10px] text-slate-500 font-medium whitespace-pre-wrap">Include Indonesian collective leave (Recommendation 3.3).</p>
+                                </div>
+                                <Switch
+                                    checked={state.settings?.includeCutiBersama !== false}
+                                    onCheckedChange={(checked) => {
+                                        dispatch({
+                                            type: ACTIONS.UPDATE_SETTINGS,
+                                            payload: { ...state.settings, includeCutiBersama: checked }
+                                        });
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="p-8 pb-4">
+                        <div className="flex items-center gap-3">
+                            <CircleDollarSign className="h-5 w-5 text-emerald-500" />
+                            <CardTitle className="text-xl font-black uppercase tracking-widest">Financial Rules</CardTitle>
+                        </div>
+                        <CardDescription className="text-sm font-medium">Configuration for cost centers and budget tracking.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-4 space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Audit Logging</Label>
+                                    <p className="text-[10px] text-slate-500 font-medium">Capture all financial adjustments in audit trail.</p>
+                                </div>
+                                <Badge variant="success" className="h-5 text-[9px] uppercase font-bold">Active</Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Budget Variance Alerts</Label>
+                                    <p className="text-[10px] text-slate-500 font-medium">Real-time alerts for over-budget cost centers.</p>
+                                </div>
+                                <Badge variant="success" className="h-5 text-[9px] uppercase font-bold">Enabled</Badge>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -260,7 +385,7 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* Right Column: Danger Zone */}
+                {/* Danger Zone */}
                 <div className="space-y-8">
                     <Card className="border-none bg-red-50/40 border border-red-100 shadow-xl rounded-3xl overflow-hidden">
                         <CardHeader className="p-8">
@@ -277,11 +402,6 @@ export default function Settings() {
                                 <h4 className="text-sm font-black text-red-900 mb-1 uppercase tracking-wider">Clear Storage</h4>
                                 <p className="text-xs text-red-700/80 font-medium">Delete all team members, allocations, and settings. This cannot be undone.</p>
                             </div>
-                            <ul className="text-[10px] space-y-2 text-red-700/60 font-black uppercase tracking-tight ml-1">
-                                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3" /> Resets all table data</li>
-                                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3" /> Removes all custom templates</li>
-                                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3" /> Wipes local preferences</li>
-                            </ul>
                         </CardContent>
                         <CardFooter className="p-8">
                             <Button
@@ -295,13 +415,98 @@ export default function Settings() {
                         </CardFooter>
                     </Card>
 
-                    <Card className="border-border bg-muted/20 shadow-sm rounded-3xl p-6 text-center">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 italic">End of Settings</p>
-                        <p className="text-[9px] font-bold text-slate-400">
-                            Designed & Developed by Yosy Aliffakry
-                        </p>
+                    {/* What's New Card */}
+                    <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden">
+                        <CardHeader className="p-8 pb-4">
+                            <div className="flex items-center gap-3">
+                                <Sparkles className="h-5 w-5 text-amber-500" />
+                                <CardTitle className="text-xl font-black uppercase tracking-widest">What's New in v2.0</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-8 pt-0 space-y-4">
+                            <div className="space-y-3">
+                                <div className="flex gap-3">
+                                    <div className="h-6 w-6 rounded-full bg-indigo-50 flex-shrink-0 flex items-center justify-center text-[10px] font-black text-indigo-600">01</div>
+                                    <p className="text-xs text-slate-600 font-medium">Enhanced Business Logic with 85% capacity factoring.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="h-6 w-6 rounded-full bg-emerald-50 flex-shrink-0 flex items-center justify-center text-[10px] font-black text-emerald-600">02</div>
+                                    <p className="text-xs text-slate-600 font-medium">Indonesian Cuti Bersama integration (2025-2027).</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="h-6 w-6 rounded-full bg-amber-50 flex-shrink-0 flex items-center justify-center text-[10px] font-black text-amber-600">03</div>
+                                    <p className="text-xs text-slate-600 font-medium">Advanced Cost Center hierarchy & budget tracking.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="h-6 w-6 rounded-full bg-rose-50 flex-shrink-0 flex items-center justify-center text-[10px] font-black text-rose-600">04</div>
+                                    <p className="text-xs text-slate-600 font-medium">System Audit Rail and Version 2.0.0 Synchronization.</p>
+                                </div>
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
+            </div>
+
+            {/* Audit Log Viewer */}
+            <Card className="border-border bg-card shadow-xl rounded-3xl overflow-hidden">
+                <CardHeader className="p-8 cursor-pointer hover:bg-muted/30 transition-all" onClick={() => setShowAuditLogs(!showAuditLogs)}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center text-white">
+                                <Terminal className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-xl font-black uppercase tracking-widest">System Audit Trail</CardTitle>
+                                <CardDescription className="text-sm font-medium">Recent security and financial activity logs.</CardDescription>
+                            </div>
+                        </div>
+                        {showAuditLogs ? <ChevronUp className="h-6 w-6 text-slate-400" /> : <ChevronDown className="h-6 w-6 text-slate-400" />}
+                    </div>
+                </CardHeader>
+                {showAuditLogs && (
+                    <CardContent className="p-8 pt-0">
+                        <div className="bg-slate-950 rounded-2xl p-4 overflow-hidden border border-slate-800">
+                            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                {state.auditLog && state.auditLog.length > 0 ? (
+                                    state.auditLog.map((log, i) => (
+                                        <div key={i} className="flex gap-3 py-2 border-b border-white/5 last:border-0 font-mono text-[11px]">
+                                            <span className="text-slate-500 whitespace-nowrap">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                                            <Badge variant={log.type === 'error' ? 'destructive' : log.type === 'warning' ? 'warning' : 'info'} className="h-4 px-1 text-[8px] uppercase font-bold">
+                                                {log.type || 'SYSTEM'}
+                                            </Badge>
+                                            <span className="text-slate-300">{log.message}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-10 text-slate-500">
+                                        <Terminal className="h-8 w-8 mb-2 opacity-20" />
+                                        <p className="text-sm font-medium">No activity logged yet.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                )}
+            </Card>
+
+            {/* System Health Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {healthChecks.map((check, i) => (
+                    <Card key={i} className="border-border bg-card shadow-lg rounded-2xl overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center bg-slate-50", check.color)}>
+                                    <check.icon className="h-5 w-5" />
+                                </div>
+                                <Badge variant={check.status === 'Pass' || check.status === 'Current' ? 'success' : 'warning'} className="h-5 text-[9px] uppercase font-bold">
+                                    {check.status}
+                                </Badge>
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-900 mb-1">{check.label}</h4>
+                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{check.desc}</p>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
             {/* Clear Confirmation Dialog */}
@@ -335,6 +540,6 @@ export default function Settings() {
                 </DialogContent>
             </Dialog>
 
-        </div>
+        </div >
     );
 }

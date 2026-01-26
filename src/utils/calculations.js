@@ -75,23 +75,84 @@ export function countWorkdays(startDate, endDate, holidays = []) {
  * @param {Array} holidays - Holiday records
  * @param {Array} leaves - Leave records
  * @param {Object} complexitySettings - Complexity settings object
+ * @param {string} category - Work category (Project, Support, Maintenance)
  * @returns {Date} Calculated end date
  */
-export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings) {
-    const durationDays = complexitySettings[complexity.toLowerCase()]?.days || 0;
+/**
+ * Calculate Plan End Date
+ * Excel formula: =WORKDAY(StartDate, Days, ExcludedDates)
+ * Refined with Capacity Factor and Half-Day Leave support (Recommendation 1.3, 3.2, 3.3)
+ * 
+ * @param {string|Date} startDate - Plan start date
+ * @param {string} complexity - Complexity level
+ * @param {string} resourceName - Resource name (to find member-specific leaves)
+ * @param {Array} holidays - Holiday records 
+ * @param {Array} leaves - Leave records
+ * @param {Object} complexitySettings - Complexity settings
+ * @param {string} category - Project or Support
+ * @param {number} capacityFactor - Capacity factor (default 0.85)
+ * @param {boolean} includeCutiBersama - Whether to include cuti bersama (default true)
+ * @returns {Date} Calculated end date
+ */
+export function calculatePlanEndDate(startDate, complexity, resourceName, holidays, leaves, complexitySettings, category = 'Project', capacityFactor = 0.85, includeCutiBersama = true) {
+    const isProject = category === 'Project';
+    const complexityLevel = complexitySettings[complexity.toLowerCase()];
 
-    // Get member-specific leaves
-    const memberLeaves = leaves
+    // 1. Get base effort days
+    let effortDays = isProject ? (complexityLevel?.days || 0) : 1;
+
+    // 2. Adjust for Capacity Factor (Recommendation 1.3)
+    const realisticDays = calculateRealisticDuration(effortDays, capacityFactor);
+
+    // 3. Get member-specific leaves and expand ranges to individual dates
+    const memberLeaves = [];
+    leaves
         .filter(l => l.memberName === resourceName)
-        .map(l => l.date);
+        .forEach(l => {
+            const start = parseISO(l.startDate);
+            const end = parseISO(l.endDate);
+            let current = new Date(start);
+            while (current <= end) {
+                memberLeaves.push({
+                    date: current.toISOString().split('T')[0],
+                    type: l.category === 'half-day' ? 'Half' : 'Full',
+                    leaveType: l.type // e.g. 'annual', 'sick', 'unpaid'
+                });
+                current.setDate(current.getDate() + 1);
+            }
+        });
 
-    // Combine holidays and leaves
+    // 4. Extract full leaves and half-day leaves (Recommendation 3.2)
+    const fullLeaves = memberLeaves.filter(l => l.type !== 'Half').map(l => l.date);
+    const halfLeaves = memberLeaves.filter(l => l.type === 'Half').map(l => ({ date: l.date, period: 'AM' }));
+
+    // 5. Get Indonesian holidays (including Cuti Bersama if enabled) (Recommendation 3.3)
+    const nationalHolidays = holidays.filter(h => h.type === 'national' || !h.type).map(h => h.date);
+    const cutiBersama = includeCutiBersama ? holidays.filter(h => h.type === 'collective').map(h => h.date) : [];
+
+    // 6. Combine all excluded dates
     const excludedDates = [
-        ...holidays.map(h => h.date),
-        ...memberLeaves,
+        ...nationalHolidays,
+        ...cutiBersama,
+        ...fullLeaves,
     ];
 
-    return addWorkdays(startDate, durationDays, excludedDates);
+    // 7. Calculate end date using workdays
+    let endDate = addWorkdays(startDate, realisticDays, excludedDates);
+
+    // 8. Adjust for half-day leaves (extra padding if leave occurs during project)
+    const projectHalfDays = halfLeaves.filter(hl => {
+        const d = parseISO(hl.date);
+        const s = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+        return d >= s && d <= endDate;
+    }).length;
+
+    if (projectHalfDays > 0) {
+        const extraDays = Math.ceil(projectHalfDays * 0.5);
+        endDate = addWorkdays(endDate, extraDays, excludedDates);
+    }
+
+    return endDate;
 }
 
 /**
@@ -104,8 +165,11 @@ export function calculatePlanEndDate(startDate, complexity, resourceName, holida
  * @param {Array} resourceCosts - Resource cost records
  * @returns {number} Project cost in IDR
  */
-export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts) {
+export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, category = 'Project') {
     if (!complexity || !resourceReference) return 0;
+
+    const isProject = category === 'Project';
+    if (!isProject) return 0;
 
     // Get hours (BA rate) from complexity settings - this is the multiplier
     const hours = complexitySettings[complexity.toLowerCase()]?.hours || 0;
@@ -150,18 +214,24 @@ export function calculateMonthlyCost(projectCost, startDate, endDate) {
  * @param {Array} taskTemplates - Task template records
  * @returns {number} Workload percentage (0-1)
  */
-export function calculateWorkloadPercentage(taskName, complexity, taskTemplates) {
+export function calculateWorkloadPercentage(taskName, complexity, taskTemplates, category = 'Project') {
     const task = taskTemplates.find(t => t.name === taskName);
 
     if (!task) return 0;
 
+    const isProject = category === 'Project';
     const level = complexity.toLowerCase();
+
+    // If not project, use a flat 10% workload or similar if not specified in task template
+    // Actually, checking if task template has specific mapping
     const estimate = task.estimates[level];
 
     if (!estimate) return 0;
 
     // Formula: Estimated Hours / (Duration Days * 8 hours)
-    const durationHours = (estimate.days || 0) * 8;
+    // For non-projects, we might want to use a different base if durationDays is forced to 1
+    const durationDays = isProject ? (estimate.days || 1) : 1;
+    const durationHours = durationDays * 8;
 
     if (durationHours === 0) return 0;
 
@@ -389,12 +459,16 @@ export function getMemberTaskAvailability(allocations, teamMembers, maxConcurren
         const fifthTask = activeTasks[maxConcurrentTasks - 1];
         const availableFrom = hasCapacity ? null : fifthTask?.plan?.taskEnd;
 
-        // Determine status: green (0-2), amber (3-4), red (5+)
-        let status = 'available'; // green
+        // Determine status: green (<60%), blue (60-80%), amber (80-100%), red (>100%)
+        let status = 'available';
         if (currentTaskCount >= maxConcurrentTasks) {
-            status = 'at-capacity'; // red
+            status = 'over-capacity';
+        } else if (currentTaskCount >= 4) {
+            status = 'heavy';
         } else if (currentTaskCount >= 3) {
-            status = 'limited'; // amber
+            status = 'moderate';
+        } else if (currentTaskCount >= 1) {
+            status = 'light';
         }
 
         return {
@@ -404,9 +478,554 @@ export function getMemberTaskAvailability(allocations, teamMembers, maxConcurren
             activeTasks: activeTasks.slice(0, maxConcurrentTasks),
             currentTaskCount,
             maxConcurrentTasks,
-            hasCapacity,
+            hasCapacity: currentTaskCount < maxConcurrentTasks,
             availableFrom,
             status,
         };
     });
+}
+
+/**
+ * Aggregate costs by cost center
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} costCenters - Cost center records
+ * @returns {Array} Array of cost center aggregation objects
+ */
+export function aggregateCostsByCostCenter(allocations, costCenters) {
+    const costCenterMap = new Map();
+
+    // Initialize cost centers
+    costCenters.forEach(cc => {
+        costCenterMap.set(cc.id, {
+            costCenter: cc,
+            totalProjectCost: 0,
+            totalMonthlyCost: 0,
+            allocationCount: 0,
+            activeAllocationCount: 0,
+            allocations: []
+        });
+    });
+
+    // Add unassigned category
+    costCenterMap.set('unassigned', {
+        costCenter: { id: 'unassigned', code: 'UNASSIGNED', name: 'Unassigned', isActive: true },
+        totalProjectCost: 0,
+        totalMonthlyCost: 0,
+        allocationCount: 0,
+        activeAllocationCount: 0,
+        allocations: []
+    });
+
+    // Aggregate allocations by cost center
+    allocations.forEach(allocation => {
+        const costCenterId = allocation.costCenterId || 'unassigned';
+        const aggregation = costCenterMap.get(costCenterId);
+
+        if (aggregation) {
+            aggregation.totalProjectCost += allocation.plan?.costProject || 0;
+            aggregation.totalMonthlyCost += allocation.plan?.costMonthly || 0;
+            aggregation.allocationCount += 1;
+
+            if (allocation.status !== 'completed' && allocation.status !== 'cancelled') {
+                aggregation.activeAllocationCount += 1;
+            }
+
+            aggregation.allocations.push(allocation);
+        }
+    });
+
+    return Array.from(costCenterMap.values()).filter(agg => agg.allocationCount > 0);
+}
+
+/**
+ * Get project-level cost center breakdown
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {string} projectIdentifier - Project identifier (demandNumber or activityName)
+ * @param {Array} costCenters - Cost center records
+ * @returns {Object} Project cost center breakdown
+ */
+export function getProjectCostCenterBreakdown(allocations, projectIdentifier, costCenters) {
+    // Filter allocations for this project
+    const projectAllocations = allocations.filter(a =>
+        a.demandNumber === projectIdentifier ||
+        a.activityName === projectIdentifier
+    );
+
+    if (projectAllocations.length === 0) {
+        return {
+            projectIdentifier,
+            totalCost: 0,
+            totalMonthlyCost: 0,
+            costCenterBreakdown: []
+        };
+    }
+
+    // Aggregate by cost center
+    const breakdown = aggregateCostsByCostCenter(projectAllocations, costCenters);
+
+    const totalCost = breakdown.reduce((sum, item) => sum + item.totalProjectCost, 0);
+    const totalMonthlyCost = breakdown.reduce((sum, item) => sum + item.totalMonthlyCost, 0);
+
+    // Add percentage calculations
+    const costCenterBreakdown = breakdown.map(item => ({
+        ...item,
+        costPercentage: totalCost > 0 ? (item.totalProjectCost / totalCost) * 100 : 0,
+        monthlyPercentage: totalMonthlyCost > 0 ? (item.totalMonthlyCost / totalMonthlyCost) * 100 : 0
+    }));
+
+    return {
+        projectIdentifier,
+        totalCost,
+        totalMonthlyCost,
+        costCenterBreakdown
+    };
+}
+
+/**
+ * Get cost center utilization metrics
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} teamMembers - Team member records
+ * @param {Array} costCenters - Cost center records
+ * @returns {Array} Array of cost center utilization objects
+ */
+export function getCostCenterUtilization(allocations, teamMembers, costCenters) {
+    return costCenters.map(costCenter => {
+        // Get members assigned to this cost center
+        const assignedMembers = teamMembers.filter(m => m.costCenterId === costCenter.id);
+
+        // Get allocations for members in this cost center
+        const costCenterAllocations = allocations.filter(a =>
+            assignedMembers.some(m => m.name === a.resource)
+        );
+
+        // Calculate metrics
+        const totalMembers = assignedMembers.length;
+        const activeMembers = assignedMembers.filter(m => m.isActive).length;
+        const totalAllocations = costCenterAllocations.length;
+        const activeAllocations = costCenterAllocations.filter(a =>
+            a.status !== 'completed' && a.status !== 'cancelled'
+        ).length;
+
+        // Calculate total workload
+        const totalWorkload = costCenterAllocations.reduce((sum, a) => sum + (a.workload || 0), 0);
+        const maxCapacity = assignedMembers.reduce((sum, m) => sum + (m.maxHoursPerWeek || 40), 0) / 40; // Convert to workload units
+
+        const utilizationRate = maxCapacity > 0 ? (totalWorkload / maxCapacity) * 100 : 0;
+
+        // Calculate costs
+        const totalProjectCost = costCenterAllocations.reduce((sum, a) => sum + (a.plan?.costProject || 0), 0);
+        const totalMonthlyCost = costCenterAllocations.reduce((sum, a) => sum + (a.plan?.costMonthly || 0), 0);
+
+        return {
+            costCenter,
+            totalMembers,
+            activeMembers,
+            totalAllocations,
+            activeAllocations,
+            totalWorkload,
+            maxCapacity,
+            utilizationRate: Math.min(utilizationRate, 100), // Cap at 100%
+            totalProjectCost,
+            totalMonthlyCost,
+            allocations: costCenterAllocations
+        };
+    });
+}
+
+/**
+ * Aggregate costs by Chart of Accounts (COA)
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} coa - Chart of accounts records
+ * @returns {Array} Array of COA aggregation objects
+ */
+export function aggregateCostsByCOA(allocations, coa) {
+    const coaMap = new Map();
+
+    // Initialize COA accounts
+    coa.forEach(account => {
+        coaMap.set(account.id, {
+            account,
+            totalProjectCost: 0,
+            totalMonthlyCost: 0,
+            allocationCount: 0,
+            allocations: []
+        });
+    });
+
+    // Add unmapped category
+    coaMap.set('unmapped', {
+        account: { id: 'unmapped', code: 'UNMAPPED', name: 'Unmapped Account', isActive: true },
+        totalProjectCost: 0,
+        totalMonthlyCost: 0,
+        allocationCount: 0,
+        allocations: []
+    });
+
+    // Aggregate allocations by COA
+    allocations.forEach(allocation => {
+        const coaId = allocation.coaId || 'unmapped';
+        const aggregation = coaMap.get(coaId);
+
+        if (aggregation) {
+            aggregation.totalProjectCost += allocation.plan?.costProject || 0;
+            aggregation.totalMonthlyCost += allocation.plan?.costMonthly || 0;
+            aggregation.allocationCount += 1;
+            aggregation.allocations.push(allocation);
+        }
+    });
+
+    return Array.from(coaMap.values())
+        .filter(agg => agg.allocationCount > 0)
+        .sort((a, b) => b.totalProjectCost - a.totalProjectCost);
+}
+
+// ============================================================================
+// BUDGET VARIANCE TRACKING
+// ============================================================================
+
+/**
+ * Calculate actual cost for a cost center from allocations
+ * 
+ * @param {string} costCenterId - Cost center ID
+ * @param {Array} allocations - All allocations
+ * @param {string} period - 'monthly' or 'yearly'
+ * @returns {Object} Cost breakdown with actual cost and allocation details
+ */
+export function calculateActualCostCenterCost(costCenterId, allocations, period = 'monthly') {
+    const costCenterAllocations = allocations.filter(a =>
+        a.costCenterId === costCenterId &&
+        a.status !== 'cancelled'
+    );
+
+    const actualCost = costCenterAllocations.reduce((sum, a) => {
+        return sum + (period === 'monthly' ? (a.plan?.costMonthly || 0) : (a.plan?.costProject || 0));
+    }, 0);
+
+    return {
+        costCenterId,
+        period,
+        actualCost,
+        allocationCount: costCenterAllocations.length,
+        activeAllocationCount: costCenterAllocations.filter(a =>
+            a.status !== 'completed' && a.status !== 'cancelled'
+        ).length,
+        calculatedAt: new Date().toISOString()
+    };
+}
+
+/**
+ * Calculate budget variance for a cost center
+ * 
+ * @param {Object} costCenter - Cost center object with monthlyBudget
+ * @param {number} actualCost - Actual cost from allocations
+ * @returns {Object} Variance analysis with status and severity
+ */
+export function calculateBudgetVariance(costCenter, actualCost) {
+    const budget = costCenter.monthlyBudget || 0;
+
+    if (budget === 0) {
+        return {
+            costCenterId: costCenter.id,
+            costCenterName: costCenter.name,
+            budget: 0,
+            actualCost,
+            variance: null,
+            variancePercent: null,
+            status: 'no-budget',
+            severity: 'info'
+        };
+    }
+
+    const variance = budget - actualCost;
+    const variancePercent = (variance / budget) * 100;
+
+    let status, severity;
+    if (variance >= 0) {
+        status = 'under-budget';
+        severity = variancePercent >= 20 ? 'low' : 'medium';
+    } else {
+        status = 'over-budget';
+        severity = Math.abs(variancePercent) <= 10 ? 'medium' :
+            Math.abs(variancePercent) <= 25 ? 'high' : 'critical';
+    }
+
+    return {
+        costCenterId: costCenter.id,
+        costCenterName: costCenter.name,
+        budget,
+        actualCost,
+        variance,
+        variancePercent: parseFloat(variancePercent.toFixed(2)),
+        status,
+        severity,
+        utilizationPercent: parseFloat(((actualCost / budget) * 100).toFixed(2))
+    };
+}
+
+// ============================================================================
+// CAPACITY-ADJUSTED MANDAYS CALCULATION
+// ============================================================================
+
+const DEFAULT_CAPACITY_FACTOR = 0.85; // 85% effective working time
+
+/**
+ * Get effective working days with capacity factor
+ * Accounts for meetings, admin work, context switching, breaks
+ * 
+ * @param {Date|string} startDate - Start date
+ * @param {Date|string} endDate - End date
+ * @param {Array} holidays - Holiday dates to exclude
+ * @param {number} capacityFactor - Capacity factor (default 0.85 = 85%)
+ * @returns {number} Effective working days
+ */
+export function getEffectiveWorkdays(startDate, endDate, holidays, capacityFactor = DEFAULT_CAPACITY_FACTOR) {
+    const rawWorkdays = countWorkdays(startDate, endDate, holidays);
+    return Math.floor(rawWorkdays * capacityFactor);
+}
+
+/**
+ * Calculate realistic calendar duration from effort days
+ * Converts effort-based estimate to calendar days considering capacity
+ * 
+ * @param {number} effortDays - Number of effort days required
+ * @param {number} capacityFactor - Capacity factor (default 0.85)
+ * @returns {number} Realistic calendar working days needed
+ */
+export function calculateRealisticDuration(effortDays, capacityFactor = DEFAULT_CAPACITY_FACTOR) {
+    if (capacityFactor <= 0) return effortDays;
+    return Math.ceil(effortDays / capacityFactor);
+}
+
+/**
+ * Count workdays with half-day leave support
+ * 
+ * @param {Date|string} startDate - Start date
+ * @param {Date|string} endDate - End date  
+ * @param {Array} holidays - Holiday dates to exclude
+ * @param {Array} halfDayLeaves - Array of {date, period: 'AM'|'PM'} objects
+ * @returns {number} Working days with half-day adjustments
+ */
+export function countWorkdaysWithHalfDays(startDate, endDate, holidays, halfDayLeaves = []) {
+    const start = typeof startDate === 'string' ? parseISO(startDate) : new Date(startDate);
+    const end = typeof endDate === 'string' ? parseISO(endDate) : new Date(endDate);
+
+    const fullDays = countWorkdays(startDate, endDate, holidays);
+
+    const halfDayCount = halfDayLeaves.filter(leave => {
+        const leaveDate = typeof leave.date === 'string' ? parseISO(leave.date) : new Date(leave.date);
+        return leaveDate >= start && leaveDate <= end;
+    }).length;
+
+    return fullDays - (halfDayCount * 0.5);
+}
+
+// ============================================================================
+// VALIDATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate resource cost center assignment
+ * Ensures team members are assigned to valid, active cost centers
+ * 
+ * @param {Object} teamMember - Team member object
+ * @param {Array} costCenters - Available cost centers
+ * @returns {Object} Validation result with isValid and errors array
+ */
+export function validateResourceCostCenterAssignment(teamMember, costCenters) {
+    const errors = [];
+    const warnings = [];
+
+    if (!teamMember.costCenterId) {
+        warnings.push({
+            field: 'costCenterId',
+            message: 'Team member is not assigned to a cost center',
+            severity: 'warning'
+        });
+    } else {
+        const costCenter = costCenters.find(cc => cc.id === teamMember.costCenterId);
+
+        if (!costCenter) {
+            errors.push({
+                field: 'costCenterId',
+                message: 'Assigned cost center does not exist',
+                severity: 'error'
+            });
+        } else if (!costCenter.isActive && costCenter.status !== 'Active') {
+            errors.push({
+                field: 'costCenterId',
+                message: `Assigned cost center "${costCenter.name}" is inactive`,
+                severity: 'error'
+            });
+        }
+    }
+
+    return {
+        isValid: errors.length === 0,
+        hasWarnings: warnings.length > 0,
+        errors,
+        warnings
+    };
+}
+
+/**
+ * Split allocation cost across multiple cost centers
+ * Supports proportional cost distribution for shared resources
+ * 
+ * @param {Object} allocation - Allocation record
+ * @param {Array} costCenterSplits - Array of {costCenterId, percentage} objects
+ * @returns {Array} Array of split cost records
+ * @throws {Error} If percentages don't total 100%
+ */
+export function splitAllocationCost(allocation, costCenterSplits) {
+    if (!costCenterSplits || costCenterSplits.length === 0) {
+        return [{
+            allocationId: allocation.id,
+            costCenterId: allocation.costCenterId || 'unassigned',
+            percentage: 100,
+            projectCost: allocation.plan?.costProject || 0,
+            monthlyCost: allocation.plan?.costMonthly || 0
+        }];
+    }
+
+    const totalPercentage = costCenterSplits.reduce((sum, s) => sum + s.percentage, 0);
+
+    if (Math.abs(totalPercentage - 100) > 0.01) {
+        throw new Error(`Cost center splits must total 100% (got ${totalPercentage}%)`);
+    }
+
+    return costCenterSplits.map(split => ({
+        allocationId: allocation.id,
+        costCenterId: split.costCenterId,
+        percentage: split.percentage,
+        projectCost: (allocation.plan?.costProject || 0) * (split.percentage / 100),
+        monthlyCost: (allocation.plan?.costMonthly || 0) * (split.percentage / 100)
+    }));
+}
+
+// ============================================================================
+// THREE-POINT ESTIMATION (PERT)
+// ============================================================================
+
+/**
+ * Calculate three-point estimate using PERT formula
+ * PERT = (Optimistic + 4×Realistic + Pessimistic) / 6
+ * 
+ * @param {string} complexity - Complexity level (low/medium/high/sophisticated)
+ * @param {Object} complexitySettings - Complexity settings object
+ * @returns {Object} Three-point estimate with optimistic, realistic, pessimistic, and expected values
+ */
+export function threePointEstimate(complexity, complexitySettings) {
+    const level = complexity.toLowerCase();
+    const base = complexitySettings[level];
+
+    if (!base || !base.days) {
+        return {
+            complexity: level,
+            optimistic: 0,
+            realistic: 0,
+            pessimistic: 0,
+            expected: 0,
+            standardDeviation: 0,
+            range: { min: 0, max: 0 }
+        };
+    }
+
+    const optimistic = Math.floor(base.days * 0.7);    // Best case (-30%)
+    const realistic = base.days;                        // Most likely
+    const pessimistic = Math.ceil(base.days * 1.5);    // Worst case (+50%)
+
+    // PERT weighted average
+    const expected = Math.round((optimistic + 4 * realistic + pessimistic) / 6);
+
+    // Standard deviation for confidence intervals
+    const standardDeviation = Math.round((pessimistic - optimistic) / 6);
+
+    return {
+        complexity: level,
+        optimistic,
+        realistic,
+        pessimistic,
+        expected,
+        standardDeviation,
+        range: {
+            min: Math.max(1, expected - standardDeviation),
+            max: expected + standardDeviation
+        },
+        // Confidence intervals
+        confidence68: { min: expected - standardDeviation, max: expected + standardDeviation },
+        confidence95: { min: expected - 2 * standardDeviation, max: expected + 2 * standardDeviation }
+    };
+}
+
+/**
+ * Calculate project duration with contingency buffer
+ * Adds buffer percentage to base estimate for risk management
+ * 
+ * @param {string} complexity - Complexity level
+ * @param {Object} complexitySettings - Complexity settings
+ * @param {number} bufferPercent - Buffer percentage (default 0.15 = 15%)
+ * @returns {Object} Duration with buffer details
+ */
+export function calculateWithBuffer(complexity, complexitySettings, bufferPercent = 0.15) {
+    const level = complexity.toLowerCase();
+    const base = complexitySettings[level];
+
+    if (!base || !base.days) {
+        return {
+            baseDays: 0,
+            buffer: 0,
+            totalDays: 0,
+            bufferPercent: `+${(bufferPercent * 100).toFixed(0)}%`
+        };
+    }
+
+    const baseDays = base.days;
+    const buffer = Math.ceil(baseDays * bufferPercent);
+
+    return {
+        baseDays,
+        buffer,
+        totalDays: baseDays + buffer,
+        bufferPercent: `+${(bufferPercent * 100).toFixed(0)}%`,
+        bufferDays: buffer
+    };
+}
+
+// ============================================================================
+// AUDIT TRAIL
+// ============================================================================
+
+/**
+ * Log cost-related changes for audit trail
+ * Creates structured audit log entry for tracking changes
+ * 
+ * @param {Object} entity - Entity being changed {type, id, name}
+ * @param {string} field - Field being changed
+ * @param {*} oldValue - Previous value
+ * @param {*} newValue - New value
+ * @param {string} userId - User making the change
+ * @returns {Object} Audit log entry
+ */
+export function logCostChange(entity, field, oldValue, newValue, userId = 'system') {
+    const changeType = oldValue === null || oldValue === undefined ? 'create' :
+        newValue === null || newValue === undefined ? 'delete' : 'update';
+
+    return {
+        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        entity: {
+            type: entity.type,
+            id: entity.id,
+            name: entity.name || entity.id
+        },
+        field,
+        oldValue,
+        newValue,
+        changedBy: userId,
+        changeType
+    };
 }

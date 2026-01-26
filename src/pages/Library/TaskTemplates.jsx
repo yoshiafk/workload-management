@@ -54,7 +54,9 @@ const initialFormState = {
     name: '',
     phaseId: '',
     estimates: {
-        low: { days: 2, hours: 1 },
+        trivial: { days: 1, hours: 1 },
+        small: { days: 2, hours: 1 },
+        low: { days: 2, hours: 2 },
         medium: { days: 5, hours: 2 },
         high: { days: 10, hours: 4 },
         sophisticated: { days: 20, hours: 6 },
@@ -82,17 +84,67 @@ export default function TaskTemplates() {
             cell: ({ row }) => <span className="font-semibold text-slate-800 dark:text-slate-200">{row.getValue("name")}</span>,
         },
         {
+            header: "Complexity: Trivial",
+            columns: [
+                {
+                    accessorKey: "estimates.trivial.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-slate-500 font-medium">{row.original.estimates?.trivial?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.trivial.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-slate-500 font-medium">{row.original.estimates?.trivial?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.trivial.percentage",
+                    header: "%",
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.trivial?.days ?? 0;
+                        const hours = row.original.estimates?.trivial?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-slate-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
+                },
+            ],
+        },
+        {
+            header: "Complexity: Small",
+            columns: [
+                {
+                    accessorKey: "estimates.small.days",
+                    header: "D",
+                    cell: ({ row }) => <span className="text-xs text-emerald-500 font-medium">{row.original.estimates?.small?.days ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.small.hours",
+                    header: "H",
+                    cell: ({ row }) => <span className="text-xs text-emerald-500 font-medium">{row.original.estimates?.small?.hours ?? 0}</span>,
+                },
+                {
+                    accessorKey: "estimates.small.percentage",
+                    header: "%",
+                    cell: ({ row }) => {
+                        const days = row.original.estimates?.small?.days ?? 0;
+                        const hours = row.original.estimates?.small?.hours ?? 0;
+                        const percentage = days > 0 ? hours / (days * 8) : 0;
+                        return <span className="text-xs text-emerald-400 font-bold">{formatPercentage(percentage)}</span>;
+                    },
+                },
+            ],
+        },
+        {
             header: "Complexity: Low",
             columns: [
                 {
                     accessorKey: "estimates.low.days",
                     header: "D",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.low?.days ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-indigo-500 font-medium">{row.original.estimates?.low?.days ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.low.hours",
                     header: "H",
-                    cell: ({ row }) => <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{row.original.estimates?.low?.hours ?? 0}</span>,
+                    cell: ({ row }) => <span className="text-xs text-indigo-500 font-medium">{row.original.estimates?.low?.hours ?? 0}</span>,
                 },
                 {
                     accessorKey: "estimates.low.percentage",
@@ -101,7 +153,7 @@ export default function TaskTemplates() {
                         const days = row.original.estimates?.low?.days ?? 0;
                         const hours = row.original.estimates?.low?.hours ?? 0;
                         const percentage = days > 0 ? hours / (days * 8) : 0;
-                        return <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{formatPercentage(percentage)}</span>;
+                        return <span className="text-xs text-indigo-400 font-bold">{formatPercentage(percentage)}</span>;
                     },
                 },
             ],
@@ -237,6 +289,8 @@ export default function TaskTemplates() {
             estimates: {
                 ...initialFormState.estimates,
                 ...task.estimates,
+                trivial: { ...initialFormState.estimates.trivial, ...task.estimates?.trivial },
+                small: { ...initialFormState.estimates.small, ...task.estimates?.small },
                 low: { ...initialFormState.estimates.low, ...task.estimates?.low },
                 medium: { ...initialFormState.estimates.medium, ...task.estimates?.medium },
                 high: { ...initialFormState.estimates.high, ...task.estimates?.high },
@@ -428,10 +482,12 @@ export default function TaskTemplates() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 px-6">
-                            {['low', 'medium', 'high', 'sophisticated'].map(level => {
+                            {['trivial', 'small', 'low', 'medium', 'high', 'sophisticated'].map(level => {
                                 const levelConfig = {
+                                    trivial: { icon: Clock, color: "text-slate-500", bg: "bg-slate-50" },
+                                    small: { icon: Zap, color: "text-emerald-500", bg: "bg-emerald-50" },
                                     low: { icon: Clock, color: "text-indigo-500", bg: "bg-indigo-50" },
-                                    medium: { icon: Activity, color: "text-emerald-500", bg: "bg-emerald-50" },
+                                    medium: { icon: Activity, color: "text-blue-500", bg: "bg-blue-50" },
                                     high: { icon: Zap, color: "text-purple-500", bg: "bg-purple-50" },
                                     sophisticated: { icon: Scale, color: "text-rose-500", bg: "bg-rose-50" }
                                 }[level];

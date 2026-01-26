@@ -3,7 +3,17 @@
  * Handles SLA status, MTTR, and compliance rates
  */
 
-import { parseISO, isAfter, isBefore, differenceInHours } from 'date-fns';
+import { parseISO, isAfter, isBefore, differenceInHours, addHours } from 'date-fns';
+
+/**
+ * Priority to SLA hours mapping
+ */
+export const PRIORITY_SLA_HOURS = {
+    'P1': 4,      // 4 hours
+    'P2': 24,     // 1 day
+    'P3': 72,     // 3 days
+    'P4': 168,    // 7 days
+};
 
 /**
  * Calculate SLA Status based on deadline
@@ -27,6 +37,18 @@ export function calculateSLAStatus(deadline) {
     }
 
     return 'Within SLA';
+}
+
+/**
+ * Calculate SLA Deadline based on priority
+ * @param {string|Date} startTime - When the ticket was created/assigned
+ * @param {string} priority - P1 | P2 | P3 | P4
+ * @returns {Date} Calculated deadline
+ */
+export function calculateSLADeadline(startTime, priority) {
+    const start = typeof startTime === 'string' ? parseISO(startTime) : startTime;
+    const hours = PRIORITY_SLA_HOURS[priority] || 72; // Default to P3 if unknown
+    return addHours(start, hours);
 }
 
 /**

@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { FormField, FormGrid, FormSection } from "@/components/ui/form-field"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import {
     Plus,
@@ -43,7 +45,9 @@ import {
     UserPlus,
     Users,
     Search,
-    ChevronRight
+    ChevronRight,
+    Building2,
+    CheckSquare
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import './LibraryPage.css';
@@ -58,6 +62,8 @@ const emptyMember = {
     type: 'FULLSTACK',
     maxHoursPerWeek: 40,
     costTierId: '',
+    costCenterId: '',
+    defaultCoaId: '',
     isActive: true,
 };
 
@@ -67,6 +73,7 @@ export default function TeamMembers() {
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
     const [memberToDelete, setMemberToDelete] = useState(null);
 
@@ -75,8 +82,50 @@ export default function TeamMembers() {
     const [errors, setErrors] = useState({});
     const [globalFilter, setGlobalFilter] = useState("");
 
+    // Bulk assignment state
+    const [selectedMembers, setSelectedMembers] = useState(new Set());
+    const [bulkCostCenterId, setBulkCostCenterId] = useState('');
+    const [bulkCoaId, setBulkCoaId] = useState('');
+    const [bulkType, setBulkType] = useState('cost-center'); // 'cost-center' or 'coa'
+
     // TanStack Table Columns
     const columns = useMemo(() => [
+        {
+            id: "select",
+            header: ({ table }) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected()}
+                    onCheckedChange={(value) => {
+                        table.toggleAllPageRowsSelected(!!value);
+                        if (value) {
+                            setSelectedMembers(new Set(state.members.map(m => m.id)));
+                        } else {
+                            setSelectedMembers(new Set());
+                        }
+                    }}
+                    aria-label="Select all"
+                    className="translate-y-[2px]"
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={selectedMembers.has(row.original.id)}
+                    onCheckedChange={(value) => {
+                        const newSelected = new Set(selectedMembers);
+                        if (value) {
+                            newSelected.add(row.original.id);
+                        } else {
+                            newSelected.delete(row.original.id);
+                        }
+                        setSelectedMembers(newSelected);
+                    }}
+                    aria-label="Select row"
+                    className="translate-y-[2px]"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
         {
             accessorKey: "id",
             header: "ID",
@@ -119,6 +168,18 @@ export default function TeamMembers() {
             },
         },
         {
+            accessorKey: "costCenterId",
+            header: "Cost Center",
+            cell: ({ row }) => {
+                const costCenter = state.costCenters.find(cc => cc.id === row.original.costCenterId);
+                return costCenter ? (
+                    <span className="text-sm text-slate-600">{costCenter.name}</span>
+                ) : (
+                    <span className="text-xs text-slate-400">Not assigned</span>
+                );
+            },
+        },
+        {
             accessorKey: "maxHoursPerWeek",
             header: "Cap / Week",
             cell: ({ row }) => <span className="tabular-nums font-medium text-slate-600">{row.getValue("maxHoursPerWeek")}h</span>,
@@ -136,6 +197,18 @@ export default function TeamMembers() {
             ),
         },
         {
+            accessorKey: "defaultCoaId",
+            header: "Default Account",
+            cell: ({ row }) => {
+                const coa = state.coa.find(c => c.id === row.original.defaultCoaId);
+                return coa ? (
+                    <span className="text-sm text-slate-600 font-medium">{coa.code}</span>
+                ) : (
+                    <span className="text-xs text-slate-400">Not assigned</span>
+                );
+            },
+        },
+        {
             id: "actions",
             header: () => <div className="text-right">Actions</div>,
             cell: ({ row }) => (
@@ -149,9 +222,10 @@ export default function TeamMembers() {
                 </div>
             ),
         },
-    ], [state.costs]);
+    ], [state.costs, state.costCenters]);
 
     const [sorting, setSorting] = useState([]);
+    const [rowSelection, setRowSelection] = useState({});
 
     const table = useReactTable({
         data: state.members,
@@ -161,7 +235,10 @@ export default function TeamMembers() {
         state: {
             sorting,
             globalFilter,
+            rowSelection,
         },
+        enableRowSelection: true,
+        onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
     });
@@ -200,6 +277,14 @@ export default function TeamMembers() {
 
     // Handle form input change
     const handleChange = (name, value) => {
+        // Convert special select values back to empty strings
+        if (name === 'costCenterId' && value === 'no-cost-center') {
+            value = '';
+        }
+        if (name === 'costTierId' && value === 'none') {
+            value = '';
+        }
+
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
@@ -214,6 +299,19 @@ export default function TeamMembers() {
         if (!formData.maxHoursPerWeek || formData.maxHoursPerWeek < 1) {
             newErrors.maxHoursPerWeek = 'Max hours must be at least 1';
         }
+
+        // Validate cost center assignment (Mandatory per Recommendation 2.1)
+        if (!formData.costCenterId) {
+            newErrors.costCenterId = 'Cost Center assignment is mandatory';
+        } else {
+            const costCenter = state.costCenters.find(cc => cc.id === formData.costCenterId);
+            if (!costCenter) {
+                newErrors.costCenterId = 'Selected cost center does not exist';
+            } else if (!costCenter.isActive) {
+                newErrors.costCenterId = 'Cannot assign to inactive cost center';
+            }
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -238,6 +336,74 @@ export default function TeamMembers() {
         setMemberToDelete(null);
     };
 
+    // Bulk assignment functions
+    const handleBulkAssign = (type = 'cost-center') => {
+        if (selectedMembers.size === 0) return;
+        setBulkType(type);
+        setBulkCostCenterId('');
+        setBulkCoaId('');
+        setIsBulkAssignOpen(true);
+    };
+
+    const handleBulkAssignSubmit = () => {
+        if (bulkType === 'cost-center') {
+            // Convert special select value back to empty string
+            let assignedCostCenterId = bulkCostCenterId;
+            if (bulkCostCenterId === 'no-cost-center') {
+                assignedCostCenterId = '';
+            }
+
+            // If assigning to a real cost center, validate it
+            if (assignedCostCenterId) {
+                const costCenter = state.costCenters.find(cc => cc.id === assignedCostCenterId);
+                if (!costCenter || !costCenter.isActive) {
+                    return;
+                }
+            }
+
+            // Update all selected members
+            selectedMembers.forEach(memberId => {
+                const member = state.members.find(m => m.id === memberId);
+                if (member) {
+                    const updatedMember = {
+                        ...member,
+                        costCenterId: assignedCostCenterId,
+                        updatedAt: new Date().toISOString(),
+                    };
+                    dispatch({ type: ACTIONS.UPDATE_MEMBER, payload: updatedMember });
+                }
+            });
+        } else {
+            // COA assignment
+            let assignedCoaId = bulkCoaId;
+            if (bulkCoaId === 'no-coa') {
+                assignedCoaId = '';
+            }
+
+            selectedMembers.forEach(memberId => {
+                const member = state.members.find(m => m.id === memberId);
+                if (member) {
+                    const updatedMember = {
+                        ...member,
+                        defaultCoaId: assignedCoaId,
+                        updatedAt: new Date().toISOString(),
+                    };
+                    dispatch({ type: ACTIONS.UPDATE_MEMBER, payload: updatedMember });
+                }
+            });
+        }
+
+        // Clear selection and close modal
+        setSelectedMembers(new Set());
+        setIsBulkAssignOpen(false);
+        setBulkCostCenterId('');
+        setBulkCoaId('');
+    };
+
+    const handleClearSelection = () => {
+        setSelectedMembers(new Set());
+    };
+
     return (
         <div className="library-page space-y-6 animate-in fade-in duration-500">
             {/* Header section with glass effect */}
@@ -252,11 +418,51 @@ export default function TeamMembers() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Add member
-                </Button>
+                <div className="flex gap-2">
+                    <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add member
+                    </Button>
+                </div>
             </div>
+
+            {/* Bulk Actions Bar */}
+            {selectedMembers.size > 0 && (
+                <div className="flex items-center justify-between bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                    <div className="flex items-center gap-3">
+                        <CheckSquare className="h-5 w-5 text-indigo-600" />
+                        <span className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                            {selectedMembers.size} member{selectedMembers.size !== 1 ? 's' : ''} selected
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleClearSelection}
+                            className="text-indigo-600 border-indigo-200 hover:bg-indigo-100"
+                        >
+                            Clear selection
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={() => handleBulkAssign('cost-center')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                            <Building2 className="mr-2 h-4 w-4" />
+                            Assign Cost Center
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={() => handleBulkAssign('coa')}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                            <CheckSquare className="mr-2 h-4 w-4" />
+                            Assign COA
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
@@ -325,46 +531,48 @@ export default function TeamMembers() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-8 space-y-6 pt-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <Label htmlFor="name" className="text-right">Name</Label>
+                    <FormSection>
+                        <FormGrid>
+                            <FormField label="Name" error={errors.name} required>
+                                <Input
+                                    value={formData.name}
+                                    onChange={(e) => handleChange('name', e.target.value)}
+                                    className={cn("rounded-lg h-9", errors.name && "border-red-500")}
+                                    placeholder="e.g. John Doe"
+                                />
+                            </FormField>
+
+                            <FormField label="Role Type" required>
+                                <Select value={formData.type} onValueChange={(v) => handleChange('type', v)}>
+                                    <SelectTrigger className="rounded-lg h-9">
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getRoleOptions().map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
+                        </FormGrid>
+
+                        <FormField label="Max Hours per Week" required>
                             <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => handleChange('name', e.target.value)}
-                                className={cn("rounded-lg", errors.name && "border-red-500")}
-                                placeholder="e.g. John Doe"
-                            />
-                            {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Label htmlFor="type" className="text-right">Role Type</Label>
-                            <Select value={formData.type} onValueChange={(v) => handleChange('type', v)}>
-                                <SelectTrigger className="rounded-lg">
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getRoleOptions().map(opt => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Label htmlFor="hours" className="text-right">Max Hours per Week</Label>
-                            <Input
-                                id="hours"
                                 type="number"
                                 value={formData.maxHoursPerWeek}
                                 onChange={(e) => handleChange('maxHoursPerWeek', parseInt(e.target.value))}
-                                className="rounded-lg"
+                                className="rounded-lg h-9"
+                                placeholder="e.g. 40"
                             />
-                        </div>
+                        </FormField>
+
                         {roleHasCostTracking(formData.type) && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <Label htmlFor="costTier" className="text-right">Cost Tier</Label>
-                                <Select value={formData.costTierId} onValueChange={(v) => handleChange('costTierId', v)}>
-                                    <SelectTrigger className="rounded-lg">
+                            <FormField label="Cost Tier">
+                                <Select
+                                    value={formData.costTierId || 'none'}
+                                    onValueChange={(v) => handleChange('costTierId', v)}
+                                >
+                                    <SelectTrigger className="rounded-lg h-9">
                                         <SelectValue placeholder="Select cost tier" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -378,20 +586,62 @@ export default function TeamMembers() {
                                             ))}
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </FormField>
                         )}
-                        <div className="flex items-center space-x-2 pt-2 col-span-2">
-                            <Checkbox
+
+                        <FormField label="Cost Center" error={errors.costCenterId}>
+                            <Select
+                                value={formData.costCenterId || 'no-cost-center'}
+                                onValueChange={(v) => handleChange('costCenterId', v)}
+                            >
+                                <SelectTrigger className="rounded-lg h-9">
+                                    <SelectValue placeholder="Select cost center" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="no-cost-center">No cost center</SelectItem>
+                                    {state.costCenters
+                                        .filter(cc => cc.isActive)
+                                        .map(costCenter => (
+                                            <SelectItem key={costCenter.id} value={costCenter.id}>
+                                                {costCenter.code} - {costCenter.name}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        </FormField>
+
+                        <FormField label="Default Account (COA)">
+                            <Select
+                                value={formData.defaultCoaId || 'no-coa'}
+                                onValueChange={(v) => handleChange('defaultCoaId', v === 'no-coa' ? '' : v)}
+                            >
+                                <SelectTrigger className="rounded-lg h-9">
+                                    <SelectValue placeholder="Select account..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="no-coa">No account (use tier default)</SelectItem>
+                                    {state.coa
+                                        .filter(c => c.isActive)
+                                        .map(account => (
+                                            <SelectItem key={account.id} value={account.id}>
+                                                {account.code} - {account.name}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        </FormField>
+
+                        <div className="flex items-center space-x-3 pt-2">
+                            <Switch
                                 id="isActive"
                                 checked={formData.isActive}
                                 onCheckedChange={(v) => handleChange('isActive', v)}
-                                className="rounded-[4px]"
                             />
                             <Label htmlFor="isActive" className="text-sm font-medium leading-none cursor-pointer">
                                 Active Member
                             </Label>
                         </div>
-                    </div>
+                    </FormSection>
                     <DialogFooter>
                         <Button
                             variant="ghost"
@@ -423,6 +673,103 @@ export default function TeamMembers() {
                     <DialogFooter className="gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
                         <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Member</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Bulk Assignment Dialog */}
+            <Dialog open={isBulkAssignOpen} onOpenChange={setIsBulkAssignOpen}>
+                <DialogContent className="sm:max-w-[400px] rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            {bulkType === 'cost-center' ? <Building2 className="h-5 w-5 text-indigo-600" /> : <CheckSquare className="h-5 w-5 text-emerald-600" />}
+                            Bulk {bulkType === 'cost-center' ? 'Cost Center' : 'Account'} Assignment
+                        </DialogTitle>
+                        <DialogDescription>
+                            Assign a {bulkType === 'cost-center' ? 'cost center' : 'chart of account'} to {selectedMembers.size} selected team member{selectedMembers.size !== 1 ? 's' : ''}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {bulkType === 'cost-center' ? (
+                            <FormField label="Cost Center" required>
+                                <Select
+                                    value={bulkCostCenterId || 'no-cost-center'}
+                                    onValueChange={setBulkCostCenterId}
+                                >
+                                    <SelectTrigger className="rounded-lg h-9">
+                                        <SelectValue placeholder="Select cost center" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="no-cost-center">No cost center</SelectItem>
+                                        {state.costCenters
+                                            .filter(cc => cc.isActive)
+                                            .map(costCenter => (
+                                                <SelectItem key={costCenter.id} value={costCenter.id}>
+                                                    {costCenter.code} - {costCenter.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
+                        ) : (
+                            <FormField label="Chart of Accounts" required>
+                                <Select
+                                    value={bulkCoaId || 'no-coa'}
+                                    onValueChange={setBulkCoaId}
+                                >
+                                    <SelectTrigger className="rounded-lg h-9">
+                                        <SelectValue placeholder="Select account..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="no-coa">No account</SelectItem>
+                                        {state.coa
+                                            .filter(c => c.isActive)
+                                            .map(account => (
+                                                <SelectItem key={account.id} value={account.id}>
+                                                    {account.code} - {account.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
+                        )}
+
+                        {selectedMembers.size > 0 && (
+                            <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg">
+                                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Selected Members:</p>
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                    {Array.from(selectedMembers).map(memberId => {
+                                        const member = state.members.find(m => m.id === memberId);
+                                        return member ? (
+                                            <div key={memberId} className="text-sm text-slate-700 dark:text-slate-300">
+                                                {member.name} ({member.type})
+                                            </div>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsBulkAssignOpen(false)}
+                            className="rounded-xl"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleBulkAssignSubmit}
+                            disabled={bulkType === 'cost-center' ? !bulkCostCenterId : !bulkCoaId}
+                            className={cn(
+                                "rounded-xl font-bold",
+                                bulkType === 'cost-center' ? "bg-indigo-600 hover:bg-indigo-700" : "bg-emerald-600 hover:bg-emerald-700"
+                            )}
+                        >
+                            Assign to {selectedMembers.size} Member{selectedMembers.size !== 1 ? 's' : ''}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

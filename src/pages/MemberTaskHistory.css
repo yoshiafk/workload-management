@@ -185,6 +185,12 @@
     white-space: nowrap;
 }
 
+.member-history-page .cell-span {
+    text-align: center;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+}
+
 .member-history-page .empty-row {
     text-align: center;
     color: hsl(var(--muted-foreground));

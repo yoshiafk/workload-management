@@ -8,9 +8,10 @@ const statusBadgeVariants = cva(
     variants: {
       status: {
         available: "bg-success/10 text-success border border-success/20",
-        busy: "bg-primary/10 text-primary border border-primary/20",
-        limited: "bg-warning/10 text-warning border border-warning/20",
-        "at-capacity": "bg-destructive/10 text-destructive border border-destructive/20",
+        light: "bg-sky-500/10 text-sky-600 border border-sky-500/20",
+        moderate: "bg-blue-500/10 text-blue-600 border border-blue-500/20",
+        heavy: "bg-warning/10 text-warning border border-warning/20",
+        "over-capacity": "bg-destructive/10 text-destructive border border-destructive/20",
         leave: "bg-muted text-muted-foreground border border-border",
         active: "bg-success/10 text-success border border-success/20",
         inactive: "bg-muted text-muted-foreground border border-border",
@@ -42,24 +43,25 @@ const StatusBadge = React.forwardRef(({
 }, ref) => {
   // Auto-generate label from status if not provided
   const displayLabel = label || status?.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
-  
+
   return (
-    <span 
+    <span
       ref={ref}
       className={cn(statusBadgeVariants({ status, size }), className)}
       {...props}
     >
       {showDot && (
-        <span 
+        <span
           className={cn(
             "w-1.5 h-1.5 rounded-full",
             status === "available" && "bg-success",
             status === "active" && "bg-success",
             status === "completed" && "bg-success",
-            status === "busy" && "bg-primary",
-            status === "limited" && "bg-warning",
+            status === "light" && "bg-sky-500",
+            status === "moderate" && "bg-blue-500",
+            status === "heavy" && "bg-warning",
             status === "pending" && "bg-warning",
-            status === "at-capacity" && "bg-destructive",
+            status === "over-capacity" && "bg-destructive",
             status === "overdue" && "bg-destructive",
             status === "leave" && "bg-muted-foreground",
             status === "inactive" && "bg-muted-foreground",

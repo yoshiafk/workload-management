@@ -21,9 +21,11 @@ import {
  * @param {Array} holidays - Holiday records
  * @param {Array} leaves - Leave records
  * @param {Array} members - Team member records
+ * @param {Array} costCenters - Cost center records (optional)
+ * @param {Array} coa - Chart of accounts records (optional)
  * @returns {Array} Updated allocations with recalculated values
  */
-export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = []) {
+export function recalculateAllocations(allocations, complexity, costs, tasks, holidays, leaves, members = [], costCenters = [], coa = [], settings = {}) {
     return allocations.map(allocation => {
         // Skip if missing required fields
         if (!allocation.plan?.taskStart || !allocation.resource || !allocation.complexity) {
@@ -31,18 +33,35 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
         }
 
         try {
-            // Find the member to get their costTierId
+            // Find the member to get their costTierId, costCenterId, and defaultCoaId
             const member = members.find(m => m.name === allocation.resource);
             const costTierId = member?.costTierId;
+            const memberCostCenterId = member?.costCenterId;
+            const memberDefaultCoaId = member?.defaultCoaId;
 
-            // Recalculate end date
+            // Find the cost tier and its COA mapping
+            const costTier = costs.find(c => c.id === costTierId);
+
+            // Determine effective COA ID (Member override > Tier default)
+            const effectiveCoaId = memberDefaultCoaId || costTier?.coaId;
+
+            // Find the cost center information
+            const costCenter = costCenters.find(cc => cc.id === memberCostCenterId);
+
+            // Find the COA information
+            const coaEntry = coa.find(c => c.id === effectiveCoaId);
+
+            // Recalculate end date with capacity factor and cuti bersama settings
             const taskEnd = calculatePlanEndDate(
                 allocation.plan.taskStart,
                 allocation.complexity,
                 allocation.resource,
                 holidays,
                 leaves,
-                complexity
+                complexity,
+                allocation.category,
+                settings?.capacityFactor ?? 0.85,
+                settings?.includeCutiBersama ?? true
             );
 
             // Support tasks have zero cost
@@ -51,7 +70,8 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                 allocation.complexity,
                 costTierId || allocation.resource, // Fallback to name if no ID (for legacy/custom)
                 complexity,
-                costs
+                costs,
+                allocation.category
             ) : 0;
 
             // Recalculate monthly cost
@@ -65,8 +85,23 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
             const workload = calculateWorkloadPercentage(
                 allocation.taskName,
                 allocation.complexity,
-                tasks
+                tasks,
+                allocation.category
             );
+
+            // Update cost center information
+            const costCenterSnapshot = costCenter ? {
+                id: costCenter.id,
+                code: costCenter.code,
+                name: costCenter.name,
+            } : null;
+
+            // COA integration
+            const coaSnapshot = coaEntry ? {
+                id: coaEntry.id,
+                code: coaEntry.code,
+                name: coaEntry.name,
+            } : null;
 
             return {
                 ...allocation,
@@ -77,6 +112,12 @@ export function recalculateAllocations(allocations, complexity, costs, tasks, ho
                     costMonthly,
                 },
                 workload,
+                // Cost center integration
+                costCenterId: memberCostCenterId || '',
+                costCenterSnapshot,
+                // COA integration
+                coaId: effectiveCoaId || '',
+                coaSnapshot,
             };
         } catch (error) {
             console.error(`[Recalculate] Failed for allocation ${allocation.id}:`, error);

@@ -24,11 +24,15 @@ import {
     ListTodo,
     SlidersHorizontal,
     Coins,
+    Building2,
+    Receipt,
+    BarChart3,
     Settings,
     X,
     PanelLeftClose,
     PanelLeft
 } from 'lucide-react';
+import { CURRENT_VERSION } from '../../utils/migration';
 import logo from '../../assets/logo.svg';
 import './Sidebar.css';
 
@@ -56,6 +60,9 @@ const navItems = [
             { path: '/library/tasks', label: 'Task Templates', icon: ListTodo },
             { path: '/library/complexity', label: 'Complexity', icon: SlidersHorizontal },
             { path: '/library/costs', label: 'Resource Costs', icon: Coins },
+            { path: '/library/cost-centers', label: 'Cost Centers', icon: Building2 },
+            { path: '/library/chart-of-accounts', label: 'Chart of Accounts', icon: Receipt },
+            { path: '/library/cost-center-reports', label: 'Cost Center Reports', icon: BarChart3 },
         ],
     },
     {
@@ -247,11 +254,11 @@ export default function Sidebar({ isOpen, onClose }) {
                     {!isCollapsed ? (
                         <div className="sidebar-version">
                             <span>Version</span>
-                            <span className="sidebar-version-number">1.1.0</span>
+                            <span className="sidebar-version-number">{CURRENT_VERSION}</span>
                         </div>
                     ) : (
                         <div className="sidebar-version-collapsed">
-                            1.1
+                            {CURRENT_VERSION.split('.').slice(0, 2).join('.')}
                         </div>
                     )}
                 </div>
