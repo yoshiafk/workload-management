@@ -11,6 +11,9 @@ import {
 import { calculateSLAStatus, getPriorityColor } from '../utils/supportCalculations';
 import { getStatusOptions } from '../data/defaultStatuses';
 import { getTagOptions } from '../data/defaultTags';
+import { validateAllocationCreation } from '../utils/validationEngine';
+import { resourceAllocationEngine } from '../utils/resourceAllocation';
+import { searchByDemandNumberEnhanced } from '../utils/dashboardEngine';
 
 import {
     flexRender,
@@ -128,6 +131,9 @@ export default function ResourceAllocation() {
     // Form state
     const [formData, setFormData] = useState(emptyAllocation);
     const [errors, setErrors] = useState({});
+    const [validationResults, setValidationResults] = useState([]);
+    const [isValidating, setIsValidating] = useState(false);
+    const [strictEnforcement, setStrictEnforcement] = useState(true); // Enable strict over-allocation prevention
 
     // Filter states
     const [filterResource, setFilterResource] = useState('');
@@ -135,6 +141,7 @@ export default function ResourceAllocation() {
     const [filterCategory, setFilterCategory] = useState('');
     const [filterComplexity, setFilterComplexity] = useState('');
     const [searchText, setSearchText] = useState('');
+    const [demandNumberSearch, setDemandNumberSearch] = useState(''); // New demand number search state
 
     // Read URL query parameters on mount
     useEffect(() => {
@@ -151,21 +158,43 @@ export default function ResourceAllocation() {
 
     // Filtered allocations
     const filteredAllocations = useMemo(() => {
-        return allocations.filter(a => {
+        let filtered = allocations;
+
+        // Apply basic filters first
+        filtered = filtered.filter(a => {
             if (filterResource && a.resource !== filterResource) return false;
             if (filterStatus && a.status !== filterStatus) return false;
             if (filterCategory && a.category?.toLowerCase() !== filterCategory.toLowerCase()) return false;
             if (filterComplexity && a.complexity?.toLowerCase() !== filterComplexity.toLowerCase()) return false;
-            if (searchText) {
-                const search = searchText.toLowerCase();
+            return true;
+        });
+
+        // Apply general search text
+        if (searchText) {
+            const search = searchText.toLowerCase();
+            filtered = filtered.filter(a => {
                 const matchActivity = a.activityName?.toLowerCase().includes(search);
                 const matchDemand = a.demandNumber?.toLowerCase().includes(search);
                 const matchPhase = a.phase?.toLowerCase().includes(search);
-                if (!matchActivity && !matchDemand && !matchPhase) return false;
-            }
-            return true;
-        });
-    }, [allocations, filterResource, filterStatus, filterCategory, filterComplexity, searchText]);
+                return matchActivity || matchDemand || matchPhase;
+            });
+        }
+
+        // Apply demand number search (enhanced search for Support issues)
+        if (demandNumberSearch) {
+            const searchResults = searchByDemandNumberEnhanced(filtered, demandNumberSearch, {
+                includeAllCategories: true, // Search in all categories, not just Support
+                searchInTicketId: true,
+                searchInActivityName: true,
+                includeRelated: true
+            });
+            
+            // Combine main matches and related matches
+            filtered = [...searchResults.mainMatches, ...searchResults.relatedMatches];
+        }
+
+        return filtered;
+    }, [allocations, filterResource, filterStatus, filterCategory, filterComplexity, searchText, demandNumberSearch]);
 
     // Dynamically filter tasks based on selected phase
     const taskOptions = useMemo(() => {
@@ -195,47 +224,76 @@ export default function ResourceAllocation() {
 
     // Calculate plan values when relevant form data changes
     const calculatedPlan = useMemo(() => {
-        if (!formData.plan?.taskStart || !formData.resource || !formData.complexity) {
-            return { taskEnd: '', costProject: 0, costMonthly: 0, costCenterSnapshot: null };
-        }
+        // Initialize default values
+        let taskEnd = '';
+        let costProject = 0;
+        let costMonthly = 0;
+        let costCenterSnapshot = null;
 
-        const member = state.members.find(m => m.name === formData.resource);
+        // Find member information first
+        const member = formData.resource ? state.members.find(m => m.name === formData.resource) : null;
         const costTierId = member?.costTierId;
         const memberCostCenterId = member?.costCenterId;
+        const tierLevel = member?.tierLevel || 2; // Default to mid-tier if not specified
 
         // Find the cost center information
-        const costCenter = state.costCenters.find(cc => cc.id === memberCostCenterId);
-        const costCenterSnapshot = costCenter ? {
+        const costCenter = memberCostCenterId ? state.costCenters.find(cc => cc.id === memberCostCenterId) : null;
+        costCenterSnapshot = costCenter ? {
             id: costCenter.id,
             code: costCenter.code,
             name: costCenter.name,
         } : null;
 
-        const taskEnd = calculatePlanEndDate(
-            formData.plan.taskStart,
-            formData.complexity,
-            formData.resource,
-            holidays,
-            leaves,
-            complexity
-        );
+        // Calculate end date if we have start date, complexity, and resource
+        if (formData.plan?.taskStart && formData.complexity && formData.resource) {
+            try {
+                const endDate = calculatePlanEndDate(
+                    formData.plan.taskStart,
+                    formData.complexity,
+                    formData.resource,
+                    holidays,
+                    leaves,
+                    complexity
+                );
+                taskEnd = endDate.toISOString().split('T')[0];
+            } catch (error) {
+                console.warn('Error calculating end date:', error);
+                taskEnd = '';
+            }
+        }
 
+        // Calculate costs if we have the required fields and it's a Project
         const isProject = formData.category === 'Project';
-        const costProject = isProject ? calculateProjectCost(
-            formData.complexity,
-            costTierId || formData.resource,
-            complexity,
-            costs
-        ) : 0;
+        if (isProject && formData.complexity && (costTierId || formData.resource)) {
+            try {
+                // Use enhanced cost calculation with tier-based adjustments
+                costProject = calculateProjectCost(
+                    formData.complexity,
+                    costTierId || formData.resource,
+                    complexity,
+                    costs,
+                    tierLevel, // Pass tier level for enhanced calculations
+                    1.0,       // Default to 100% allocation
+                    false      // Use enhanced calculation, not legacy
+                );
 
-        const costMonthly = calculateMonthlyCost(
-            costProject,
-            formData.plan.taskStart,
-            taskEnd
-        );
+                // Calculate monthly cost if we have project cost and dates
+                if (costProject > 0 && formData.plan?.taskStart && taskEnd) {
+                    costMonthly = calculateMonthlyCost(
+                        costProject,
+                        formData.plan.taskStart,
+                        taskEnd
+                    );
+                }
+            } catch (error) {
+                console.warn('Error calculating costs:', error);
+                costProject = 0;
+                costMonthly = 0;
+            }
+        }
 
         return {
-            taskEnd: taskEnd.toISOString().split('T')[0],
+            taskEnd,
             costProject,
             costMonthly,
             costCenterSnapshot,
@@ -244,7 +302,15 @@ export default function ResourceAllocation() {
 
     // Open add modal
     const handleAdd = () => {
-        setFormData({ ...emptyAllocation, id: generateId() });
+        const today = new Date().toISOString().split('T')[0];
+        setFormData({ 
+            ...emptyAllocation, 
+            id: generateId(),
+            plan: {
+                ...emptyAllocation.plan,
+                taskStart: today // Set default start date to today
+            }
+        });
         setEditingAllocation(null);
         setErrors({});
         setIsFormOpen(true);
@@ -264,7 +330,7 @@ export default function ResourceAllocation() {
         setIsDeleteOpen(true);
     };
 
-    // Handle form input change
+            // Handle form input change
     const handleChange = (name, value) => {
         setFormData(prev => {
             let next = { ...prev };
@@ -279,6 +345,7 @@ export default function ResourceAllocation() {
                 next[name] = value;
             }
 
+            // Auto-set category-specific defaults
             if (name === 'category' && (value === 'Support' || value === 'Maintenance')) {
                 const itOpsPhase = phases.find(p => p.name === 'IT Operations & Support');
                 if (itOpsPhase) {
@@ -288,12 +355,14 @@ export default function ResourceAllocation() {
                         next.taskName = '';
                     }
                 }
+                // Set default start date if not already set
                 if (!prev.plan?.taskStart) {
                     const today = new Date().toISOString().split('T')[0];
                     next.plan = { ...prev.plan, taskStart: today };
                 }
             }
 
+            // Handle phase changes
             if (name === 'phase') {
                 const selectedPhase = phases.find(p => p.name === value);
                 const currentTask = tasks.find(t => t.name === prev.taskName);
@@ -310,17 +379,46 @@ export default function ResourceAllocation() {
                 }
             }
 
+            // Handle SLA deadline changes
             if (name === 'slaDeadline') {
                 next.slaStatus = calculateSLAStatus(value);
+            }
+
+            // Set default start date when resource or complexity is selected for Project category
+            if ((name === 'resource' || name === 'complexity') && next.category === 'Project' && !next.plan?.taskStart) {
+                const today = new Date().toISOString().split('T')[0];
+                next.plan = { ...next.plan, taskStart: today };
             }
 
             return next;
         });
 
+        // Clear related errors when fields are updated
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
+
+        // Clear validation results when key fields change
+        if (['resource', 'allocationPercentage', 'plan.taskStart'].includes(name)) {
+            setValidationResults([]);
+            setErrors(prev => {
+                const { overAllocation, validation, ...rest } = prev;
+                return rest;
+            });
+        }
     };
+
+    // Trigger validation when resource or allocation details change
+    useEffect(() => {
+        if (formData.resource && formData.plan?.taskStart && calculatedPlan.taskEnd) {
+            // Debounce validation to avoid excessive calls
+            const timeoutId = setTimeout(() => {
+                validateAllocation();
+            }, 1000);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [formData.resource, formData.allocationPercentage, formData.plan?.taskStart, calculatedPlan.taskEnd]);
 
     const validate = () => {
         const newErrors = {};
@@ -334,12 +432,95 @@ export default function ResourceAllocation() {
             if (!formData.priority) newErrors.priority = 'Priority is required';
             if (!formData.slaDeadline) newErrors.slaDeadline = 'SLA Deadline is required';
         }
+
+        // Add validation for cost calculation requirements
+        if (formData.category === 'Project') {
+            if (!formData.complexity) newErrors.complexity = 'Complexity is required for cost calculation';
+            if (!formData.resource) newErrors.resource = 'Resource is required for cost calculation';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
-        if (!validate()) return;
+    // Comprehensive validation including over-allocation prevention
+    const validateAllocation = async () => {
+        if (!validate()) return false;
+
+        setIsValidating(true);
+        setValidationResults([]);
+
+        try {
+            // Prepare allocation data for validation
+            const allocationData = {
+                resource: formData.resource,
+                allocationPercentage: formData.allocationPercentage || 1.0, // Default to 100%
+                startDate: formData.plan?.taskStart,
+                endDate: calculatedPlan.taskEnd,
+                taskRequirements: [], // Could be enhanced to include skill requirements
+                complexity: formData.complexity,
+                category: formData.category
+            };
+
+            // Get existing allocations (exclude current allocation if editing)
+            const existingAllocations = editingAllocation 
+                ? allocations.filter(a => a.id !== editingAllocation.id)
+                : allocations;
+
+            // Run comprehensive validation
+            const results = await validateAllocationCreation(
+                allocationData,
+                existingAllocations,
+                members,
+                leaves, // Leave schedules
+                {
+                    strictEnforcement,
+                    allowOverAllocation: !strictEnforcement,
+                    validateCapacityLimits: true,
+                    validateLeaveSchedules: true
+                }
+            );
+
+            setValidationResults(results);
+
+            // Check if validation passed
+            const hasErrors = results.some(r => r.severity === 'error' && !r.isValid);
+            const hasWarnings = results.some(r => r.severity === 'warning');
+
+            // In strict enforcement mode, prevent allocation if there are capacity errors
+            if (strictEnforcement && hasErrors) {
+                const capacityErrors = results.filter(r => 
+                    r.type === 'capacity_limits' && r.severity === 'error' && !r.isValid
+                );
+                
+                if (capacityErrors.length > 0) {
+                    // Add specific error for over-allocation prevention
+                    setErrors(prev => ({
+                        ...prev,
+                        overAllocation: 'Cannot create allocation: would cause over-allocation. Reduce allocation percentage or choose different resource.'
+                    }));
+                    return false;
+                }
+            }
+
+            return !hasErrors;
+
+        } catch (error) {
+            console.error('Validation error:', error);
+            setErrors(prev => ({
+                ...prev,
+                validation: `Validation failed: ${error.message}`
+            }));
+            return false;
+        } finally {
+            setIsValidating(false);
+        }
+    };
+
+    const handleSubmit = async () => {
+        // Run comprehensive validation including over-allocation prevention
+        const isValid = await validateAllocation();
+        if (!isValid) return;
 
         const workload = calculateWorkloadPercentage(
             formData.taskName,
@@ -360,6 +541,7 @@ export default function ResourceAllocation() {
                 costMonthly: calculatedPlan.costMonthly,
             },
             workload,
+            allocationPercentage: formData.allocationPercentage || 1.0, // Ensure allocation percentage is set
             // Cost center integration
             costCenterId: memberCostCenterId || '',
             costCenterSnapshot: calculatedPlan.costCenterSnapshot,
@@ -371,6 +553,7 @@ export default function ResourceAllocation() {
             dispatch({ type: ACTIONS.ADD_ALLOCATION, payload: allocationData });
         }
         setIsFormOpen(false);
+        setValidationResults([]); // Clear validation results
     };
 
     const handleDeleteConfirm = () => {
@@ -673,6 +856,31 @@ export default function ResourceAllocation() {
                 searchPlaceholder="Search activities..."
                 filters={
                     <div className="flex items-center gap-2">
+                        {/* Demand Number Search - Show prominently for Support issues */}
+                        <div className="relative">
+                            <Input
+                                placeholder="Search demand numbers..."
+                                value={demandNumberSearch}
+                                onChange={(e) => setDemandNumberSearch(e.target.value)}
+                                className={cn(
+                                    "bg-muted/30 border-none shadow-none text-xs font-bold pl-8",
+                                    isDense ? "h-8 w-[180px]" : "h-10 w-[200px]",
+                                    demandNumberSearch && "bg-primary/10 border-primary/20"
+                                )}
+                            />
+                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            {demandNumberSearch && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 hover:bg-muted"
+                                    onClick={() => setDemandNumberSearch('')}
+                                >
+                                    <CloseIcon className="h-3 w-3" />
+                                </Button>
+                            )}
+                        </div>
+
                         <Select value={filterResource} onValueChange={setFilterResource}>
                             <SelectTrigger className={cn("bg-muted/30 border-none shadow-none text-xs font-bold", isDense ? "h-8 w-[140px]" : "h-10 w-[160px]")}>
                                 <SelectValue placeholder="All Resources" />
@@ -694,6 +902,18 @@ export default function ResourceAllocation() {
                                 {getStatusOptions().map(opt => (
                                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                 ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={filterCategory} onValueChange={setFilterCategory}>
+                            <SelectTrigger className={cn("bg-muted/30 border-none shadow-none text-xs font-bold", isDense ? "h-8 w-[120px]" : "h-10 w-[140px]")}>
+                                <SelectValue placeholder="All Types" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Types</SelectItem>
+                                <SelectItem value="Support">Support</SelectItem>
+                                <SelectItem value="Project">Project</SelectItem>
+                                <SelectItem value="Maintenance">Maintenance</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -745,6 +965,27 @@ export default function ResourceAllocation() {
                     </div>
                 }
             />
+
+            {/* Search Results Info */}
+            {demandNumberSearch && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-lg">
+                    <Search className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">
+                        Searching for demand number: <strong>"{demandNumberSearch}"</strong>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                        ({filteredAllocations.length} result{filteredAllocations.length !== 1 ? 's' : ''} found)
+                    </span>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto h-6 px-2 text-xs"
+                        onClick={() => setDemandNumberSearch('')}
+                    >
+                        Clear search
+                    </Button>
+                </div>
+            )}
 
             {/* Main Table */}
             <DataTable
@@ -907,17 +1148,166 @@ export default function ResourceAllocation() {
                             <div className="p-6 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 grid grid-cols-3 gap-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Estimated End</p>
-                                    <p className="text-sm font-black text-slate-900">{calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : '—'}</p>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {calculatedPlan.taskEnd ? formatDate(calculatedPlan.taskEnd) : 
+                                         (formData.plan?.taskStart && formData.complexity && formData.resource ? 'Calculating...' : 'Select required fields')}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Project Cost</p>
-                                    <p className="text-sm font-black text-slate-900">{formData.category === 'Project' ? formatCurrency(calculatedPlan.costProject) : 'N/A'}</p>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {formData.category === 'Project' ? (
+                                            calculatedPlan.costProject > 0 ? formatCurrency(calculatedPlan.costProject) :
+                                            (formData.complexity && formData.resource ? 'Calculating...' : 'Select complexity & resource')
+                                        ) : 'N/A'}
+                                    </p>
+                                    {formData.category === 'Project' && !formData.complexity && (
+                                        <p className="text-[9px] text-amber-600 mt-1">⚠ Complexity required</p>
+                                    )}
+                                    {formData.category === 'Project' && !formData.resource && (
+                                        <p className="text-[9px] text-amber-600 mt-1">⚠ Resource required</p>
+                                    )}
+                                    {formData.category === 'Project' && formData.complexity && formData.resource && calculatedPlan.costProject === 0 && (
+                                        <p className="text-[9px] text-blue-600 mt-1">ℹ Using enhanced tier-based calculation</p>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Monthly Impact</p>
-                                    <p className="text-sm font-black text-slate-900">{formatCurrency(calculatedPlan.costMonthly)}</p>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {calculatedPlan.costMonthly > 0 ? formatCurrency(calculatedPlan.costMonthly) :
+                                         (formData.plan?.taskStart && calculatedPlan.costProject > 0 ? 'Calculating...' : 'Complete form for calculation')}
+                                    </p>
                                 </div>
                             </div>
+
+                            {/* Allocation Percentage Control */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="allocationPercentage" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">
+                                        Allocation Percentage
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id="allocationPercentage"
+                                            type="number"
+                                            min="0.1"
+                                            max="1.0"
+                                            step="0.1"
+                                            value={formData.allocationPercentage || 1.0}
+                                            onChange={(e) => handleChange('allocationPercentage', parseFloat(e.target.value) || 1.0)}
+                                            className="rounded-xl border-slate-200"
+                                        />
+                                        <span className="text-xs text-muted-foreground">
+                                            ({((formData.allocationPercentage || 1.0) * 100).toFixed(0)}%)
+                                        </span>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground ml-1">
+                                        0.1 (10%) to 1.0 (100%) of resource capacity
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">
+                                        Enforcement Mode
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="strictEnforcement"
+                                            checked={strictEnforcement}
+                                            onChange={(e) => setStrictEnforcement(e.target.checked)}
+                                            className="rounded border-border h-4 w-4 text-primary focus:ring-primary/20"
+                                        />
+                                        <Label htmlFor="strictEnforcement" className="text-xs font-medium">
+                                            Strict over-allocation prevention
+                                        </Label>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground ml-1">
+                                        {strictEnforcement ? 'Prevent allocations that would cause over-allocation' : 'Allow over-allocation with warnings'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Validation Results Display */}
+                            {validationResults.length > 0 && (
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">
+                                        Capacity & Validation Status
+                                    </Label>
+                                    <div className="space-y-2">
+                                        {validationResults.map((result, index) => (
+                                            <div
+                                                key={index}
+                                                className={cn(
+                                                    "p-3 rounded-lg border text-xs",
+                                                    result.severity === 'error' && !result.isValid
+                                                        ? "bg-red-50 border-red-200 text-red-800"
+                                                        : result.severity === 'warning'
+                                                        ? "bg-amber-50 border-amber-200 text-amber-800"
+                                                        : "bg-green-50 border-green-200 text-green-800"
+                                                )}
+                                            >
+                                                <div className="flex items-start gap-2">
+                                                    <div className={cn(
+                                                        "w-2 h-2 rounded-full mt-1 flex-shrink-0",
+                                                        result.severity === 'error' && !result.isValid
+                                                            ? "bg-red-500"
+                                                            : result.severity === 'warning'
+                                                            ? "bg-amber-500"
+                                                            : "bg-green-500"
+                                                    )} />
+                                                    <div className="flex-1">
+                                                        <p className="font-bold mb-1">{result.message}</p>
+                                                        {result.details?.recommendations && result.details.recommendations.length > 0 && (
+                                                            <ul className="list-disc list-inside space-y-1 text-[10px] opacity-80">
+                                                                {result.details.recommendations.map((rec, i) => (
+                                                                    <li key={i}>{rec}</li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                        {result.details?.conflicts && result.details.conflicts.length > 0 && (
+                                                            <div className="mt-2">
+                                                                <p className="font-bold text-[10px] uppercase tracking-wider mb-1">Conflicts:</p>
+                                                                <ul className="space-y-1 text-[10px]">
+                                                                    {result.details.conflicts.map((conflict, i) => (
+                                                                        <li key={i} className="flex justify-between">
+                                                                            <span>{conflict.projectName || conflict.type}</span>
+                                                                            {conflict.allocationPercentage && (
+                                                                                <span className="font-bold">
+                                                                                    {(conflict.allocationPercentage * 100).toFixed(0)}%
+                                                                                </span>
+                                                                            )}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Display over-allocation error */}
+                            {errors.overAllocation && (
+                                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                                    <div className="flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-red-500" />
+                                        <p className="text-sm font-bold text-red-800">{errors.overAllocation}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Display validation error */}
+                            {errors.validation && (
+                                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                                    <div className="flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-red-500" />
+                                        <p className="text-sm font-bold text-red-800">{errors.validation}</p>
+                                    </div>
+                                </div>
+                            )}
 
 
 
@@ -930,7 +1320,13 @@ export default function ResourceAllocation() {
 
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setIsFormOpen(false)} className="font-bold">Cancel</Button>
-                        <Button onClick={handleSubmit} className="shadow-lg px-8 font-bold">Save Allocation</Button>
+                        <Button 
+                            onClick={handleSubmit} 
+                            disabled={isValidating || (strictEnforcement && errors.overAllocation)}
+                            className="shadow-lg px-8 font-bold"
+                        >
+                            {isValidating ? 'Validating...' : 'Save Allocation'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

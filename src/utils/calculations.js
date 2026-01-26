@@ -95,16 +95,44 @@ export function calculatePlanEndDate(startDate, complexity, resourceName, holida
 }
 
 /**
- * Calculate Project Cost
+ * Calculate Project Cost - Main Entry Point
+ * Uses the enhanced tier-aware cost calculation by default
+ * Implements the new cost formula: Actual Effort Hours × Tier-Adjusted Hourly Rate
+ * Supports selective complexity calculation based on task category
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, User Requirement - Remove Complexity Calculation except for Project Task
+ * 
+ * @param {string} complexity - Complexity level (low/medium/high/sophisticated)
+ * @param {string} resourceReference - Team member name or cost tier ID
+ * @param {Object} complexitySettings - Enhanced complexity settings with effort-based model
+ * @param {Array} resourceCosts - Resource cost records
+ * @param {number} tierLevel - Resource tier level (1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Principal)
+ * @param {number} allocationPercentage - Allocation percentage (0.1 to 1.0, default 1.0)
+ * @param {boolean} useLegacy - Whether to use legacy calculation (default false)
+ * @param {string|Object} taskOrCategory - Task category or task object (optional, defaults to 'Project')
+ * @param {Object} taskTemplate - Task template for simple time estimates (optional)
+ * @returns {number|Object} Project cost (number for legacy, object for enhanced)
+ */
+export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, tierLevel = 2, allocationPercentage = 1.0, useLegacy = false, taskOrCategory = 'Project', taskTemplate = null) {
+    if (useLegacy) {
+        return calculateLegacyProjectCost(complexity, resourceReference, complexitySettings, resourceCosts);
+    }
+    
+    const result = calculateEnhancedProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, tierLevel, allocationPercentage, taskOrCategory, taskTemplate);
+    return result.totalCost;
+}
+
+/**
+ * Calculate Project Cost (Legacy Version - Deprecated)
  * Excel formula: =XLOOKUP(Category, ComplexityLevel, Hours) × XLOOKUP(Resource, ResourceName, PerHourCost)
  * 
+ * @deprecated Use calculateEnhancedProjectCost for new implementations
  * @param {string} complexity - Complexity level (low/medium/high)
  * @param {string} resourceReference - Team member name or cost tier ID
  * @param {Object} complexitySettings - Complexity settings
  * @param {Array} resourceCosts - Resource cost records
  * @returns {number} Project cost in IDR
  */
-export function calculateProjectCost(complexity, resourceReference, complexitySettings, resourceCosts) {
+export function calculateLegacyProjectCost(complexity, resourceReference, complexitySettings, resourceCosts) {
     if (!complexity || !resourceReference) return 0;
 
     // Get hours (BA rate) from complexity settings - this is the multiplier
@@ -113,13 +141,251 @@ export function calculateProjectCost(complexity, resourceReference, complexitySe
     // Try to find by ID first (preferred), then by name (legacy/fallback)
     const resource = resourceCosts.find(r =>
         r.id === resourceReference ||
-        r.resourceName.toLowerCase() === resourceReference.toLowerCase()
+        (r.resourceName && resourceReference && r.resourceName.toLowerCase() === resourceReference.toLowerCase())
     );
 
     if (!resource) return 0;
 
     // Cost = Hours × Per Hour Cost
     return hours * resource.perHourCost;
+}
+
+/**
+ * Calculate Enhanced Project Cost with Tier-Based Skill Adjustments and Selective Complexity
+ * Implements the new cost formula: Actual Effort Hours × Tier-Adjusted Hourly Rate
+ * Uses selective complexity calculation based on task category
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, User Requirement - Remove Complexity Calculation except for Project Task
+ * 
+ * @param {string} complexity - Complexity level (low/medium/high/sophisticated)
+ * @param {string} resourceReference - Team member name or cost tier ID
+ * @param {Object} complexitySettings - Enhanced complexity settings with effort-based model
+ * @param {Array} resourceCosts - Resource cost records
+ * @param {number} tierLevel - Resource tier level (1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Principal)
+ * @param {number} allocationPercentage - Allocation percentage (0.1 to 1.0, default 1.0)
+ * @param {string|Object} taskOrCategory - Task category or task object (optional, defaults to 'Project')
+ * @param {Object} taskTemplate - Task template for simple time estimates (optional)
+ * @returns {Object} Enhanced cost calculation result with breakdown
+ */
+export function calculateEnhancedProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, tierLevel = 2, allocationPercentage = 1.0, taskOrCategory = 'Project', taskTemplate = null) {
+    if (!complexity || !resourceReference) {
+        return {
+            totalCost: 0,
+            effortHours: 0,
+            durationDays: 0,
+            hourlyRate: 0,
+            breakdown: {
+                baseEffortHours: 0,
+                adjustedEffortHours: 0,
+                skillMultiplier: 1.0,
+                complexityMultiplier: 1.0,
+                riskMultiplier: 1.0
+            }
+        };
+    }
+
+    // Validate allocation percentage
+    const validAllocationPercentage = Math.max(0.1, Math.min(1.0, allocationPercentage));
+
+    // Try to find resource by ID first (preferred), then by name (legacy/fallback)
+    const resource = resourceCosts.find(r =>
+        r.id === resourceReference ||
+        (r.resourceName && resourceReference && r.resourceName.toLowerCase() === resourceReference.toLowerCase())
+    );
+
+    if (!resource) {
+        return {
+            totalCost: 0,
+            effortHours: 0,
+            durationDays: 0,
+            hourlyRate: 0,
+            breakdown: {
+                baseEffortHours: 0,
+                adjustedEffortHours: 0,
+                skillMultiplier: 1.0,
+                complexityMultiplier: 1.0,
+                riskMultiplier: 1.0
+            }
+        };
+    }
+
+    // Get complexity configuration
+    const complexityConfig = complexitySettings[complexity.toLowerCase()];
+    if (!complexityConfig) {
+        return {
+            totalCost: 0,
+            effortHours: 0,
+            durationDays: 0,
+            hourlyRate: 0,
+            breakdown: {
+                baseEffortHours: 0,
+                adjustedEffortHours: 0,
+                skillMultiplier: 1.0,
+                complexityMultiplier: 1.0,
+                riskMultiplier: 1.0
+            }
+        };
+    }
+
+    let effortResult;
+    
+    // Determine calculation method based on task category
+    const category = typeof taskOrCategory === 'string' 
+        ? taskOrCategory 
+        : taskOrCategory?.category || 'Project';
+    
+    const shouldUseComplexity = category === 'Project';
+    
+    if (shouldUseComplexity) {
+        // Use enhanced effort-based calculation for Project tasks
+        if (complexityConfig.baseEffortHours) {
+            // Enhanced effort-based model using tier-adjusted calculations
+            effortResult = calculateTierAdjustedEffortInternal(complexity, tierLevel, complexityConfig);
+        } else {
+            // Legacy calculation for backward compatibility
+            const hours = complexityConfig.hours || 0;
+            effortResult = {
+                baseEffortHours: hours,
+                adjustedEffortHours: hours,
+                skillMultiplier: 1.0,
+                complexityMultiplier: 1.0,
+                riskMultiplier: 1.0
+            };
+        }
+    } else {
+        // Use simple time estimates for Support/Maintenance tasks
+        if (taskTemplate && taskTemplate.estimates) {
+            const estimate = taskTemplate.estimates[complexity.toLowerCase()];
+            const effortHours = estimate?.hours || 0;
+            
+            effortResult = {
+                baseEffortHours: effortHours,
+                adjustedEffortHours: effortHours,
+                skillMultiplier: 1.0,
+                complexityMultiplier: 1.0,
+                riskMultiplier: 1.0
+            };
+        } else {
+            // Fallback to complexity calculation if no task template provided
+            if (complexityConfig.baseEffortHours) {
+                effortResult = calculateTierAdjustedEffortInternal(complexity, tierLevel, complexityConfig);
+            } else {
+                const hours = complexityConfig.hours || 0;
+                effortResult = {
+                    baseEffortHours: hours,
+                    adjustedEffortHours: hours,
+                    skillMultiplier: 1.0,
+                    complexityMultiplier: 1.0,
+                    riskMultiplier: 1.0
+                };
+            }
+        }
+    }
+
+    // Calculate duration separately from effort (Requirements 1.2, 3.3)
+    // Duration = Effort Hours ÷ (Allocation Percentage × 8 hours/day)
+    const durationDays = Math.ceil(effortResult.adjustedEffortHours / (validAllocationPercentage * 8));
+
+    // Calculate total cost using the new formula: Actual Effort Hours × Tier-Adjusted Hourly Rate
+    const totalCost = effortResult.adjustedEffortHours * resource.perHourCost;
+
+    return {
+        totalCost: Math.round(totalCost),
+        effortHours: effortResult.adjustedEffortHours,
+        durationDays: durationDays,
+        hourlyRate: resource.perHourCost,
+        allocationPercentage: validAllocationPercentage,
+        breakdown: {
+            baseEffortHours: effortResult.baseEffortHours,
+            adjustedEffortHours: effortResult.adjustedEffortHours,
+            skillMultiplier: effortResult.skillMultiplier,
+            complexityMultiplier: effortResult.complexityMultiplier,
+            riskMultiplier: effortResult.riskMultiplier
+        }
+    };
+}
+
+/**
+ * Internal helper function to calculate tier-adjusted effort
+ * This replicates the logic from defaultComplexity.js to avoid circular imports
+ * 
+ * @param {string} complexityLevel - The complexity level
+ * @param {number} tierLevel - Resource tier level (1-5)
+ * @param {Object} complexityConfig - Complexity configuration object
+ * @returns {Object} Effort calculation result
+ */
+function calculateTierAdjustedEffortInternal(complexityLevel, tierLevel, complexityConfig) {
+    // Tier-based skill multipliers (Junior: 1.4x, Mid: 1.0x, Senior: 0.8x, Lead: 0.7x, Principal: 0.6x)
+    const tierSkillMultipliers = {
+        1: 1.4,  // Junior - requires 40% more effort
+        2: 1.0,  // Mid - baseline effort (no adjustment)
+        3: 0.8,  // Senior - requires 20% less effort
+        4: 0.7,  // Lead - requires 30% less effort
+        5: 0.6,  // Principal - requires 40% less effort
+    };
+    
+    // Get skill sensitivity from complexity config
+    const skillSensitivity = complexityConfig.skillSensitivity || 0.5;
+    
+    // Get base tier multiplier
+    const baseTierMultiplier = tierSkillMultipliers[tierLevel] || tierSkillMultipliers[2]; // Default to mid-tier
+    
+    // Apply skill sensitivity - higher sensitivity means tier level has more impact
+    const adjustedTierMultiplier = 1 + ((baseTierMultiplier - 1) * skillSensitivity);
+    
+    // Calculate base effort with complexity and risk factors
+    const baseEffort = complexityConfig.baseEffortHours;
+    const complexityMultiplier = complexityConfig.complexityMultiplier || 1.0;
+    const riskMultiplier = complexityConfig.riskFactor || 1.0;
+    
+    const complexityAdjustedEffort = baseEffort * complexityMultiplier;
+    const riskAdjustedEffort = complexityAdjustedEffort * riskMultiplier;
+    
+    // Apply tier-based skill adjustment
+    const finalEffortHours = riskAdjustedEffort * adjustedTierMultiplier;
+    
+    return {
+        baseEffortHours: baseEffort,
+        adjustedEffortHours: Math.round(finalEffortHours * 100) / 100, // Round to 2 decimal places
+        skillMultiplier: Math.round(adjustedTierMultiplier * 100) / 100,
+        complexityMultiplier: complexityMultiplier,
+        riskMultiplier: riskMultiplier
+    };
+}
+
+/**
+ * Calculate Duration Days from Effort Hours and Allocation Percentage
+ * Implements proper separation of effort from duration (Requirements 1.2, 3.3, 6.2, 6.3)
+ * Formula: Duration Days = Effort Hours ÷ (Allocation Percentage × 8 hours/day)
+ * 
+ * @param {number} effortHours - Actual work effort hours required
+ * @param {number} allocationPercentage - Allocation percentage (0.1 to 1.0)
+ * @returns {Object} Duration calculation result
+ */
+export function calculateDurationFromEffort(effortHours, allocationPercentage = 1.0) {
+    if (!effortHours || effortHours <= 0) {
+        return {
+            durationDays: 0,
+            effortHours: 0,
+            allocationPercentage: allocationPercentage,
+            hoursPerDay: 0
+        };
+    }
+
+    // Validate allocation percentage (0.1 to 1.0)
+    const validAllocationPercentage = Math.max(0.1, Math.min(1.0, allocationPercentage));
+    
+    // Calculate hours per day based on allocation percentage
+    const hoursPerDay = validAllocationPercentage * 8; // 8 hours = full working day
+    
+    // Calculate duration in days (rounded up to whole days)
+    const durationDays = Math.ceil(effortHours / hoursPerDay);
+    
+    return {
+        durationDays: durationDays,
+        effortHours: effortHours,
+        allocationPercentage: validAllocationPercentage,
+        hoursPerDay: hoursPerDay
+    };
 }
 
 
@@ -301,6 +567,103 @@ export function formatCurrency(amount) {
 export function formatPercentage(value, isDecimal = true) {
     const percentage = isDecimal ? value * 100 : value;
     return `${percentage.toFixed(1)}%`;
+}
+
+/**
+ * Get Detailed Cost Breakdown for Enhanced Project Cost Calculation
+ * Provides comprehensive cost analysis with all contributing factors (Requirements 3.4)
+ * Supports selective complexity calculation based on task category
+ * 
+ * @param {string} complexity - Complexity level
+ * @param {string} resourceReference - Resource reference
+ * @param {Object} complexitySettings - Complexity settings
+ * @param {Array} resourceCosts - Resource cost records
+ * @param {number} tierLevel - Resource tier level
+ * @param {number} allocationPercentage - Allocation percentage
+ * @param {string|Object} taskOrCategory - Task category or task object (optional, defaults to 'Project')
+ * @param {Object} taskTemplate - Task template for simple time estimates (optional)
+ * @returns {Object} Detailed cost breakdown
+ */
+export function getDetailedCostBreakdown(complexity, resourceReference, complexitySettings, resourceCosts, tierLevel = 2, allocationPercentage = 1.0, taskOrCategory = 'Project', taskTemplate = null) {
+    // Get the enhanced cost calculation
+    const costResult = calculateEnhancedProjectCost(complexity, resourceReference, complexitySettings, resourceCosts, tierLevel, allocationPercentage, taskOrCategory, taskTemplate);
+    
+    // Get the resource information
+    const resource = resourceCosts.find(r =>
+        r.id === resourceReference ||
+        (r.resourceName && resourceReference && r.resourceName.toLowerCase() === resourceReference.toLowerCase())
+    );
+    
+    // Get complexity configuration
+    const complexityConfig = complexitySettings[complexity.toLowerCase()];
+    
+    // Calculate duration breakdown
+    const durationResult = calculateDurationFromEffort(costResult.effortHours, allocationPercentage);
+    
+    return {
+        // Summary
+        summary: {
+            totalCost: costResult.totalCost,
+            effortHours: costResult.effortHours,
+            durationDays: costResult.durationDays,
+            hourlyRate: costResult.hourlyRate,
+            allocationPercentage: costResult.allocationPercentage
+        },
+        
+        // Effort breakdown
+        effortBreakdown: {
+            baseEffortHours: costResult.breakdown.baseEffortHours,
+            afterComplexityMultiplier: costResult.breakdown.baseEffortHours * costResult.breakdown.complexityMultiplier,
+            afterRiskMultiplier: costResult.breakdown.baseEffortHours * costResult.breakdown.complexityMultiplier * costResult.breakdown.riskMultiplier,
+            finalAdjustedHours: costResult.breakdown.adjustedEffortHours,
+            
+            // Multipliers applied
+            skillMultiplier: costResult.breakdown.skillMultiplier,
+            complexityMultiplier: costResult.breakdown.complexityMultiplier,
+            riskMultiplier: costResult.breakdown.riskMultiplier
+        },
+        
+        // Duration breakdown
+        durationBreakdown: {
+            effortHours: durationResult.effortHours,
+            allocationPercentage: durationResult.allocationPercentage,
+            hoursPerDay: durationResult.hoursPerDay,
+            durationDays: durationResult.durationDays
+        },
+        
+        // Cost breakdown
+        costBreakdown: {
+            baseEffortCost: costResult.breakdown.baseEffortHours * costResult.hourlyRate,
+            skillAdjustmentCost: (costResult.breakdown.adjustedEffortHours - costResult.breakdown.baseEffortHours) * costResult.hourlyRate,
+            totalCost: costResult.totalCost,
+            hourlyRate: costResult.hourlyRate
+        },
+        
+        // Context information
+        context: {
+            complexity: complexity,
+            complexityLabel: complexityConfig?.label || complexity,
+            resourceName: resource?.resourceName || resourceReference,
+            tierLevel: tierLevel,
+            tierLabel: getTierLabel(tierLevel)
+        }
+    };
+}
+
+/**
+ * Helper function to get tier label from tier level
+ * @param {number} tierLevel - Tier level (1-5)
+ * @returns {string} Tier label
+ */
+function getTierLabel(tierLevel) {
+    const tierLabels = {
+        1: 'Junior',
+        2: 'Mid',
+        3: 'Senior',
+        4: 'Lead',
+        5: 'Principal'
+    };
+    return tierLabels[tierLevel] || 'Unknown';
 }
 
 /**

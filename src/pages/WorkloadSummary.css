@@ -342,6 +342,11 @@
 }
 
 .workload-summary .status-dot.at-capacity {
+    background: var(--color-warning);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.workload-summary .status-dot.over-capacity {
     background: var(--color-danger);
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
@@ -410,6 +415,11 @@
 }
 
 .workload-summary .task-count.at-capacity {
+    color: var(--color-warning);
+    background: var(--color-warning-light);
+}
+
+.workload-summary .task-count.over-capacity {
     color: var(--color-danger);
     background: var(--color-danger-light);
 }
@@ -428,6 +438,10 @@
 }
 
 .workload-summary .availability-row.status-at-capacity td:first-child {
+    border-left-color: var(--color-warning);
+}
+
+.workload-summary .availability-row.status-over-capacity td:first-child {
     border-left-color: var(--color-danger);
 }
 
@@ -532,6 +546,11 @@
 }
 
 .workload-summary .status-badge-compact.at-capacity {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.workload-summary .status-badge-compact.over-capacity {
     background: var(--color-danger-light);
     color: var(--color-danger);
 }
@@ -596,6 +615,12 @@
 }
 
 .workload-summary .heatmap-cell-mini.at-capacity {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+}
+
+.workload-summary .heatmap-cell-mini.over-capacity {
     background: var(--color-danger-light);
     color: var(--color-danger);
     border: 1px solid rgba(244, 63, 94, 0.1);

@@ -32,7 +32,8 @@ export function CapacityHeatmap({ data, className }) {
                     <LegendItem status="available" label="Available" />
                     <LegendItem status="busy" label="Busy" />
                     <LegendItem status="limited" label="Limited" />
-                    <LegendItem status="at-capacity" label="Full" />
+                    <LegendItem status="at-capacity" label="At Capacity" />
+                    <LegendItem status="over-capacity" label="Over Capacity" />
                     <LegendItem status="leave" label="Leave" />
                 </div>
             </div>
@@ -137,7 +138,8 @@ function getStatusClass(status) {
         case 'available': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400';
         case 'busy': return 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400';
         case 'limited': return 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
-        case 'at-capacity': return 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400';
+        case 'at-capacity': return 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400';
+        case 'over-capacity': return 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400';
         case 'leave': return 'bg-slate-100 dark:bg-slate-800 text-slate-400';
         default: return 'bg-muted/50';
     }
@@ -148,7 +150,8 @@ function getStatusTextClass(status) {
         case 'available': return 'text-emerald-600';
         case 'busy': return 'text-sky-600';
         case 'limited': return 'text-amber-600';
-        case 'at-capacity': return 'text-rose-600';
+        case 'at-capacity': return 'text-orange-600';
+        case 'over-capacity': return 'text-rose-600';
         case 'leave': return 'text-slate-500';
         default: return 'text-muted-foreground';
     }

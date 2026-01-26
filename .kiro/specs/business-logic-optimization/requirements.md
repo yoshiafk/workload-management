@@ -2,140 +2,152 @@
 
 ## Introduction
 
-This specification defines requirements for analyzing and optimizing the business logic in an existing project management and resource allocation application. The system currently manages cost centers, resource allocation, task creation, and project cost tracking. Based on industry research of enterprise solutions (SAP Project System, Microsoft Project, Tempo, Smartsheet), this analysis will identify gaps and propose improvements to bring the application to enterprise-grade standards.
+This specification addresses critical business logic optimization needs for the project management and resource allocation application. Based on comprehensive analysis against industry standards (SAP Project System, Microsoft Project, Tempo, Smartsheet), this optimization focuses on fixing broken complexity models, implementing proper tier-based cost calculations, and enhancing resource management capabilities.
+
+The current working days calculation (Monday-Friday, excluding holidays/leave) is already industry-standard correct and requires no changes. The existing 5-tier system (Junior to Principal) provides an excellent foundation that will be leveraged for skill-based adjustments.
 
 ## Glossary
 
-- **Business_Logic_Analyzer**: The system component that evaluates current implementation patterns
-- **Resource_Allocation_Engine**: The component managing resource assignments and calculations
-- **Cost_Center_Manager**: The component handling hierarchical cost center operations
-- **Task_Complexity_Estimator**: The component calculating task estimates and complexity
-- **Working_Days_Calculator**: The component managing business day calculations excluding weekends and holidays
-- **Integration_Validator**: The component ensuring data consistency across entities
-- **Performance_Optimizer**: The component identifying and implementing performance improvements
-- **Gap_Identifier**: The component comparing current vs industry best practices
-- **Enhancement_Proposer**: The component generating specific improvement recommendations
-- **Implementation_Comparator**: The component comparing current vs proposed business logic implementations
+- **System**: The project management and resource allocation application
+- **Complexity_Model**: The system component that defines effort estimation parameters for tasks
+- **Tier_System**: The existing 5-level skill classification (1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Principal)
+- **Effort_Hours**: Actual work hours required to complete a task
+- **Duration_Days**: Calendar working days from task start to completion
+- **Allocation_Percentage**: The percentage of a resource's capacity assigned to a task (0.0 to 1.0)
+- **Cost_Center**: Budget management entity with monthly/yearly budget limits
+- **Resource**: A team member with specific skills, tier level, and cost rates
+- **Over_Allocation**: When a resource's total assignments exceed their available capacity
 
 ## Requirements
 
-### Requirement 1: Business Logic Analysis
+### Requirement 1: Fix Broken Complexity Model
 
-**User Story:** As a system architect, I want to analyze current business logic implementation, so that I can understand existing patterns and identify areas for improvement.
-
-#### Acceptance Criteria
-
-1. WHEN analyzing resource allocation logic, THE Business_Logic_Analyzer SHALL extract all current algorithms and business rules
-2. WHEN examining cost center management, THE Business_Logic_Analyzer SHALL document hierarchical structures and budget control mechanisms
-3. WHEN reviewing task creation workflows, THE Business_Logic_Analyzer SHALL identify complexity estimation methods and validation rules
-4. WHEN evaluating integration patterns, THE Business_Logic_Analyzer SHALL map relationships between core entities
-5. THE Business_Logic_Analyzer SHALL generate a comprehensive report of current implementation patterns
-
-### Requirement 2: Industry Standards Comparison
-
-**User Story:** As a product manager, I want to compare our implementation against industry leaders, so that I can identify competitive gaps and opportunities.
+**User Story:** As a project manager, I want accurate effort estimation based on actual work hours, so that I can create realistic project plans and budgets.
 
 #### Acceptance Criteria
 
-1. WHEN comparing resource allocation approaches, THE Gap_Identifier SHALL evaluate against SAP Project System's WBS and activity-based costing
-2. WHEN analyzing resource management, THE Gap_Identifier SHALL compare with Microsoft Project's enterprise resource pools and leveling algorithms
-3. WHEN reviewing financial tracking, THE Gap_Identifier SHALL assess against Tempo's strategic triad and CAPEX/OPEX categorization
-4. WHEN examining project visibility, THE Gap_Identifier SHALL evaluate against Smartsheet's cross-project resource visibility
-5. THE Gap_Identifier SHALL produce a detailed gap analysis with specific industry benchmark comparisons
+1. THE System SHALL replace the current arbitrary "hours" multipliers with actual effort hours in the complexity model
+2. WHEN defining task complexity, THE System SHALL separate effort hours from duration days properly
+3. THE System SHALL provide base effort hours for each complexity level (low: 40h, medium: 120h, high: 320h, sophisticated: 640h)
+4. THE System SHALL include complexity multipliers, risk factors, and skill sensitivity parameters for each complexity level
+5. THE System SHALL maintain backward compatibility with existing allocations during the transition
 
-### Requirement 3: Resource Allocation Enhancement
+### Requirement 2: Implement Tier-Based Skill Adjustments
 
-**User Story:** As a resource manager, I want improved allocation algorithms, so that I can optimize resource utilization and prevent over-allocation.
-
-#### Acceptance Criteria
-
-1. WHEN detecting resource conflicts, THE Resource_Allocation_Engine SHALL implement over-allocation detection similar to Microsoft Project
-2. WHEN calculating allocations, THE Resource_Allocation_Engine SHALL support percentage-based assignments with automatic unit calculations
-3. WHEN managing external resources, THE Resource_Allocation_Engine SHALL distinguish between internal and external resource types with different cost models
-4. WHEN leveling resources, THE Resource_Allocation_Engine SHALL provide automated resource leveling capabilities
-5. WHEN tracking utilization, THE Resource_Allocation_Engine SHALL maintain real-time utilization metrics across projects
-
-### Requirement 4: Cost Center Management Optimization
-
-**User Story:** As a financial controller, I want enhanced cost center controls, so that I can maintain budget discipline and accurate financial tracking.
+**User Story:** As a resource manager, I want effort estimates adjusted based on team member skill levels, so that I can accurately plan resource allocation and costs.
 
 #### Acceptance Criteria
 
-1. WHEN managing hierarchical budgets, THE Cost_Center_Manager SHALL implement cascading budget controls with rollup calculations
-2. WHEN tracking expenses, THE Cost_Center_Manager SHALL categorize costs as CAPEX or OPEX with appropriate allocation rules
-3. WHEN enforcing budget limits, THE Cost_Center_Manager SHALL prevent over-budget allocations with configurable approval workflows
-4. WHEN reporting financials, THE Cost_Center_Manager SHALL provide real-time budget vs actual reporting at all hierarchy levels
-5. WHEN handling budget transfers, THE Cost_Center_Manager SHALL support inter-cost-center budget transfers with audit trails
+1. THE System SHALL use the existing tierLevel field (1=Junior to 5=Principal) for skill-based effort adjustments
+2. WHEN calculating effort, THE System SHALL apply tier-based multipliers (Junior: 1.4x, Mid: 1.0x, Senior: 0.8x, Lead: 0.7x, Principal: 0.6x)
+3. THE System SHALL adjust effort multipliers based on task complexity sensitivity to skill level
+4. WHEN a Junior resource is assigned, THE System SHALL increase effort estimates by up to 40% compared to Mid-level baseline
+5. WHEN a Principal resource is assigned, THE System SHALL decrease effort estimates by up to 40% compared to Mid-level baseline
 
-### Requirement 5: Task Complexity and Estimation Enhancement
+### Requirement 3: Update Cost Calculation Formula
 
-**User Story:** As a project manager, I want improved task estimation, so that I can create more accurate project plans and resource forecasts.
-
-#### Acceptance Criteria
-
-1. WHEN estimating task complexity, THE Task_Complexity_Estimator SHALL implement multi-factor complexity scoring based on industry patterns
-2. WHEN calculating effort, THE Task_Complexity_Estimator SHALL consider resource skill levels and availability in estimates
-3. WHEN tracking progress, THE Task_Complexity_Estimator SHALL provide earned value management calculations
-4. WHEN adjusting estimates, THE Task_Complexity_Estimator SHALL maintain estimate history and variance analysis
-5. WHEN forecasting completion, THE Task_Complexity_Estimator SHALL use statistical models for completion date predictions
-
-### Requirement 6: Working Days and Cost Calculation Optimization
-
-**User Story:** As a project manager, I want accurate working days calculation, so that I can properly estimate project timelines and costs based on actual business days.
+**User Story:** As a financial controller, I want accurate cost calculations based on actual effort and skill-adjusted rates, so that I can maintain proper budget control.
 
 #### Acceptance Criteria
 
-1. WHEN calculating working days, THE Working_Days_Calculator SHALL exclude weekends (Saturday and Sunday) from all duration calculations
-2. WHEN processing time periods, THE Working_Days_Calculator SHALL exclude public holidays and company-specific holidays from working day counts
-3. WHEN accounting for leave, THE Working_Days_Calculator SHALL exclude approved vacation days and sick leave from resource availability calculations
-4. WHEN integrating with complexity, THE Working_Days_Calculator SHALL apply complexity factors only to actual working days, not calendar days
-5. WHEN calculating costs, THE Working_Days_Calculator SHALL compute daily rates based on working days per month/year rather than calendar days
-6. THE Working_Days_Calculator SHALL support configurable holiday calendars for different regions and business units
+1. THE System SHALL calculate project costs using the formula: Actual Effort Hours × Tier-Adjusted Hourly Rate
+2. WHEN calculating costs, THE System SHALL apply complexity multipliers, skill adjustments, and risk factors to base effort hours
+3. THE System SHALL calculate duration separately as: Effort Hours ÷ (Allocation Percentage × 8 hours/day)
+4. THE System SHALL provide detailed cost breakdowns showing base hours, skill multipliers, complexity factors, and final costs
+5. THE System SHALL maintain the existing rate calculation structure (monthly → daily → hourly) while applying the new formula
 
-### Requirement 7: Integration and Data Consistency
+### Requirement 4: Add Resource Over-Allocation Detection
 
-**User Story:** As a system administrator, I want robust data integration, so that all system components maintain consistency and integrity.
-
-#### Acceptance Criteria
-
-1. WHEN updating resource allocations, THE Integration_Validator SHALL ensure cost center budget impacts are immediately reflected
-2. WHEN modifying cost centers, THE Integration_Validator SHALL cascade changes to all dependent allocations and tasks
-3. WHEN creating tasks, THE Integration_Validator SHALL validate resource availability and cost center budget capacity
-4. WHEN processing bulk operations, THE Integration_Validator SHALL maintain transactional integrity across all entities
-5. THE Integration_Validator SHALL implement event-driven updates to maintain real-time consistency
-
-### Requirement 8: Performance and Scalability Analysis
-
-**User Story:** As a technical lead, I want performance optimization recommendations, so that the system can handle enterprise-scale operations efficiently.
+**User Story:** As a resource manager, I want to detect when team members are over-allocated, so that I can prevent resource conflicts and maintain realistic schedules.
 
 #### Acceptance Criteria
 
-1. WHEN analyzing calculation performance, THE Performance_Optimizer SHALL identify bottlenecks in cost and allocation calculations
-2. WHEN evaluating data access patterns, THE Performance_Optimizer SHALL recommend caching strategies for frequently accessed data
-3. WHEN reviewing query performance, THE Performance_Optimizer SHALL suggest database optimization opportunities
-4. WHEN assessing scalability, THE Performance_Optimizer SHALL model performance under increased load scenarios
-5. THE Performance_Optimizer SHALL provide specific implementation recommendations with expected performance improvements
+1. THE System SHALL track each resource's current utilization across all active allocations
+2. WHEN total allocation exceeds a resource's capacity threshold, THE System SHALL flag the over-allocation
+3. THE System SHALL support configurable over-allocation thresholds per resource (default: 120% capacity)
+4. THE System SHALL provide real-time utilization monitoring and conflict alerts
+5. THE System SHALL prevent new allocations that would cause over-allocation when strict enforcement is enabled
 
-### Requirement 9: Current Implementation Comparison
+### Requirement 5: Implement Budget Enforcement
 
-**User Story:** As a system architect, I want to compare proposed optimizations against existing business logic, so that I can understand the impact and migration path for each enhancement.
-
-#### Acceptance Criteria
-
-1. WHEN analyzing existing functions, THE Implementation_Comparator SHALL map current business logic patterns across all system functions
-2. WHEN evaluating proposed changes, THE Implementation_Comparator SHALL identify specific differences between current and optimized implementations
-3. WHEN assessing migration impact, THE Implementation_Comparator SHALL analyze data migration requirements and backward compatibility needs
-4. WHEN documenting changes, THE Implementation_Comparator SHALL provide side-by-side comparisons of current vs proposed business logic
-5. THE Implementation_Comparator SHALL identify functions that would be affected by each proposed optimization
-
-### Requirement 10: Enhancement Proposal Generation
-
-**User Story:** As a development team lead, I want specific improvement recommendations, so that I can prioritize and implement the most impactful changes.
+**User Story:** As a cost center manager, I want to prevent allocations that exceed available budget, so that I can maintain financial control without approval workflows.
 
 #### Acceptance Criteria
 
-1. WHEN generating proposals, THE Enhancement_Proposer SHALL prioritize improvements based on business impact and implementation complexity
-2. WHEN documenting enhancements, THE Enhancement_Proposer SHALL provide detailed technical specifications for each proposed change
-3. WHEN estimating effort, THE Enhancement_Proposer SHALL include implementation time estimates and resource requirements
-4. WHEN assessing risks, THE Enhancement_Proposer SHALL identify potential risks and mitigation strategies for each enhancement
-5. THE Enhancement_Proposer SHALL create a phased implementation roadmap with clear milestones and dependencies
+1. THE System SHALL validate budget capacity before creating new allocations
+2. WHEN an allocation would exceed the cost center's available budget, THE System SHALL prevent the allocation
+3. THE System SHALL provide configurable budget enforcement modes (strict, warning, none)
+4. THE System SHALL calculate projected spend including the new allocation against remaining budget
+5. THE System SHALL display clear budget status and remaining capacity for each cost center
+
+### Requirement 6: Add Percentage-Based Allocation Support
+
+**User Story:** As a project manager, I want to assign resources at partial capacity percentages, so that I can share resources across multiple projects efficiently.
+
+#### Acceptance Criteria
+
+1. THE System SHALL support allocation percentages from 0.1 (10%) to 1.0 (100%) of resource capacity
+2. WHEN calculating duration, THE System SHALL adjust timeline based on allocation percentage
+3. THE System SHALL calculate effective hours as: Base Effort Hours ÷ Allocation Percentage
+4. THE System SHALL track and display both allocated percentage and effective working hours
+5. THE System SHALL validate that total allocations per resource do not exceed their maximum capacity
+
+### Requirement 7: Enhance Validation for Resource Availability
+
+**User Story:** As a project manager, I want comprehensive validation of resource availability and constraints, so that I can create feasible project plans.
+
+#### Acceptance Criteria
+
+1. THE System SHALL validate resource availability during the requested time period before creating allocations
+2. WHEN checking availability, THE System SHALL consider existing allocations, leave schedules, and capacity limits
+3. THE System SHALL validate skill match between resource capabilities and task requirements
+4. THE System SHALL check workload limits and prevent assignments that exceed sustainable capacity
+5. THE System SHALL provide detailed validation feedback explaining any conflicts or constraints
+
+### Requirement 8: Multi-Factor Complexity Scoring
+
+**User Story:** As a technical lead, I want complexity assessment based on multiple factors, so that I can create more accurate effort estimates.
+
+#### Acceptance Criteria
+
+1. THE System SHALL support technical complexity, business complexity, and risk factor scoring (1-10 scale each)
+2. WHEN calculating effort, THE System SHALL combine multiple complexity factors into a composite score
+3. THE System SHALL apply different skill sensitivity based on the type of complexity (technical vs business)
+4. THE System SHALL track integration points and unknown requirements as additional complexity factors
+5. THE System SHALL provide complexity factor breakdown in effort estimation reports
+
+### Requirement 9: Enhanced Working Days Calculation
+
+**User Story:** As a project manager, I want enhanced working days calculation with detailed breakdowns, so that I can better understand project timelines and scheduling.
+
+#### Acceptance Criteria
+
+1. THE System SHALL maintain the existing Indonesia-specific holiday calendar and working day logic
+2. WHEN calculating working days, THE System SHALL provide detailed breakdowns showing total calendar days, weekends, holidays, and working days
+3. THE System SHALL maintain the current 20 working days per month baseline for Indonesia operations
+4. THE System SHALL support overhead factors and inflation adjustments in rate calculations
+5. THE System SHALL provide working days analysis reports for project planning purposes
+
+### Requirement 10: Performance Optimization for Large Datasets
+
+**User Story:** As a system administrator, I want the application to perform efficiently with large numbers of allocations and resources, so that users have a responsive experience.
+
+#### Acceptance Criteria
+
+1. THE System SHALL implement debounced recalculation with 500ms delay to prevent excessive computation
+2. WHEN dependencies change, THE System SHALL selectively recalculate only affected allocations
+3. THE System SHALL use memoized calculations for frequently accessed computed values
+4. THE System SHALL support pagination and virtualization for large allocation lists
+5. THE System SHALL optimize memory usage by avoiding full cost center snapshots in every allocation
+
+### Requirement 11: Enhanced Reporting and Analytics
+
+**User Story:** As an executive, I want comprehensive reporting on resource utilization and project costs, so that I can make informed business decisions.
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide real-time resource utilization dashboards showing capacity and allocation status
+2. WHEN generating reports, THE System SHALL include cost breakdowns by complexity factors and skill adjustments
+3. THE System SHALL track historical variance between estimated and actual effort for continuous improvement
+4. THE System SHALL provide portfolio-level aggregation of resource usage across multiple projects
+5. THE System SHALL support export of allocation and cost data for external analysis tools

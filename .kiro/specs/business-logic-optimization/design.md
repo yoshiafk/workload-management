@@ -2,489 +2,550 @@
 
 ## Overview
 
-This design outlines a comprehensive analysis and optimization framework for the business logic in a project management and resource allocation application. The system will systematically evaluate current implementation patterns against industry best practices from enterprise solutions (SAP Project System, Microsoft Project, Tempo, Smartsheet) and generate specific improvement recommendations.
+This design addresses critical business logic optimization for the project management and resource allocation application. The optimization focuses on three main areas:
 
-The analysis focuses on nine key areas: business logic patterns, industry benchmarking, resource allocation algorithms, cost center management, task complexity estimation, working days calculation, data integration, performance optimization, and enhancement proposal generation.
+1. **Fixing the broken complexity model** - Replace arbitrary "hours" multipliers with actual effort-based calculations
+2. **Implementing tier-based skill adjustments** - Leverage the existing 5-tier system for realistic effort estimation
+3. **Enhancing resource and budget management** - Add capacity tracking, over-allocation detection, and budget enforcement
+
+The current working days calculation is already industry-standard correct and will be preserved. The existing tier system (1=Junior to 5=Principal) provides an excellent foundation for skill-based adjustments.
+
+### Additional User-Requested Enhancements
+
+Based on user feedback, the design also incorporates:
+
+1. **SLA Time Mapping to Priority** - Establish time-based service level agreements based on task priority
+2. **Selective Complexity Calculation** - Apply complexity calculations only to Project tasks, not Support/Maintenance
+3. **Enhanced UI/UX Improvements** - Color alignment for member load status, modal improvements, terminology updates
+4. **Dashboard and Search Enhancements** - Improved date filtering and demand number search for Support issues
+5. **Phase-Based Duration Calculation** - Calculate task spans from allocation phase to completion phase
+6. **Capacity Terminology Update** - Change "At Capacity" to "Over Capacity" for >100% utilization
 
 ## Architecture
 
-The optimization system follows a modular analysis architecture with the following components:
+The optimization follows a layered architecture approach:
 
 ```mermaid
 graph TB
-    A[Business Logic Analyzer] --> B[Current State Extractor]
-    A --> C[Pattern Analyzer]
+    UI[User Interface Layer]
+    BL[Business Logic Layer]
+    DM[Data Management Layer]
     
-    D[Industry Benchmarker] --> E[SAP PS Comparator]
-    D --> F[MS Project Comparator]
-    D --> G[Tempo Comparator]
-    D --> H[Smartsheet Comparator]
+    UI --> BL
+    BL --> DM
     
-    I[Gap Identifier] --> A
-    I --> D
-    I --> J[Gap Analysis Engine]
+    subgraph "Business Logic Layer"
+        CE[Complexity Engine]
+        RA[Resource Allocation Engine]
+        CC[Cost Calculator]
+        VE[Validation Engine]
+        RE[Reporting Engine]
+    end
     
-    K[Enhancement Engine] --> L[Resource Optimizer]
-    K --> M[Cost Center Optimizer]
-    K --> N[Working Days Calculator]
-    K --> O[Task Estimator]
-    K --> P[Integration Validator]
-    K --> Q[Performance Optimizer]
+    subgraph "Data Management Layer"
+        CM[Complexity Model]
+        RM[Resource Model]
+        AM[Allocation Model]
+        BCM[Budget Control Model]
+    end
     
-    R[Proposal Generator] --> K
-    R --> S[Priority Ranker]
-    R --> T[Implementation Planner]
-    
-    W[Implementation Comparator] --> A
-    W --> K
-    W --> X[Current vs Proposed Analyzer]
-    W --> Y[Migration Impact Assessor]
-    
-    U[Analysis Orchestrator] --> I
-    U --> R
-    U --> W
-    U --> V[Report Generator]
+    CE --> CM
+    RA --> RM
+    RA --> AM
+    CC --> BCM
+    VE --> RM
+    VE --> AM
+    RE --> AM
 ```
+
+### Key Architectural Principles
+
+1. **Separation of Concerns**: Effort calculation, cost calculation, and resource management are distinct responsibilities
+2. **Backward Compatibility**: Existing allocations continue to work during transition
+3. **Performance Optimization**: Selective recalculation and memoization for large datasets
+4. **Extensibility**: Multi-factor complexity scoring can be enhanced without breaking existing functionality
 
 ## Components and Interfaces
 
-### Business Logic Analyzer
+### 1. Enhanced Complexity Engine
 
-**Purpose**: Extracts and analyzes current implementation patterns
+**Purpose**: Replace the broken complexity model with effort-based calculations
 
-**Key Methods**:
-- `extractResourceAllocationLogic()`: Analyzes current allocation algorithms
-- `analyzeCostCenterHierarchy()`: Maps cost center structure and rules
-- `evaluateTaskCreationWorkflow()`: Reviews task creation and estimation logic
-- `assessIntegrationPatterns()`: Identifies entity relationships and data flows
+**Key Components**:
+- `ComplexityCalculator`: Computes actual effort hours based on multiple factors
+- `SkillAdjustmentEngine`: Applies tier-based skill multipliers
+- `ComplexityValidator`: Ensures complexity parameters are valid
 
-**Outputs**: Current state documentation with code patterns, business rules, and architectural decisions
-
-### Industry Benchmarker
-
-**Purpose**: Compares implementation against enterprise standards
-
-**Key Methods**:
-- `compareSAPProjectSystem()`: Evaluates against SAP PS WBS and activity-based costing
-- `compareMicrosoftProject()`: Assesses resource pools, leveling, and over-allocation detection
-- `compareTempo()`: Reviews time/cost/capacity strategic triad approach
-- `compareSmartsheet()`: Analyzes cross-project visibility and resource management
-
-**Outputs**: Detailed benchmark analysis with specific feature gaps and opportunities
-
-### Working Days Calculator
-
-**Purpose**: Implements industry-standard working days calculation
-
-**Key Methods**:
-- `calculateWorkingDays(startDate, endDate, holidayCalendar)`: Core business days calculation
-- `excludeWeekends()`: Filters out Saturday/Sunday from date ranges
-- `applyHolidayCalendar(region, businessUnit)`: Applies configurable holiday exclusions
-- `adjustForLeave(resourceId, dateRange)`: Accounts for vacation and sick leave
-- `integrateWithComplexity(workingDays, complexityFactor)`: Applies complexity only to working days
-
-**Business Rules**:
-- Monday-Friday are standard working days
-- Configurable holiday calendars per region/business unit
-- Leave days (vacation, sick) excluded from availability calculations
-- Complexity factors applied only to actual working days
-- Daily rates calculated based on working days per period (not calendar days)
-
-### Resource Allocation Engine
-
-**Purpose**: Implements advanced resource allocation with over-allocation detection
-
-**Key Methods**:
-- `detectOverAllocation(resourceId, timeRange)`: Identifies resource conflicts
-- `calculatePercentageAllocations()`: Manages percentage-based assignments
-- `levelResources(projectSet)`: Automated resource leveling across projects
-- `distinguishResourceTypes()`: Handles internal vs external resource cost models
-- `trackUtilization()`: Real-time utilization monitoring
-
-**Algorithms**:
-- **Over-allocation Detection**: Continuous monitoring of resource assignments vs capacity
-- **Resource Leveling**: Automatic task rescheduling to resolve conflicts
-- **Utilization Optimization**: Balancing workload across available resources
-- **Cost Calculation**: Different models for internal (salary-based) vs external (rate-based) resources
-
-### Cost Center Manager
-
-**Purpose**: Enhanced hierarchical cost center management with enterprise controls
-
-**Key Methods**:
-- `manageBudgetHierarchy()`: Cascading budget controls with rollup calculations
-- `categorizeCosts(expense, type)`: CAPEX vs OPEX classification
-- `enforceBudgetLimits()`: Prevent over-budget allocations with approval workflows
-- `generateFinancialReports()`: Real-time budget vs actual reporting
-- `processBudgetTransfers()`: Inter-cost-center transfers with audit trails
-
-**Business Rules**:
-- Hierarchical budget rollup from child to parent cost centers
-- CAPEX/OPEX categorization with appropriate allocation rules
-- Budget enforcement with configurable approval thresholds
-- Audit trail for all budget modifications and transfers
-
-### Task Complexity Estimator
-
-**Purpose**: Advanced task estimation with multi-factor complexity scoring
-
-**Key Methods**:
-- `calculateComplexityScore(task)`: Multi-factor complexity analysis
-- `adjustForSkillLevels(estimate, assignedResources)`: Skill-based estimate adjustment
-- `trackEarnedValue()`: Earned value management calculations
-- `maintainEstimateHistory()`: Historical tracking and variance analysis
-- `forecastCompletion()`: Statistical completion date prediction
-
-**Complexity Factors**:
-- Technical complexity (technology stack, integration points)
-- Business complexity (requirements clarity, stakeholder count)
-- Resource complexity (skill requirements, availability)
-- Risk factors (dependencies, unknowns)
-
-### Implementation Comparator
-
-**Purpose**: Compares current implementation against proposed optimizations
-
-**Key Methods**:
-- `mapCurrentBusinessLogic()`: Documents existing business logic across all functions
-- `analyzeImplementationDifferences()`: Identifies specific changes between current and proposed logic
-- `assessMigrationImpact()`: Evaluates data migration and compatibility requirements
-- `generateComparisonReport()`: Creates side-by-side analysis of current vs proposed implementations
-- `identifyAffectedFunctions()`: Maps which functions would be impacted by each optimization
-
-**Analysis Areas**:
-- **Current State Mapping**: Complete documentation of existing business rules, algorithms, and data flows
-- **Change Impact Analysis**: Function-by-function comparison of current vs proposed implementations
-- **Migration Path Planning**: Data migration requirements, API compatibility, and rollback strategies
-- **Risk Assessment**: Identification of potential breaking changes and mitigation approaches
-
-## Data Models
-
-### Working Days Configuration
-```typescript
-interface WorkingDaysConfig {
-  businessDays: DayOfWeek[];  // Default: [Monday, Tuesday, Wednesday, Thursday, Friday]
-  holidayCalendars: HolidayCalendar[];
-  leaveManagement: LeaveConfig;
+**Interface**:
+```javascript
+interface ComplexityEngine {
+  calculateEffort(complexity: ComplexityLevel, resourceTier: number, options?: EffortOptions): EffortResult;
+  validateComplexity(complexityData: ComplexityData): ValidationResult;
+  getComplexityBreakdown(complexity: ComplexityLevel): ComplexityBreakdown;
 }
 
-interface HolidayCalendar {
-  region: string;
-  businessUnit?: string;
-  holidays: Holiday[];
-}
-
-interface Holiday {
-  date: Date;
-  name: string;
-  type: 'public' | 'company' | 'regional';
+interface EffortResult {
+  baseEffortHours: number;
+  adjustedEffortHours: number;
+  skillMultiplier: number;
+  complexityMultiplier: number;
+  riskMultiplier: number;
+  breakdown: EffortBreakdown;
 }
 ```
 
-### Resource Allocation Model
-```typescript
-interface ResourceAllocation {
-  resourceId: string;
-  projectId: string;
-  taskId?: string;
-  allocationPercentage: number;
-  startDate: Date;
-  endDate: Date;
-  workingDaysOnly: boolean;
-  costCenterId: string;
-  resourceType: 'internal' | 'external' | 'vendor';
+### 2. Resource Allocation Engine
+
+**Purpose**: Manage resource capacity, detect over-allocation, and support percentage-based assignments
+
+**Key Components**:
+- `CapacityTracker`: Monitors resource utilization across all allocations
+- `AllocationValidator`: Validates resource availability and constraints
+- `ConflictDetector`: Identifies scheduling and capacity conflicts
+
+**Interface**:
+```javascript
+interface ResourceAllocationEngine {
+  validateAllocation(allocationRequest: AllocationRequest): ValidationResult;
+  detectOverAllocation(resourceId: string, allocations: Allocation[]): OverAllocationResult;
+  calculateUtilization(resourceId: string, timeRange: DateRange): UtilizationResult;
+  supportPercentageAllocation(allocation: Allocation, percentage: number): AllocationResult;
 }
 
-interface ResourceCapacity {
-  resourceId: string;
-  totalCapacity: number;  // in working days or hours
-  allocatedCapacity: number;
-  availableCapacity: number;
-  overAllocationThreshold: number;
+interface OverAllocationResult {
+  isOverAllocated: boolean;
+  currentUtilization: number;
+  maxCapacity: number;
+  overAllocationAmount: number;
+  conflictingAllocations: string[];
+}
+```
+
+### 3. Enhanced Cost Calculator
+
+**Purpose**: Implement proper cost calculations using actual effort hours and tier-adjusted rates
+
+**Key Components**:
+- `CostCalculator`: Computes project costs using the new formula
+- `RateAdjuster`: Applies overhead and inflation factors to base rates
+- `BudgetEnforcer`: Validates budget capacity and enforces limits
+
+**Interface**:
+```javascript
+interface CostCalculator {
+  calculateProjectCost(effort: EffortResult, resource: Resource, options?: CostOptions): CostResult;
+  calculateDuration(effortHours: number, allocationPercentage: number): DurationResult;
+  validateBudgetCapacity(costCenterId: string, projectedCost: number): BudgetValidationResult;
+}
+
+interface CostResult {
+  totalCost: number;
+  effortHours: number;
+  durationDays: number;
+  hourlyRate: number;
+  breakdown: CostBreakdown;
+}
+```
+
+### 4. Validation Engine
+
+**Purpose**: Provide comprehensive pre-allocation validation
+
+**Key Components**:
+- `ResourceValidator`: Checks resource availability and skill match
+- `BudgetValidator`: Validates budget capacity and constraints
+- `ScheduleValidator`: Ensures timeline feasibility
+
+**Interface**:
+```javascript
+interface ValidationEngine {
+  validateAllocationCreation(allocationData: AllocationRequest): Promise<ValidationResult[]>;
+  validateResourceAvailability(resourceId: string, dateRange: DateRange): Promise<AvailabilityResult>;
+  validateBudgetCapacity(costCenterId: string, estimatedCost: number): Promise<BudgetResult>;
+  validateSkillMatch(resourceId: string, taskRequirements: SkillRequirement[]): Promise<SkillMatchResult>;
+}
+```
+
+### 7. UI/UX Enhancement Engine
+
+**Purpose**: Manage UI improvements including color schemes, modals, and terminology
+
+**Key Components**:
+- `ColorSchemeManager`: Standardizes member load status colors
+- `ModalManager`: Handles date picker and other modal implementations
+- `TerminologyManager`: Updates capacity-related terminology
+
+**Interface**:
+```javascript
+interface UIEnhancementEngine {
+  getLoadStatusColor(utilizationPercentage: number): ColorScheme;
+  renderDatePickerModal(options: DatePickerOptions): ModalComponent;
+  getCapacityStatusText(utilizationPercentage: number): string; // "Over Capacity" for >100%
+}
+```
+
+### 8. Dashboard and Search Engine
+
+**Purpose**: Enhanced dashboard filtering and search capabilities
+
+**Key Components**:
+- `DateFilterManager`: Improved date filtering for dashboard views
+- `DemandSearchEngine`: Search functionality for Support issue demand numbers
+- `PhaseCalculator`: Calculate task spans from allocation to completion phases
+
+**Interface**:
+```javascript
+interface DashboardEngine {
+  filterByDateRange(allocations: Allocation[], dateRange: DateRange): Allocation[];
+  searchByDemandNumber(issues: SupportIssue[], demandNumber: string): SupportIssue[];
+  calculatePhaseSpan(allocation: Allocation, completionPhase: Phase): TimeSpan;
+}
+```
+
+## Data Models
+
+### Enhanced Complexity Model
+
+```javascript
+interface EnhancedComplexity {
+  level: 'low' | 'medium' | 'high' | 'sophisticated';
+  label: string;
+  baseEffortHours: number;        // Actual work effort (40, 120, 320, 640)
+  baselineDays: number;           // Duration at 100% allocation for mid-tier
+  complexityMultiplier: number;   // Effort adjustment factor (0.8, 1.0, 1.5, 2.5)
+  riskFactor: number;            // Risk multiplier (1.0, 1.2, 1.8, 2.5)
+  skillSensitivity: number;      // How much tier level affects this complexity (0.3, 0.5, 0.8, 1.2)
+  
+  // Multi-factor scoring (for advanced complexity)
+  technicalComplexity?: number;  // 1-10 scale
+  businessComplexity?: number;   // 1-10 scale
+  integrationPoints?: number;    // Count of external dependencies
+  unknownRequirements?: number;  // Percentage of unclear requirements
+}
+```
+
+### Enhanced Resource Model
+
+```javascript
+interface EnhancedResource {
+  // Existing fields preserved
+  id: string;
+  name: string;
+  tierLevel: number;             // 1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Principal
+  costTierId: string;
+  
+  // New capacity management fields
+  maxCapacity: number;           // e.g., 1.0 = 100% capacity
+  currentUtilization: number;    // calculated in real-time
+  overAllocationThreshold: number; // e.g., 1.2 = 120% max
+  
+  // Enhanced skill tracking
+  skillAreas: string[];          // ['React', 'Node.js', 'AWS']
+  performanceMetrics: {
+    averageTaskCompletion: number; // historical performance
+    qualityScore: number;         // 1-10 scale
+    velocityTrend: 'improving' | 'stable' | 'declining';
+  };
+  
+  // Availability management
+  availabilityCalendar: AvailabilityPeriod[];
+}
+
+interface AvailabilityPeriod {
+  startDate: string;
+  endDate: string;
+  availabilityPercentage: number; // 0.0 to 1.0
+  reason?: string;               // 'vacation', 'training', 'other-project'
+}
+```
+
+### Enhanced Allocation Model
+
+```javascript
+interface EnhancedAllocation {
+  // Existing fields preserved
+  id: string;
+  resource: string;
+  project: string;
+  phase: string;
+  task: string;
+  complexity: string;
+  
+  // New allocation management fields
+  allocationPercentage: number;  // 0.0 to 1.0 (10% to 100%)
+  effectiveHours: number;        // calculated from percentage
+  
+  // Enhanced effort tracking
+  effort: {
+    baseEffortHours: number;
+    adjustedEffortHours: number;
+    skillMultiplier: number;
+    complexityMultiplier: number;
+    riskMultiplier: number;
+  };
+  
+  // Enhanced planning data
+  plan: {
+    effortHours: number;         // actual work effort
+    durationDays: number;        // calendar duration
+    costProject: number;         // total project cost
+    costMonthly: number;         // monthly cost impact
+    startDate: string;
+    endDate: string;
+  };
+  
+  // Validation and conflict tracking
+  validationStatus: {
+    isValid: boolean;
+    warnings: string[];
+    conflicts: string[];
+  };
+  
+  // Dependencies and constraints
+  dependencies: string[];        // other allocation IDs
+  skillRequirements: string[];
+  riskLevel: 'low' | 'medium' | 'high';
 }
 ```
 
 ### Enhanced Cost Center Model
-```typescript
-interface CostCenter {
+
+```javascript
+interface EnhancedCostCenter {
+  // Existing fields preserved
   id: string;
   name: string;
-  parentId?: string;
-  budgetAmount: number;
-  budgetType: 'CAPEX' | 'OPEX' | 'MIXED';
-  budgetPeriod: 'monthly' | 'quarterly' | 'yearly';
-  approvalThreshold: number;
-  children: CostCenter[];
+  monthlyBudget: number;
+  yearlyBudget: number;
+  actualMonthlyCost: number;
+  actualYearlyCost: number;
+  
+  // New budget management fields
+  budgetEnforcement: 'strict' | 'warning' | 'none';
+  overBudgetThreshold: number;   // percentage over budget allowed
+  
+  // Enhanced tracking
+  projectedSpend: number;        // including pending allocations
+  remainingBudget: number;       // available for new allocations
+  utilizationPercentage: number; // current budget utilization
+  
+  // Audit and history
+  budgetHistory: BudgetSnapshot[];
+  lastUpdated: string;
 }
 
-interface BudgetAllocation {
-  costCenterId: string;
-  allocatedAmount: number;
-  actualSpent: number;
-  commitments: number;
-  availableBudget: number;
-  lastUpdated: Date;
-}
-```
-
-### Task Complexity Model
-```typescript
-interface TaskComplexity {
-  taskId: string;
-  technicalComplexity: number;  // 1-10 scale
-  businessComplexity: number;   // 1-10 scale
-  resourceComplexity: number;   // 1-10 scale
-  riskFactor: number;          // 1-10 scale
-  overallComplexity: number;   // calculated composite score
-  estimateInWorkingDays: number;
-  confidenceLevel: number;     // 0-100%
+interface BudgetSnapshot {
+  date: string;
+  monthlyBudget: number;
+  actualSpend: number;
+  projectedSpend: number;
+  allocationCount: number;
 }
 ```
-
-### Implementation Comparison Model
-```typescript
-interface CurrentImplementationMap {
-  functionName: string;
-  businessRules: BusinessRule[];
-  algorithms: Algorithm[];
-  dataFlows: DataFlow[];
-  integrationPoints: IntegrationPoint[];
-  performanceCharacteristics: PerformanceMetrics;
-}
-
-interface ProposedOptimization {
-  targetFunction: string;
-  currentImplementation: CurrentImplementationMap;
-  proposedChanges: ImplementationChange[];
-  migrationRequirements: MigrationRequirement[];
-  compatibilityImpact: CompatibilityAssessment;
-  riskAssessment: RiskAssessment;
-}
-
-interface ImplementationChange {
-  changeType: 'algorithm' | 'business_rule' | 'data_model' | 'integration';
-  currentApproach: string;
-  proposedApproach: string;
-  impactLevel: 'low' | 'medium' | 'high';
-  breakingChange: boolean;
-  migrationPath: string;
-}
-```
-
-Now I need to use the prework tool to analyze the acceptance criteria before writing the Correctness Properties section:
-
-<function_calls>
-<invoke name="prework">
-<parameter name="featureName">business-logic-optimization
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Analysis and Benchmarking Properties
+### Property 1: Effort-Based Complexity Model Correctness
+*For any* task complexity level, the complexity model should contain actual effort hours (not arbitrary multipliers) and all required parameters (complexity multipliers, risk factors, skill sensitivity) should be properly defined and mathematically consistent.
+**Validates: Requirements 1.1, 1.4**
 
-**Property 1: Complete Business Logic Extraction**
-*For any* codebase containing resource allocation, cost center management, or task creation logic, the Business_Logic_Analyzer should extract and document all algorithms, business rules, hierarchical structures, and integration patterns without omission.
-**Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
+### Property 2: Effort-Duration Separation
+*For any* allocation with effort hours and allocation percentage, the duration calculation should follow the formula: Duration Days = Effort Hours ÷ (Allocation Percentage × 8 hours/day), ensuring proper separation between effort and timeline.
+**Validates: Requirements 1.2, 3.3, 6.2, 6.3**
 
-**Property 2: Comprehensive Industry Benchmark Comparison**
-*For any* current implementation feature set, the Gap_Identifier should evaluate against all relevant industry standards (SAP PS, Microsoft Project, Tempo, Smartsheet) and produce gap analysis containing specific benchmark comparisons and recommendations.
-**Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
+### Property 3: Tier-Based Skill Adjustment Correctness
+*For any* resource with a tier level (1-5) assigned to any task complexity, the effort calculation should apply appropriate skill multipliers where Junior (tier 1) requires more effort than Senior (tier 3), and the adjustment magnitude should respect the complexity's skill sensitivity factor.
+**Validates: Requirements 2.1, 2.3, 2.4, 2.5**
 
-### Resource Allocation Properties
+### Property 4: Cost Calculation Formula Correctness
+*For any* allocation, the total cost should equal Actual Effort Hours × Tier-Adjusted Hourly Rate, where actual effort hours include all applied multipliers (complexity, skill, risk) and the hourly rate maintains the existing monthly→daily→hourly conversion structure.
+**Validates: Requirements 3.1, 3.2, 3.5**
 
-**Property 3: Over-allocation Detection Accuracy**
-*For any* resource with defined capacity and time period, when assignments exceed available capacity, the Resource_Allocation_Engine should detect and flag the over-allocation condition.
-**Validates: Requirements 3.1**
-
-**Property 4: Percentage Allocation Calculation Consistency**
-*For any* resource allocation specified as a percentage, the Resource_Allocation_Engine should calculate the corresponding time units accurately and maintain consistency across all allocation calculations.
-**Validates: Requirements 3.2**
-
-**Property 5: Resource Type Cost Model Application**
-*For any* resource allocation, the Resource_Allocation_Engine should apply the correct cost model (internal salary-based vs external rate-based) based on the resource type classification.
-**Validates: Requirements 3.3**
-
-**Property 6: Resource Leveling Conflict Resolution**
-*For any* set of over-allocated resources across projects, the Resource_Allocation_Engine should produce a leveled schedule that resolves conflicts while minimizing project impact.
+### Property 5: Cost Breakdown Completeness
+*For any* cost calculation, the breakdown should include all contributing factors (base hours, skill multiplier, complexity multiplier, risk multiplier, hourly rate) and the sum of components should equal the total calculated cost.
 **Validates: Requirements 3.4**
 
-**Property 7: Real-time Utilization Accuracy**
-*For any* resource allocation change, the Resource_Allocation_Engine should immediately update utilization metrics to reflect the current state across all projects.
-**Validates: Requirements 3.5**
+### Property 6: Resource Utilization Tracking Accuracy
+*For any* resource, the current utilization should equal the sum of allocation percentages across all active allocations, and over-allocation should be flagged when utilization exceeds the resource's configurable threshold.
+**Validates: Requirements 4.1, 4.2, 4.3**
 
-### Cost Center Management Properties
-
-**Property 8: Hierarchical Budget Rollup Consistency**
-*For any* cost center hierarchy, budget changes at any level should correctly cascade and rollup to all parent levels, maintaining mathematical consistency.
-**Validates: Requirements 4.1**
-
-**Property 9: CAPEX/OPEX Categorization Accuracy**
-*For any* expense or allocation, the Cost_Center_Manager should correctly categorize it as CAPEX or OPEX based on defined business rules and apply appropriate allocation methods.
-**Validates: Requirements 4.2**
-
-**Property 10: Budget Enforcement Integrity**
-*For any* allocation request that would exceed available budget, the Cost_Center_Manager should either prevent the allocation or route it through the configured approval workflow.
-**Validates: Requirements 4.3**
-
-**Property 11: Real-time Financial Reporting Accuracy**
-*For any* budget or allocation change, financial reports at all hierarchy levels should immediately reflect the updated budget vs actual values.
-**Validates: Requirements 4.4**
-
-**Property 12: Budget Transfer Audit Trail Completeness**
-*For any* inter-cost-center budget transfer, the Cost_Center_Manager should create a complete audit trail containing all transfer details, approvals, and timestamps.
+### Property 7: Over-Allocation Prevention
+*For any* new allocation request, when strict enforcement is enabled and the allocation would cause over-allocation, the system should prevent the allocation and provide clear feedback about the capacity conflict.
 **Validates: Requirements 4.5**
 
-### Task Estimation Properties
+### Property 8: Budget Enforcement Correctness
+*For any* allocation request, the system should validate that projected spend (current spend + new allocation cost) does not exceed available budget, and enforcement behavior should match the configured mode (strict/warning/none).
+**Validates: Requirements 5.1, 5.2, 5.3, 5.4**
 
-**Property 13: Multi-factor Complexity Scoring Consistency**
-*For any* task with defined characteristics, the Task_Complexity_Estimator should calculate complexity scores using all relevant factors (technical, business, resource, risk) in a consistent manner.
-**Validates: Requirements 5.1**
+### Property 9: Allocation Percentage Validation
+*For any* resource, the system should accept allocation percentages between 0.1 and 1.0, and the total of all allocation percentages should not exceed the resource's maximum capacity when validation is enabled.
+**Validates: Requirements 6.1, 6.5**
 
-**Property 14: Skill-adjusted Effort Calculation**
-*For any* task assignment, effort estimates should appropriately adjust based on assigned resource skill levels and availability patterns.
-**Validates: Requirements 5.2**
+### Property 10: Percentage-Based Allocation Calculations
+*For any* allocation with a percentage assignment, both the allocated percentage and effective working hours should be tracked, and they should maintain the mathematical relationship: Effective Hours = Base Effort Hours ÷ Allocation Percentage.
+**Validates: Requirements 6.4**
 
-**Property 15: Earned Value Management Calculation Accuracy**
-*For any* task with progress updates, earned value calculations should follow standard EVM formulas (PV, EV, AC, SPI, CPI) correctly.
-**Validates: Requirements 5.3**
+### Property 11: Comprehensive Resource Validation
+*For any* allocation request, the validation should consider resource availability, existing allocations, leave schedules, capacity limits, skill matching, and workload constraints, providing detailed feedback for any conflicts or violations.
+**Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5**
 
-**Property 16: Estimate History and Variance Tracking**
-*For any* estimate adjustment, the Task_Complexity_Estimator should maintain complete historical records and calculate variance analysis accurately.
-**Validates: Requirements 5.4**
+### Property 12: Multi-Factor Complexity Scoring
+*For any* task with multi-factor complexity scoring, the system should support technical complexity, business complexity, and risk factors (1-10 scale each), combine them into a composite score, and apply different skill sensitivities based on complexity type.
+**Validates: Requirements 8.1, 8.2, 8.3, 8.4**
 
-**Property 17: Statistical Forecasting Model Application**
-*For any* task with historical data, completion forecasts should use appropriate statistical models and provide confidence intervals.
-**Validates: Requirements 5.5**
+### Property 13: Working Days Calculation Preservation
+*For any* date range, the working days calculation should maintain the existing Indonesia-specific holiday calendar logic, provide detailed breakdowns (calendar days, weekends, holidays, working days), and support overhead factors in rate calculations.
+**Validates: Requirements 9.1, 9.2, 9.4**
 
-### Working Days Calculation Properties
+### Property 14: Performance Optimization Correctness
+*For any* system operation, selective recalculation should only affect allocations that depend on changed values, memoized calculations should return consistent results for identical inputs, and memory optimization should avoid storing redundant cost center data in allocations.
+**Validates: Requirements 10.2, 10.3, 10.5**
 
-**Property 18: Working Days Calculation Accuracy**
-*For any* date range, the Working_Days_Calculator should exclude weekends, holidays, and leave days, applying complexity factors only to actual working days and calculating costs based on working day rates.
-**Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5**
+### Property 15: Reporting Data Accuracy
+*For any* generated report, resource utilization calculations should be accurate, cost breakdowns should include all complexity and skill factors, variance tracking should correctly compare estimated vs actual values, and portfolio aggregations should properly sum across projects.
+**Validates: Requirements 11.1, 11.2, 11.3, 11.4**
 
-**Property 19: Holiday Calendar Configuration Flexibility**
-*For any* regional or business unit configuration, the Working_Days_Calculator should correctly apply the appropriate holiday calendar and handle multiple overlapping calendars.
-**Validates: Requirements 6.6**
+### Property 16: Backward Compatibility Preservation
+*For any* existing allocation, the transition to the new complexity model should maintain calculation accuracy and data integrity, ensuring that historical allocations continue to function correctly with the enhanced system.
+**Validates: Requirements 1.5**
 
-### Integration and Consistency Properties
+### Property 17: SLA Priority Mapping Correctness
+*For any* task with a defined priority level, the system should map appropriate SLA time requirements (response, resolution, escalation times) and track compliance against these service level agreements.
+**Validates: User Requirement - SLA Time Mapping to Priority**
 
-**Property 20: Real-time Budget Impact Propagation**
-*For any* resource allocation change, cost center budget impacts should be immediately reflected across all related entities and reports.
-**Validates: Requirements 7.1**
+### Property 18: Selective Complexity Application
+*For any* task, complexity calculations should only be applied to Project tasks, while Support and Maintenance tasks should use simple time estimates, ensuring appropriate calculation methods based on task type.
+**Validates: User Requirement - Remove Complexity Calculation except for Project Task**
 
-**Property 21: Cascading Change Consistency**
-*For any* cost center modification, all dependent allocations and tasks should be updated consistently to maintain data integrity.
-**Validates: Requirements 7.2**
+### Property 19: Phase-Based Duration Calculation
+*For any* allocation with a task allocation phase selected, the system should calculate the time span from the allocation phase until the completion phase, providing accurate phase-based timeline estimates.
+**Validates: User Requirement - Calculate span until phase Completed**
 
-**Property 22: Creation Validation Completeness**
-*For any* task creation request, the Integration_Validator should verify both resource availability and cost center budget capacity before allowing creation.
-**Validates: Requirements 7.3**
+### Property 20: Capacity Status Terminology Accuracy
+*For any* resource with utilization greater than 100%, the system should display "Over Capacity" status instead of "At Capacity", providing clear indication of over-allocation situations.
+**Validates: User Requirement - Update At Capacity word into Over Capacity**
 
-**Property 23: Bulk Operation Transactional Integrity**
-*For any* bulk operation affecting multiple entities, either all changes should succeed together or all should fail together, maintaining system consistency.
-**Validates: Requirements 7.4**
+### Property 21: Dashboard Date Filter Functionality
+*For any* date range selection on the dashboard, the filtering should accurately display allocations within the specified period and provide intuitive date picker modal functionality.
+**Validates: User Requirement - Update Date Filter Function on Dashboard View**
 
-**Property 24: Event-driven Update Consistency**
-*For any* system event, all dependent components should receive updates and maintain consistent state in real-time.
-**Validates: Requirements 7.5**
-
-### Performance Optimization Properties
-
-**Property 25: Performance Bottleneck Identification**
-*For any* calculation-intensive operation, the Performance_Optimizer should identify bottlenecks and provide specific optimization recommendations with expected improvements.
-**Validates: Requirements 8.1, 8.5**
-
-**Property 26: Caching Strategy Recommendation Accuracy**
-*For any* data access pattern analysis, the Performance_Optimizer should recommend appropriate caching strategies based on access frequency and data volatility.
-**Validates: Requirements 8.2**
-
-**Property 27: Database Optimization Suggestion Relevance**
-*For any* query performance analysis, optimization suggestions should be technically sound and applicable to the specific database and query patterns.
-**Validates: Requirements 8.3**
-
-**Property 28: Scalability Modeling Accuracy**
-*For any* load scenario, performance models should accurately predict system behavior under increased load conditions.
-**Validates: Requirements 8.4**
-
-### Enhancement Proposal Properties
-
-**Property 29: Current Implementation Mapping Completeness**
-*For any* system function containing business logic, the Implementation_Comparator should document all business rules, algorithms, data flows, and integration points without omission.
-**Validates: Requirements 9.1**
-
-**Property 30: Implementation Difference Analysis Accuracy**
-*For any* proposed optimization, the Implementation_Comparator should identify all specific differences between current and proposed implementations, including impact level and breaking change assessment.
-**Validates: Requirements 9.2**
-
-**Property 31: Migration Impact Assessment Completeness**
-*For any* proposed change, the Implementation_Comparator should analyze data migration requirements, backward compatibility needs, and provide complete migration path documentation.
-**Validates: Requirements 9.3**
-
-**Property 32: Side-by-side Comparison Accuracy**
-*For any* current vs proposed implementation comparison, the documentation should accurately represent both approaches and clearly highlight differences and implications.
-**Validates: Requirements 9.4**
-
-**Property 33: Affected Function Identification Completeness**
-*For any* proposed optimization, the Implementation_Comparator should identify all functions that would be directly or indirectly affected by the change.
-**Validates: Requirements 9.5**
-
-**Property 34: Improvement Prioritization Logic**
-*For any* set of potential enhancements, the Enhancement_Proposer should rank them based on quantified business impact and implementation complexity using consistent criteria.
-**Validates: Requirements 10.1**
-
-**Property 35: Enhancement Documentation Completeness**
-*For any* proposed enhancement, documentation should include all required technical specifications, effort estimates, risk assessments, and implementation details.
-**Validates: Requirements 10.2, 10.3, 10.4**
-
-**Property 36: Implementation Roadmap Structure**
-*For any* set of approved enhancements, the roadmap should contain properly sequenced phases with clear milestones, dependencies, and success criteria.
-**Validates: Requirements 10.5**
+### Property 22: Demand Number Search Capability
+*For any* Support issue with a demand number, the search functionality should allow finding related issues by demand number, supporting both exact matches and related demand lookups.
+**Validates: User Requirement - Add Search Demand Number for Support Issue**
 
 ## Error Handling
 
-The system implements comprehensive error handling across all components:
+### Validation Error Handling
 
-### Analysis Phase Error Handling
-- **Code Analysis Failures**: Graceful handling of unparseable code with detailed error reporting
-- **Missing Dependencies**: Clear identification of missing components or incomplete analysis
-- **Data Inconsistencies**: Detection and reporting of inconsistent business logic patterns
+**Input Validation Errors**:
+- Invalid complexity parameters → Return detailed validation messages
+- Invalid tier levels → Default to mid-tier (level 2) with warning
+- Invalid allocation percentages → Reject with range specification (0.1-1.0)
+- Missing required fields → Return specific field requirements
 
-### Calculation Error Handling
-- **Working Days Calculation**: Validation of date ranges, holiday calendar integrity, and leave data consistency
-- **Resource Allocation**: Detection of invalid percentage allocations, capacity overruns, and circular dependencies
-- **Cost Center Operations**: Prevention of budget violations, invalid hierarchy modifications, and orphaned allocations
+**Business Logic Errors**:
+- Over-allocation attempts → Prevent with capacity conflict details
+- Budget exceeded → Block or warn based on enforcement mode
+- Skill mismatch → Flag with skill gap analysis
+- Resource unavailable → Provide availability alternatives
 
-### Integration Error Handling
-- **Transaction Failures**: Rollback mechanisms for failed bulk operations
-- **Event Processing**: Dead letter queues for failed event processing with retry mechanisms
-- **Data Synchronization**: Conflict resolution for concurrent modifications
+**Calculation Errors**:
+- Division by zero in duration calculations → Handle zero allocation percentage gracefully
+- Negative effort hours → Validate and reject invalid complexity configurations
+- Invalid date ranges → Provide clear date validation messages
+- Missing cost data → Use fallback rates with warnings
 
-### Performance Error Handling
-- **Analysis Timeouts**: Graceful degradation for long-running analysis operations
-- **Memory Constraints**: Chunked processing for large datasets
-- **Resource Exhaustion**: Circuit breaker patterns for external service dependencies
+### Error Recovery Strategies
+
+**Graceful Degradation**:
+- If tier-based calculations fail → Fall back to baseline effort estimates
+- If budget validation fails → Allow with warnings in non-strict mode
+- If complexity data is missing → Use default complexity parameters
+- If working days calculation fails → Use standard 20 days/month fallback
+
+**Data Consistency**:
+- Transaction rollback for failed allocation creation
+- Automatic recalculation when dependencies are restored
+- Audit trail for all error conditions and recovery actions
+- Validation state tracking for partial allocation data
 
 ## Testing Strategy
 
-The testing approach combines unit testing for specific scenarios with property-based testing for comprehensive validation:
+### Dual Testing Approach
 
-### Unit Testing Focus
-- **Specific Examples**: Test concrete scenarios like holiday exclusions, budget transfers, and complexity calculations
-- **Edge Cases**: Boundary conditions such as zero allocations, maximum capacity scenarios, and invalid date ranges
-- **Integration Points**: Component interaction testing, especially between cost centers and resource allocations
-- **Error Conditions**: Validation of error handling for invalid inputs and system failures
+The testing strategy employs both unit tests and property-based tests as complementary approaches:
+
+**Unit Tests Focus**:
+- Specific examples demonstrating correct behavior
+- Edge cases and boundary conditions
+- Error conditions and exception handling
+- Integration points between components
+- Regression tests for critical bug fixes
+
+**Property Tests Focus**:
+- Universal properties that hold for all inputs
+- Comprehensive input coverage through randomization
+- Mathematical relationships and invariants
+- Business rule enforcement across all scenarios
+- Performance characteristics under varied loads
 
 ### Property-Based Testing Configuration
-- **Testing Framework**: Use Hypothesis (Python), fast-check (TypeScript), or QuickCheck (Haskell) depending on implementation language
-- **Test Iterations**: Minimum 100 iterations per property test to ensure comprehensive input coverage
-- **Property Test Tags**: Each test tagged with format: **Feature: business-logic-optimization, Property {number}: {property_text}**
-- **Generator Strategy**: Custom generators for business entities (resources, cost centers, tasks) with realistic constraints
 
-### Test Coverage Requirements
-- **Property Coverage**: Each correctness property implemented as a single property-based test
-- **Unit Test Coverage**: Minimum 90% code coverage for business logic components
-- **Integration Coverage**: End-to-end scenarios covering complete workflows from analysis to enhancement proposal
-- **Performance Testing**: Load testing for calculation-intensive operations with realistic data volumes
+**Testing Framework**: Use fast-check (JavaScript/TypeScript) for property-based testing
+**Test Configuration**: Minimum 100 iterations per property test
+**Test Tagging**: Each property test must reference its design document property
 
-The dual testing approach ensures both correctness (property tests verify universal rules) and reliability (unit tests catch specific bugs and edge cases).
+**Example Property Test Structure**:
+```javascript
+// Feature: business-logic-optimization, Property 3: Tier-Based Skill Adjustment Correctness
+fc.assert(fc.property(
+  fc.record({
+    tierLevel: fc.integer(1, 5),
+    complexity: fc.constantFrom('low', 'medium', 'high', 'sophisticated'),
+    baseEffort: fc.integer(1, 1000)
+  }),
+  (data) => {
+    const result = calculateTierAdjustedEffort(data.complexity, data.tierLevel, data.baseEffort);
+    
+    // Junior (tier 1) should require more effort than Senior (tier 3)
+    const juniorResult = calculateTierAdjustedEffort(data.complexity, 1, data.baseEffort);
+    const seniorResult = calculateTierAdjustedEffort(data.complexity, 3, data.baseEffort);
+    
+    return juniorResult.adjustedEffortHours >= seniorResult.adjustedEffortHours;
+  }
+), { numRuns: 100 });
+```
+
+### Unit Testing Strategy
+
+**Critical Unit Tests**:
+- Complexity model data structure validation
+- Tier multiplier calculation accuracy
+- Cost formula implementation correctness
+- Budget validation logic
+- Over-allocation detection algorithms
+- Working days calculation edge cases
+- Error handling and recovery scenarios
+
+**Integration Tests**:
+- End-to-end allocation creation workflow
+- Cross-component data consistency
+- Performance under realistic data volumes
+- Backward compatibility with existing data
+- Multi-user concurrent access scenarios
+
+### Test Data Management
+
+**Test Data Categories**:
+- **Synthetic Data**: Generated test allocations, resources, and cost centers
+- **Historical Data**: Anonymized production data for regression testing
+- **Edge Case Data**: Boundary conditions and unusual scenarios
+- **Performance Data**: Large datasets for scalability testing
+
+**Data Generation Strategy**:
+- Property-based test generators for comprehensive coverage
+- Realistic test data that mirrors production patterns
+- Controlled test scenarios for specific business rules
+- Performance test data with varying scales and complexity
