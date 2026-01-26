@@ -178,14 +178,14 @@ const VALIDATION_RULES = {
 // Comprehensive business rule validation functions
 function validateCostCenterCode(code, existingCostCenters = [], excludeId = null) {
     const errors = [];
-    
+
     if (!code || !code.trim()) {
         errors.push('Code is required');
         return errors;
     }
-    
+
     const trimmedCode = code.trim().toUpperCase();
-    
+
     // Length validation
     if (trimmedCode.length < VALIDATION_RULES.COST_CENTER.CODE.MIN_LENGTH) {
         errors.push(`Code must be at least ${VALIDATION_RULES.COST_CENTER.CODE.MIN_LENGTH} characters long`);
@@ -193,38 +193,38 @@ function validateCostCenterCode(code, existingCostCenters = [], excludeId = null
     if (trimmedCode.length > VALIDATION_RULES.COST_CENTER.CODE.MAX_LENGTH) {
         errors.push(`Code must not exceed ${VALIDATION_RULES.COST_CENTER.CODE.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (!VALIDATION_RULES.COST_CENTER.CODE.PATTERN.test(trimmedCode)) {
         errors.push('Code must contain only uppercase letters, numbers, underscores, and hyphens');
     }
-    
+
     // Reserved words validation
     if (VALIDATION_RULES.COST_CENTER.CODE.RESERVED_WORDS.includes(trimmedCode)) {
         errors.push(`"${trimmedCode}" is a reserved word and cannot be used as a code`);
     }
-    
+
     // Uniqueness validation
-    const duplicate = existingCostCenters.find(cc => 
+    const duplicate = existingCostCenters.find(cc =>
         cc.code.toUpperCase() === trimmedCode && cc.id !== excludeId
     );
     if (duplicate) {
         errors.push('Code must be unique');
     }
-    
+
     return errors;
 }
 
 function validateCostCenterName(name) {
     const errors = [];
-    
+
     if (!name || !name.trim()) {
         errors.push('Name is required');
         return errors;
     }
-    
+
     const trimmedName = name.trim();
-    
+
     // Length validation
     if (trimmedName.length < VALIDATION_RULES.COST_CENTER.NAME.MIN_LENGTH) {
         errors.push(`Name must be at least ${VALIDATION_RULES.COST_CENTER.NAME.MIN_LENGTH} characters long`);
@@ -232,51 +232,51 @@ function validateCostCenterName(name) {
     if (trimmedName.length > VALIDATION_RULES.COST_CENTER.NAME.MAX_LENGTH) {
         errors.push(`Name must not exceed ${VALIDATION_RULES.COST_CENTER.NAME.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (!VALIDATION_RULES.COST_CENTER.NAME.PATTERN.test(trimmedName)) {
         errors.push('Name contains invalid characters. Only letters, numbers, spaces, and common punctuation are allowed');
     }
-    
+
     // Reserved words validation
     const upperName = trimmedName.toUpperCase();
     if (VALIDATION_RULES.COST_CENTER.NAME.RESERVED_WORDS.some(word => upperName.includes(word))) {
         errors.push('Name cannot contain reserved words (ADMIN, SYSTEM, ROOT, DEFAULT)');
     }
-    
+
     return errors;
 }
 
 function validateCostCenterDescription(description) {
     const errors = [];
-    
+
     if (!description) return errors; // Description is optional
-    
+
     const trimmedDescription = description.trim();
-    
+
     // Length validation
     if (trimmedDescription.length > VALIDATION_RULES.COST_CENTER.DESCRIPTION.MAX_LENGTH) {
         errors.push(`Description must not exceed ${VALIDATION_RULES.COST_CENTER.DESCRIPTION.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (trimmedDescription && !VALIDATION_RULES.COST_CENTER.DESCRIPTION.PATTERN.test(trimmedDescription)) {
         errors.push('Description contains invalid characters');
     }
-    
+
     return errors;
 }
 
 function validateCostCenterManager(manager, teamMembers = []) {
     const errors = [];
-    
+
     if (!manager || !manager.trim()) {
         errors.push('Manager is required');
         return errors;
     }
-    
+
     const trimmedManager = manager.trim();
-    
+
     // Length validation
     if (trimmedManager.length < VALIDATION_RULES.COST_CENTER.MANAGER.MIN_LENGTH) {
         errors.push(`Manager name must be at least ${VALIDATION_RULES.COST_CENTER.MANAGER.MIN_LENGTH} characters long`);
@@ -284,20 +284,20 @@ function validateCostCenterManager(manager, teamMembers = []) {
     if (trimmedManager.length > VALIDATION_RULES.COST_CENTER.MANAGER.MAX_LENGTH) {
         errors.push(`Manager name must not exceed ${VALIDATION_RULES.COST_CENTER.MANAGER.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (!VALIDATION_RULES.COST_CENTER.MANAGER.PATTERN.test(trimmedManager)) {
         errors.push('Manager name contains invalid characters. Only letters, spaces, hyphens, and apostrophes are allowed');
     }
-    
+
     // Note: Removed manager existence validation - managers can be external to team members
-    
+
     return errors;
 }
 
 function validateCostCenterBudget(monthlyBudget, yearlyBudget) {
     const errors = [];
-    
+
     // Monthly budget validation (optional)
     if (monthlyBudget !== undefined && monthlyBudget !== null && monthlyBudget !== '') {
         const monthly = Number(monthlyBudget);
@@ -308,7 +308,7 @@ function validateCostCenterBudget(monthlyBudget, yearlyBudget) {
             errors.push('Monthly budget exceeds maximum limit (999 billion IDR)');
         }
     }
-    
+
     // Yearly budget validation (optional)
     if (yearlyBudget !== undefined && yearlyBudget !== null && yearlyBudget !== '') {
         const yearly = Number(yearlyBudget);
@@ -319,54 +319,54 @@ function validateCostCenterBudget(monthlyBudget, yearlyBudget) {
             errors.push('Yearly budget exceeds maximum limit (9.9 trillion IDR)');
         }
     }
-    
+
     // Cross-validation: yearly should be roughly 12x monthly (with some tolerance)
     if (monthlyBudget && yearlyBudget) {
         const monthly = Number(monthlyBudget);
         const yearly = Number(yearlyBudget);
         const expectedYearly = monthly * 12;
         const tolerance = 0.2; // 20% tolerance
-        
+
         if (yearly < expectedYearly * (1 - tolerance) || yearly > expectedYearly * (1 + tolerance)) {
             errors.push('Yearly budget should be approximately 12 times the monthly budget');
         }
     }
-    
+
     return errors;
 }
 
 function validateBudgetPeriod(budgetPeriod) {
     const errors = [];
-    
+
     if (!budgetPeriod) return errors; // Optional field
-    
+
     const trimmedPeriod = budgetPeriod.trim();
-    
+
     // Format validation (YYYY)
     if (!/^\d{4}$/.test(trimmedPeriod)) {
         errors.push('Budget period must be a 4-digit year (e.g., 2024)');
     }
-    
+
     // Range validation
     const year = parseInt(trimmedPeriod);
     const currentYear = new Date().getFullYear();
     if (year < 2020 || year > currentYear + 10) {
         errors.push(`Budget period must be between 2020 and ${currentYear + 10}`);
     }
-    
+
     return errors;
 }
 
 function validateCOACode(code, existingCOA = [], excludeId = null) {
     const errors = [];
-    
+
     if (!code || !code.trim()) {
         errors.push('Code is required');
         return errors;
     }
-    
+
     const trimmedCode = code.trim();
-    
+
     // Length validation
     if (trimmedCode.length < VALIDATION_RULES.COA.CODE.MIN_LENGTH) {
         errors.push(`Code must be at least ${VALIDATION_RULES.COA.CODE.MIN_LENGTH} characters long`);
@@ -374,38 +374,38 @@ function validateCOACode(code, existingCOA = [], excludeId = null) {
     if (trimmedCode.length > VALIDATION_RULES.COA.CODE.MAX_LENGTH) {
         errors.push(`Code must not exceed ${VALIDATION_RULES.COA.CODE.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation (numeric only)
     if (!VALIDATION_RULES.COA.CODE.PATTERN.test(trimmedCode)) {
         errors.push('Code must contain only numbers');
     }
-    
+
     // Reserved codes validation
     if (VALIDATION_RULES.COA.CODE.RESERVED_CODES.includes(trimmedCode)) {
         errors.push(`"${trimmedCode}" is a reserved code and cannot be used`);
     }
-    
+
     // Uniqueness validation
-    const duplicate = existingCOA.find(coa => 
+    const duplicate = existingCOA.find(coa =>
         coa.code === trimmedCode && coa.id !== excludeId
     );
     if (duplicate) {
         errors.push('Code must be unique');
     }
-    
+
     return errors;
 }
 
 function validateCOAName(name) {
     const errors = [];
-    
+
     if (!name || !name.trim()) {
         errors.push('Name is required');
         return errors;
     }
-    
+
     const trimmedName = name.trim();
-    
+
     // Length validation
     if (trimmedName.length < VALIDATION_RULES.COA.NAME.MIN_LENGTH) {
         errors.push(`Name must be at least ${VALIDATION_RULES.COA.NAME.MIN_LENGTH} characters long`);
@@ -413,100 +413,100 @@ function validateCOAName(name) {
     if (trimmedName.length > VALIDATION_RULES.COA.NAME.MAX_LENGTH) {
         errors.push(`Name must not exceed ${VALIDATION_RULES.COA.NAME.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (!VALIDATION_RULES.COA.NAME.PATTERN.test(trimmedName)) {
         errors.push('Name contains invalid characters. Only letters, numbers, spaces, and common punctuation are allowed');
     }
-    
+
     // Reserved words validation
     const upperName = trimmedName.toUpperCase();
     if (VALIDATION_RULES.COA.NAME.RESERVED_WORDS.some(word => upperName.includes(word))) {
         errors.push('Name cannot contain reserved words (SYSTEM, ADMIN, ROOT, DEFAULT)');
     }
-    
+
     return errors;
 }
 
 function validateCOADescription(description) {
     const errors = [];
-    
+
     if (!description) return errors; // Description is optional
-    
+
     const trimmedDescription = description.trim();
-    
+
     // Length validation
     if (trimmedDescription.length > VALIDATION_RULES.COA.DESCRIPTION.MAX_LENGTH) {
         errors.push(`Description must not exceed ${VALIDATION_RULES.COA.DESCRIPTION.MAX_LENGTH} characters`);
     }
-    
+
     // Format validation
     if (trimmedDescription && !VALIDATION_RULES.COA.DESCRIPTION.PATTERN.test(trimmedDescription)) {
         errors.push('Description contains invalid characters');
     }
-    
+
     return errors;
 }
 
 function validateCOACategory(category) {
     const errors = [];
     const validCategories = ['Expense', 'Revenue', 'Asset', 'Liability'];
-    
+
     if (!category || !category.trim()) {
         errors.push('Category is required');
         return errors;
     }
-    
+
     if (!validCategories.includes(category)) {
         errors.push(`Category must be one of: ${validCategories.join(', ')}`);
     }
-    
+
     return errors;
 }
 
 // Helper functions for hierarchical cost center validation
 function hasCircularReference(costCenters, costCenterId, parentId) {
     if (!parentId || costCenterId === parentId) return true;
-    
+
     const visited = new Set();
     let currentId = parentId;
-    
+
     while (currentId && !visited.has(currentId)) {
         if (currentId === costCenterId) return true;
         visited.add(currentId);
-        
+
         const current = costCenters.find(cc => cc.id === currentId);
         currentId = current?.parentCostCenterId;
     }
-    
+
     return false;
 }
 
 function getHierarchyDepth(costCenters, costCenterId) {
     let depth = 1;
     let currentId = costCenterId;
-    
+
     while (currentId) {
         const current = costCenters.find(cc => cc.id === currentId);
         if (!current?.parentCostCenterId) break;
-        
+
         currentId = current.parentCostCenterId;
         depth++;
-        
+
         // Prevent infinite loops
         if (depth > 10) break;
     }
-    
+
     return depth;
 }
 
 function validateParentCostCenter(costCenters, parentId) {
     if (!parentId) return true; // No parent is valid
-    
+
     const parent = costCenters.find(cc => cc.id === parentId);
     if (!parent) return false; // Parent must exist
     if (!parent.isActive) return false; // Parent must be active
-    
+
     return true;
 }
 
@@ -682,32 +682,32 @@ function appReducer(state, action) {
             const managerErrors = validateCostCenterManager(action.payload.manager, state.members);
             const budgetErrors = validateCostCenterBudget(action.payload.monthlyBudget, action.payload.yearlyBudget);
             const budgetPeriodErrors = validateBudgetPeriod(action.payload.budgetPeriod);
-            
+
             const allErrors = [...codeErrors, ...nameErrors, ...descriptionErrors, ...managerErrors, ...budgetErrors, ...budgetPeriodErrors];
             if (allErrors.length > 0) {
                 throw new Error(allErrors.join('; '));
             }
-            
+
             // Validate parent cost center if specified
             if (action.payload.parentCostCenterId) {
                 if (!validateParentCostCenter(state.costCenters, action.payload.parentCostCenterId)) {
                     throw new Error('Invalid parent cost center: parent must exist and be active');
                 }
-                
+
                 // Check for circular reference
                 if (hasCircularReference(state.costCenters, action.payload.id, action.payload.parentCostCenterId)) {
                     throw new Error('Circular reference detected in cost center hierarchy');
                 }
-                
+
                 // Check hierarchy depth limit (max 5 levels)
                 const newCostCenters = [...state.costCenters, action.payload];
                 if (getHierarchyDepth(newCostCenters, action.payload.id) > 5) {
                     throw new Error('Maximum hierarchy depth of 5 levels exceeded');
                 }
             }
-            
-            return { 
-                ...state, 
+
+            return {
+                ...state,
                 costCenters: [...state.costCenters, {
                     ...action.payload,
                     code: action.payload.code.trim().toUpperCase(),
@@ -721,7 +721,7 @@ function appReducer(state, action) {
                     budgetPeriod: action.payload.budgetPeriod || new Date().getFullYear().toString(),
                     createdAt: action.payload.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
-                }] 
+                }]
             };
         case ACTIONS.UPDATE_COST_CENTER:
             // Comprehensive business rule validation
@@ -731,23 +731,23 @@ function appReducer(state, action) {
             const updateManagerErrors = validateCostCenterManager(action.payload.manager, state.members);
             const updateBudgetErrors = validateCostCenterBudget(action.payload.monthlyBudget, action.payload.yearlyBudget);
             const updateBudgetPeriodErrors = validateBudgetPeriod(action.payload.budgetPeriod);
-            
+
             const updateAllErrors = [...updateCodeErrors, ...updateNameErrors, ...updateDescriptionErrors, ...updateManagerErrors, ...updateBudgetErrors, ...updateBudgetPeriodErrors];
             if (updateAllErrors.length > 0) {
                 throw new Error(updateAllErrors.join('; '));
             }
-            
+
             // Validate parent cost center if specified
             if (action.payload.parentCostCenterId) {
                 if (!validateParentCostCenter(state.costCenters, action.payload.parentCostCenterId)) {
                     throw new Error('Invalid parent cost center: parent must exist and be active');
                 }
-                
+
                 // Check for circular reference
                 if (hasCircularReference(state.costCenters, action.payload.id, action.payload.parentCostCenterId)) {
                     throw new Error('Circular reference detected in cost center hierarchy');
                 }
-                
+
                 // Check hierarchy depth limit
                 const updatedCostCenters = state.costCenters.map(cc =>
                     cc.id === action.payload.id ? action.payload : cc
@@ -756,7 +756,7 @@ function appReducer(state, action) {
                     throw new Error('Maximum hierarchy depth of 5 levels exceeded');
                 }
             }
-            
+
             return {
                 ...state,
                 costCenters: state.costCenters.map(cc =>
@@ -782,13 +782,13 @@ function appReducer(state, action) {
             if (hasChildren) {
                 throw new Error('Cannot delete cost center with child cost centers. Please reassign or delete child cost centers first.');
             }
-            
+
             // Check if cost center has active team member assignments
             const hasActiveAssignments = state.members?.some(member => member.costCenterId === action.payload);
             if (hasActiveAssignments) {
                 throw new Error('Cannot delete cost center with active team member assignments. Please reassign team members first.');
             }
-            
+
             return {
                 ...state,
                 costCenters: state.costCenters.filter(cc => cc.id !== action.payload),
@@ -803,14 +803,14 @@ function appReducer(state, action) {
             const coaNameErrors = validateCOAName(action.payload.name);
             const coaDescriptionErrors = validateCOADescription(action.payload.description);
             const coaCategoryErrors = validateCOACategory(action.payload.category);
-            
+
             const coaAllErrors = [...coaCodeErrors, ...coaNameErrors, ...coaDescriptionErrors, ...coaCategoryErrors];
             if (coaAllErrors.length > 0) {
                 throw new Error(coaAllErrors.join('; '));
             }
-            
-            return { 
-                ...state, 
+
+            return {
+                ...state,
                 coa: [...state.coa, {
                     ...action.payload,
                     code: action.payload.code.trim(),
@@ -818,7 +818,7 @@ function appReducer(state, action) {
                     description: action.payload.description?.trim() || '',
                     createdAt: action.payload.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
-                }] 
+                }]
             };
         case ACTIONS.UPDATE_COA:
             // Comprehensive business rule validation
@@ -826,12 +826,12 @@ function appReducer(state, action) {
             const updateCOANameErrors = validateCOAName(action.payload.name);
             const updateCOADescriptionErrors = validateCOADescription(action.payload.description);
             const updateCOACategoryErrors = validateCOACategory(action.payload.category);
-            
+
             const updateCOAAllErrors = [...updateCOACodeErrors, ...updateCOANameErrors, ...updateCOADescriptionErrors, ...updateCOACategoryErrors];
             if (updateCOAAllErrors.length > 0) {
                 throw new Error(updateCOAAllErrors.join('; '));
             }
-            
+
             return {
                 ...state,
                 coa: state.coa.map(c =>
@@ -997,7 +997,8 @@ export function AppProvider({ children }) {
                 state.holidays,
                 state.leaves,
                 state.members,
-                state.costCenters
+                state.costCenters,
+                state.coa
             );
 
             // Only dispatch if there are actual changes
@@ -1009,7 +1010,9 @@ export function AppProvider({ children }) {
                     updated.plan?.taskEnd !== original.plan?.taskEnd ||
                     updated.workload !== original.workload ||
                     updated.costCenterId !== original.costCenterId ||
-                    JSON.stringify(updated.costCenterSnapshot) !== JSON.stringify(original.costCenterSnapshot)
+                    JSON.stringify(updated.costCenterSnapshot) !== JSON.stringify(original.costCenterSnapshot) ||
+                    updated.coaId !== original.coaId ||
+                    JSON.stringify(updated.coaSnapshot) !== JSON.stringify(original.coaSnapshot)
                 );
             });
 
@@ -1018,7 +1021,7 @@ export function AppProvider({ children }) {
                 dispatch({ type: ACTIONS.SET_ALLOCATIONS, payload: updatedAllocations });
             }
         }
-    }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.members, state.costCenters, state.allocations, state.isLoaded]);
+    }, [state.costs, state.complexity, state.tasks, state.holidays, state.leaves, state.members, state.costCenters, state.coa, state.allocations, state.isLoaded]);
 
     return (
         <AppContext.Provider value={{ state, dispatch, ACTIONS }}>

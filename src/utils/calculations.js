@@ -452,11 +452,11 @@ export function aggregateCostsByCostCenter(allocations, costCenters) {
             aggregation.totalProjectCost += allocation.plan?.costProject || 0;
             aggregation.totalMonthlyCost += allocation.plan?.costMonthly || 0;
             aggregation.allocationCount += 1;
-            
+
             if (allocation.status !== 'completed' && allocation.status !== 'cancelled') {
                 aggregation.activeAllocationCount += 1;
             }
-            
+
             aggregation.allocations.push(allocation);
         }
     });
@@ -474,8 +474,8 @@ export function aggregateCostsByCostCenter(allocations, costCenters) {
  */
 export function getProjectCostCenterBreakdown(allocations, projectIdentifier, costCenters) {
     // Filter allocations for this project
-    const projectAllocations = allocations.filter(a => 
-        a.demandNumber === projectIdentifier || 
+    const projectAllocations = allocations.filter(a =>
+        a.demandNumber === projectIdentifier ||
         a.activityName === projectIdentifier
     );
 
@@ -490,7 +490,7 @@ export function getProjectCostCenterBreakdown(allocations, projectIdentifier, co
 
     // Aggregate by cost center
     const breakdown = aggregateCostsByCostCenter(projectAllocations, costCenters);
-    
+
     const totalCost = breakdown.reduce((sum, item) => sum + item.totalProjectCost, 0);
     const totalMonthlyCost = breakdown.reduce((sum, item) => sum + item.totalMonthlyCost, 0);
 
@@ -521,9 +521,9 @@ export function getCostCenterUtilization(allocations, teamMembers, costCenters) 
     return costCenters.map(costCenter => {
         // Get members assigned to this cost center
         const assignedMembers = teamMembers.filter(m => m.costCenterId === costCenter.id);
-        
+
         // Get allocations for members in this cost center
-        const costCenterAllocations = allocations.filter(a => 
+        const costCenterAllocations = allocations.filter(a =>
             assignedMembers.some(m => m.name === a.resource)
         );
 
@@ -531,7 +531,7 @@ export function getCostCenterUtilization(allocations, teamMembers, costCenters) 
         const totalMembers = assignedMembers.length;
         const activeMembers = assignedMembers.filter(m => m.isActive).length;
         const totalAllocations = costCenterAllocations.length;
-        const activeAllocations = costCenterAllocations.filter(a => 
+        const activeAllocations = costCenterAllocations.filter(a =>
             a.status !== 'completed' && a.status !== 'cancelled'
         ).length;
 
@@ -559,4 +559,52 @@ export function getCostCenterUtilization(allocations, teamMembers, costCenters) 
             allocations: costCenterAllocations
         };
     });
+}
+
+/**
+ * Aggregate costs by Chart of Accounts (COA)
+ * 
+ * @param {Array} allocations - Allocation records
+ * @param {Array} coa - Chart of accounts records
+ * @returns {Array} Array of COA aggregation objects
+ */
+export function aggregateCostsByCOA(allocations, coa) {
+    const coaMap = new Map();
+
+    // Initialize COA accounts
+    coa.forEach(account => {
+        coaMap.set(account.id, {
+            account,
+            totalProjectCost: 0,
+            totalMonthlyCost: 0,
+            allocationCount: 0,
+            allocations: []
+        });
+    });
+
+    // Add unmapped category
+    coaMap.set('unmapped', {
+        account: { id: 'unmapped', code: 'UNMAPPED', name: 'Unmapped Account', isActive: true },
+        totalProjectCost: 0,
+        totalMonthlyCost: 0,
+        allocationCount: 0,
+        allocations: []
+    });
+
+    // Aggregate allocations by COA
+    allocations.forEach(allocation => {
+        const coaId = allocation.coaId || 'unmapped';
+        const aggregation = coaMap.get(coaId);
+
+        if (aggregation) {
+            aggregation.totalProjectCost += allocation.plan?.costProject || 0;
+            aggregation.totalMonthlyCost += allocation.plan?.costMonthly || 0;
+            aggregation.allocationCount += 1;
+            aggregation.allocations.push(allocation);
+        }
+    });
+
+    return Array.from(coaMap.values())
+        .filter(agg => agg.allocationCount > 0)
+        .sort((a, b) => b.totalProjectCost - a.totalProjectCost);
 }
