@@ -167,7 +167,7 @@ const LoginPage = () => {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => handleDemoLogin('admin@example.com', 'password123')}
+                                        onClick={() => handleDemoLogin('admin@example.com', 'admin123')}
                                         className="h-auto py-3 flex-col items-start border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/50"
                                     >
                                         <span className="font-semibold text-indigo-600">Admin</span>
