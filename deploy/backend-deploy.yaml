@@ -1,0 +1,69 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: hr-management-backend
+spec:
+  source:
+    git:
+      uri: https://github.com/yoshiafk/hr-management.git # Placeholder
+    contextDir: backend
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: hr-management-backend:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-management-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr-management
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: hr-management
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: hr-management-backend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATABASE_URL
+          value: postgresql://$(DB_USER):$(DB_PASSWORD)@db:5432/hr_management
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: hr-management-db-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hr-management-db-secret
+              key: password
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: hr-management-auth-secret
+              key: jwt-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: hr-management
+    component: backend
+  ports:
+  - port: 3000
+    targetPort: 3000

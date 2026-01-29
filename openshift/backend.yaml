@@ -1,0 +1,74 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: backend
+  labels:
+    app: wrm
+    component: backend
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/your-repo/hr-management.git # Placeholder
+    contextDir: backend
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: backend:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: wrm
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wrm
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: wrm
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: backend:latest # Will be pulled from ImageStream
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: db
+        - name: DB_NAME
+          value: wrm
+        - name: DB_USER
+          value: user
+        - name: DB_PASSWORD
+          value: pass
+        - name: JWT_SECRET
+          value: supersecretchangeit
+        - name: FRONTEND_URL
+          value: http://frontend:8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  labels:
+    app: wrm
+    component: backend
+spec:
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: wrm
+    component: backend

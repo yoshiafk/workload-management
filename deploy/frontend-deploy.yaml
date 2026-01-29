@@ -1,0 +1,67 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: hr-management-frontend
+spec:
+  source:
+    git:
+      uri: https://github.com/yoshiafk/hr-management.git # Placeholder
+    contextDir: frontend
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: hr-management-frontend:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-management-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr-management
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: hr-management
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: hr-management-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: VITE_API_URL
+          value: /api # Assuming a proxy or Gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    app: hr-management
+    component: frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: hr-management
+spec:
+  to:
+    kind: Service
+    name: frontend
+  port:
+    targetPort: 3000
+  tls:
+    termination: edge

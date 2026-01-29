@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  labels:
+    app: wrm
+    component: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wrm
+      component: db
+  template:
+    metadata:
+      labels:
+        app: wrm
+        component: db
+    spec:
+      containers:
+      - name: postgresql
+        image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql:16-el9 # Standard OpenShift PG image
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRESQL_DATABASE
+          value: wrm
+        - name: POSTGRESQL_USER
+          value: user
+        - name: POSTGRESQL_PASSWORD
+          value: pass
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/pgsql/data
+      volumes:
+      - name: pgdata
+        persistentVolumeClaim:
+          claimName: postgresql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    app: wrm
+    component: db
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: wrm
+    component: db
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

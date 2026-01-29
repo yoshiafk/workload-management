@@ -1,0 +1,77 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: frontend
+  labels:
+    app: wrm
+    component: frontend
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/your-repo/hr-management.git # Placeholder
+    contextDir: frontend
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: frontend:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: wrm
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wrm
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: wrm
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: frontend:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: wrm
+    component: frontend
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: wrm
+    component: frontend
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  labels:
+    app: wrm
+    component: frontend
+spec:
+  to:
+    kind: Service
+    name: frontend
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge

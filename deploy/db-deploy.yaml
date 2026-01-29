@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-management-db
+  labels:
+    app: hr-management
+    component: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr-management
+      component: db
+  template:
+    metadata:
+      labels:
+        app: hr-management
+        component: db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: hr-management-db-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hr-management-db-secret
+              key: password
+        - name: POSTGRES_DB
+          value: hr_management
+        volumeMounts:
+        - name: db-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: hr-management-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: hr-management
+    component: db
+  ports:
+  - port: 5432
+    targetPort: 5432

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Workload Management</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment,
+      // e.g. http://www.foo.tld/one/two?a=b#c becomes http://www.foo.tld/?p=/one/two&q=a=b#c
+      // Note: this script stands alone and should be placed in the 404.html file
+      // in the root of your repository or the 'public' folder of your project.
+      // Robust redirect: derive base from the first two path segments (e.g. `/aii/wr-management/`)
+      // and fallback to the previous algorithm when segments are fewer than two.
+      (function () {
+        var l = window.location;
+        var rawSegments = l.pathname.split('/');
+        // filter out empty segments for clarity: ['', 'aii', 'wr-management', 'allocation'] => ['aii','wr-management','allocation']
+        var segs = rawSegments.filter(function (s) { return s.length > 0; });
+
+        var firstTwoBase = null;
+        if (segs.length >= 2) {
+          firstTwoBase = '/' + segs[0] + '/' + segs[1] + '/';
+        }
+
+        // remaining path after the base
+        var remaining = segs.length > 2 ? segs.slice(2).join('/') : '';
+
+        var queryEncoded = l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '';
+        var hashPart = l.hash || '';
+
+        if (firstTwoBase !== null) {
+          // Redirect to explicit base and pass the rest in ?p=
+          l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + firstTwoBase + '?p=/' + (remaining.replace(/&/g, '~and~')) + queryEncoded + hashPart);
+        } else {
+          // Fallback to the original behavior (keep 2 segments if possible)
+          var pathSegmentsToKeep = 2;
+          l.replace(
+            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
+            l.pathname.split('/').slice(1 + pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+            (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash
+          );
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
