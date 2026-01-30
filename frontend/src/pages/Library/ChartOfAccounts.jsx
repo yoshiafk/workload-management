@@ -109,17 +109,23 @@ export default function ChartOfAccounts() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Keyboard shortcuts
-    useKeyboardShortcuts({
-        'n': () => !isFormOpen && !isDeleteOpen && handleAdd(),
-        'Escape': () => {
-            if (isFormOpen) setIsFormOpen(false);
-            if (isDeleteOpen) setIsDeleteOpen(false);
+    useKeyboardShortcuts([
+        { key: 'n', handler: () => !isFormOpen && !isDeleteOpen && handleAdd() },
+        {
+            key: 'Escape',
+            handler: () => {
+                if (isFormOpen) setIsFormOpen(false);
+                if (isDeleteOpen) setIsDeleteOpen(false);
+            }
         },
-        '/': (e) => {
-            e.preventDefault();
-            document.querySelector('input[placeholder*="Search"]')?.focus();
+        {
+            key: '/',
+            handler: (e) => {
+                e.preventDefault();
+                document.querySelector('input[placeholder*="Search"]')?.focus();
+            }
         }
-    });
+    ]);
 
     // TanStack Table Columns
     const columns = useMemo(() => [

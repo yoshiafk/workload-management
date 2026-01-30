@@ -131,3 +131,5 @@ MIT
 Upgrae to using postgre-16 alpine
 
 Check the homepage url or path we have setting up, likely we have settings /aii/wr-management, can we remove it to be neutral? And after that please update the project readme with new url too
+
+Map all frontend data fiels with correct data response from backend and database

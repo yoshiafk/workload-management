@@ -15,7 +15,8 @@ import {
     LeaveType,
     LeaveBalance,
     TimeEntry,
-    TimesheetPeriod
+    TimesheetPeriod,
+    Cost
 } from '../models/index.js';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
 
@@ -26,6 +27,21 @@ import { startOfWeek, endOfWeek, format } from 'date-fns';
 export const seedDatabase = async () => {
     try {
         console.log('[Seeder] Starting database seed...');
+
+        // Manually ensure defaultCoaId column exists (sometimes sync alter:true fails)
+        try {
+            const [results] = await Member.sequelize.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='Members' AND column_name='defaultCoaId';
+            `);
+            if (results.length === 0) {
+                console.log('[Seeder] Manually adding defaultCoaId column to Members table...');
+                await Member.sequelize.query('ALTER TABLE "Members" ADD COLUMN "defaultCoaId" UUID;');
+            }
+        } catch (err) {
+            console.error('[Seeder] Error checking/adding defaultCoaId column:', err.message);
+        }
 
         // ========================================
         // 1. ROLE TYPES & TIERS
@@ -272,9 +288,9 @@ export const seedDatabase = async () => {
         console.log('[Seeder] Seeding CostCenters...');
 
         const costCenterData = [
-            { code: 'ENG', name: 'Engineering', description: 'Software development and infrastructure', status: 'Active', monthlyBudget: 150000000, yearlyBudget: 1800000000, budgetPeriod: '2025', parentId: null },
-            { code: 'PROD', name: 'Product Management', description: 'Product strategy and design', status: 'Active', monthlyBudget: 100000000, yearlyBudget: 1200000000, budgetPeriod: '2025', parentId: null },
-            { code: 'OPS', name: 'Operations', description: 'IT Operations and Support', status: 'Active', monthlyBudget: 80000000, yearlyBudget: 960000000, budgetPeriod: '2025', parentId: null }
+            { code: 'ENG', name: 'Engineering', description: 'Software development and infrastructure', status: 'Active', monthlyBudget: 150000000, yearlyBudget: 1800000000, budgetPeriod: '2025', parentId: null, manager: 'Abdurrahman Hakim' },
+            { code: 'PROD', name: 'Product Management', description: 'Product strategy and design', status: 'Active', monthlyBudget: 100000000, yearlyBudget: 1200000000, budgetPeriod: '2025', parentId: null, manager: 'Daeng Ahmad' },
+            { code: 'OPS', name: 'Operations', description: 'IT Operations and Support', status: 'Active', monthlyBudget: 80000000, yearlyBudget: 960000000, budgetPeriod: '2025', parentId: null, manager: 'System Admin' }
         ];
 
         const ccMap = {};
@@ -286,7 +302,7 @@ export const seedDatabase = async () => {
         // Add QA as child of Engineering
         await CostCenter.findOrCreate({
             where: { code: 'QA' },
-            defaults: { code: 'QA', name: 'Quality Assurance', description: 'Testing and quality control', status: 'Active', monthlyBudget: 75000000, yearlyBudget: 900000000, budgetPeriod: '2025', parentId: ccMap['ENG'] }
+            defaults: { code: 'QA', name: 'Quality Assurance', description: 'Testing and quality control', status: 'Active', monthlyBudget: 75000000, yearlyBudget: 900000000, budgetPeriod: '2025', parentId: ccMap['ENG'], manager: 'Abdurrahman Hakim' }
         });
 
         // ========================================
@@ -509,6 +525,62 @@ export const seedDatabase = async () => {
                     timesheetPeriodId: period.id
                 }
             });
+        }
+
+        // ========================================
+        // 15. RESOURCE COSTS
+        // ========================================
+        console.log('[Seeder] Seeding Costs...');
+
+        // Working days per month and hours per day constants
+        const WORKING_DAYS_PER_MONTH = 20;
+        const WORKING_HOURS_PER_DAY = 8;
+
+        function calculateRates(monthlyCost) {
+            const perDayCost = Math.round(monthlyCost / WORKING_DAYS_PER_MONTH);
+            const perHourCost = Math.round(perDayCost / WORKING_HOURS_PER_DAY);
+            return { perDayCost, perHourCost };
+        }
+
+        const costData = [
+            // Fullstack Engineer Tiers
+            { resourceName: 'Junior Fullstack', roleType: 'FULLSTACK', tierLevel: 1, minMonthlyCost: 8000000, maxMonthlyCost: 12000000, monthlyCost: 10000000, ...calculateRates(10000000) },
+            { resourceName: 'Fullstack Engineer', roleType: 'FULLSTACK', tierLevel: 2, minMonthlyCost: 12000000, maxMonthlyCost: 16000000, monthlyCost: 14000000, ...calculateRates(14000000) },
+            { resourceName: 'Senior Fullstack', roleType: 'FULLSTACK', tierLevel: 3, minMonthlyCost: 16000000, maxMonthlyCost: 20000000, monthlyCost: 18000000, ...calculateRates(18000000) },
+            // DevOps Engineer Tiers
+            { resourceName: 'Junior DevOps', roleType: 'DEVOPS', tierLevel: 1, minMonthlyCost: 10000000, maxMonthlyCost: 14000000, monthlyCost: 12000000, ...calculateRates(12000000) },
+            { resourceName: 'DevOps Engineer', roleType: 'DEVOPS', tierLevel: 2, minMonthlyCost: 14000000, maxMonthlyCost: 18000000, monthlyCost: 16000000, ...calculateRates(16000000) },
+            { resourceName: 'Senior DevOps', roleType: 'DEVOPS', tierLevel: 3, minMonthlyCost: 18000000, maxMonthlyCost: 22000000, monthlyCost: 20000000, ...calculateRates(20000000) },
+            // FinOps Engineer Tiers
+            { resourceName: 'Junior FinOps', roleType: 'FINOPS', tierLevel: 1, minMonthlyCost: 12000000, maxMonthlyCost: 16000000, monthlyCost: 14000000, ...calculateRates(14000000) },
+            { resourceName: 'FinOps Engineer', roleType: 'FINOPS', tierLevel: 2, minMonthlyCost: 16000000, maxMonthlyCost: 20000000, monthlyCost: 18000000, ...calculateRates(18000000) },
+            // Solution Architect Tiers
+            { resourceName: 'Junior Architect', roleType: 'ARCHITECT', tierLevel: 1, minMonthlyCost: 25000000, maxMonthlyCost: 30000000, monthlyCost: 28000000, ...calculateRates(28000000) },
+            { resourceName: 'Solution Architect', roleType: 'ARCHITECT', tierLevel: 2, minMonthlyCost: 30000000, maxMonthlyCost: 35000000, monthlyCost: 33000000, ...calculateRates(33000000) },
+            { resourceName: 'Senior Architect', roleType: 'ARCHITECT', tierLevel: 3, minMonthlyCost: 35000000, maxMonthlyCost: 40000000, monthlyCost: 38000000, ...calculateRates(38000000) },
+            // Cloud Engineer Tiers
+            { resourceName: 'Junior Cloud Engineer', roleType: 'CLOUD', tierLevel: 1, minMonthlyCost: 15000000, maxMonthlyCost: 20000000, monthlyCost: 17000000, ...calculateRates(17000000) },
+            { resourceName: 'Cloud Engineer', roleType: 'CLOUD', tierLevel: 2, minMonthlyCost: 20000000, maxMonthlyCost: 25000000, monthlyCost: 23000000, ...calculateRates(23000000) },
+            { resourceName: 'Senior Cloud Engineer', roleType: 'CLOUD', tierLevel: 3, minMonthlyCost: 25000000, maxMonthlyCost: 30000000, monthlyCost: 28000000, ...calculateRates(28000000) },
+            // DBA Tiers
+            { resourceName: 'Junior DBA', roleType: 'DBA', tierLevel: 1, minMonthlyCost: 12000000, maxMonthlyCost: 16000000, monthlyCost: 14000000, ...calculateRates(14000000) },
+            { resourceName: 'DBA', roleType: 'DBA', tierLevel: 2, minMonthlyCost: 16000000, maxMonthlyCost: 20000000, monthlyCost: 18000000, ...calculateRates(18000000) },
+            { resourceName: 'Senior DBA', roleType: 'DBA', tierLevel: 3, minMonthlyCost: 20000000, maxMonthlyCost: 25000000, monthlyCost: 23000000, ...calculateRates(23000000) }
+        ];
+
+        // Link with COA 5001 (Basic Salary) if possible
+        const salaryAccount = await COA.findOne({ where: { code: '5001' } });
+        const coaId = salaryAccount ? salaryAccount.id : null;
+
+        for (const c of costData) {
+            // Find existing
+            const existing = await Cost.findOne({
+                where: { roleType: c.roleType, tierLevel: c.tierLevel }
+            });
+
+            if (!existing) {
+                await Cost.create({ ...c, coaId });
+            }
         }
 
         console.log('[Seeder] ✅ Database seeding completed successfully!');

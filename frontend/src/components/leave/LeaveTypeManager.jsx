@@ -18,7 +18,7 @@ const LeaveTypeManager = () => {
         name: '',
         defaultDays: '',
         color: '#4f46e5',
-        carryOverLimit: '0'
+        carryOverMax: '0'
     });
 
     const fetchTypes = async () => {
@@ -48,7 +48,7 @@ const LeaveTypeManager = () => {
             }
             setIsEditing(null);
             setIsAdding(false);
-            setFormData({ name: '', defaultDays: '', color: '#4f46e5', carryOverLimit: '0' });
+            setFormData({ name: '', defaultDays: '', color: '#4f46e5', carryOverMax: '0' });
             fetchTypes();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to save leave type');
@@ -73,7 +73,7 @@ const LeaveTypeManager = () => {
             name: type.name,
             defaultDays: type.defaultDays.toString(),
             color: type.color,
-            carryOverLimit: type.carryOverLimit.toString()
+            carryOverMax: type.carryOverMax?.toString() || '0'
         });
     };
 
@@ -88,7 +88,7 @@ const LeaveTypeManager = () => {
                 <Button
                     size="sm"
                     className="gap-2"
-                    onClick={() => { setIsAdding(true); setIsEditing(null); setFormData({ name: '', defaultDays: '', color: '#4f46e5', carryOverLimit: '0' }); }}
+                    onClick={() => { setIsAdding(true); setIsEditing(null); setFormData({ name: '', defaultDays: '', color: '#4f46e5', carryOverMax: '0' }); }}
                     disabled={isAdding}
                 >
                     <Plus className="h-4 w-4" /> Add Type
@@ -113,7 +113,7 @@ const LeaveTypeManager = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Carry Over</Label>
-                                    <Input type="number" value={formData.carryOverLimit} onChange={e => setFormData({ ...formData, carryOverLimit: e.target.value })} />
+                                    <Input type="number" value={formData.carryOverMax} onChange={e => setFormData({ ...formData, carryOverMax: e.target.value })} />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -146,7 +146,7 @@ const LeaveTypeManager = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Carry Over</Label>
-                                        <Input type="number" value={formData.carryOverLimit} onChange={e => setFormData({ ...formData, carryOverLimit: e.target.value })} />
+                                        <Input type="number" value={formData.carryOverMax} onChange={e => setFormData({ ...formData, carryOverMax: e.target.value })} />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -183,8 +183,8 @@ const LeaveTypeManager = () => {
                                         <p className="text-lg font-black text-foreground">{type.defaultDays} Days</p>
                                     </div>
                                     <div className="p-2 rounded bg-muted/50">
-                                        <p className="text-muted-foreground mb-1 uppercase tracking-tighter font-bold">Carry Over Limit</p>
-                                        <p className="text-lg font-black text-foreground">{type.carryOverLimit} Days</p>
+                                        <p className="text-muted-foreground mb-1 uppercase tracking-tighter font-bold">Carry Over Max</p>
+                                        <p className="text-lg font-black text-foreground">{type.carryOverMax} Days</p>
                                     </div>
                                 </div>
                             </CardContent>

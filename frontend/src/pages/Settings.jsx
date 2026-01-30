@@ -74,8 +74,10 @@ function validateImportData(data) {
     return { valid: errors.length === 0, errors };
 }
 
+import { toast } from "sonner";
+
 export default function Settings() {
-    const { state, dispatch, ACTIONS } = useApp();
+    const { state, dispatch, ACTIONS, updateSettings } = useApp();
     const [importStatus, setImportStatus] = useState(null); // 'success' | 'error' | null
     const [importMessage, setImportMessage] = useState('');
     const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -239,12 +241,15 @@ export default function Settings() {
                                         max="1.0"
                                         className="w-20 h-9 font-bold text-center"
                                         value={state.settings?.capacityFactor || 0.85}
-                                        onChange={(e) => {
+                                        onChange={async (e) => {
                                             const val = parseFloat(e.target.value);
-                                            dispatch({
-                                                type: ACTIONS.UPDATE_SETTINGS,
-                                                payload: { ...state.settings, capacityFactor: val }
-                                            });
+                                            try {
+                                                await updateSettings({ capacityFactor: val });
+                                                toast.success("Capacity factor updated");
+                                            } catch (error) {
+                                                console.error(error);
+                                                toast.error("Failed to update capacity factor");
+                                            }
                                         }}
                                     />
                                     <span className="text-xs font-bold text-slate-400">%</span>
@@ -257,11 +262,14 @@ export default function Settings() {
                                 </div>
                                 <Switch
                                     checked={state.settings?.includeCutiBersama !== false}
-                                    onCheckedChange={(checked) => {
-                                        dispatch({
-                                            type: ACTIONS.UPDATE_SETTINGS,
-                                            payload: { ...state.settings, includeCutiBersama: checked }
-                                        });
+                                    onCheckedChange={async (checked) => {
+                                        try {
+                                            await updateSettings({ includeCutiBersama: checked });
+                                            toast.success(`Cuti Bersama ${checked ? 'enabled' : 'disabled'}`);
+                                        } catch (error) {
+                                            console.error(error);
+                                            toast.error("Failed to update settings");
+                                        }
                                     }}
                                 />
                             </div>

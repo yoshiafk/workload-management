@@ -463,17 +463,23 @@ export default function CostCenters() {
     // Early return if state is not loaded - MOVED DOWN
     const isLoading = !state || !state.costCenters;
     // Keyboard shortcuts
-    useKeyboardShortcuts({
-        'n': () => !isFormOpen && !isDeleteOpen && handleAdd(),
-        'Escape': () => {
-            if (isFormOpen) setIsFormOpen(false);
-            if (isDeleteOpen) setIsDeleteOpen(false);
+    useKeyboardShortcuts([
+        { key: 'n', handler: () => !isFormOpen && !isDeleteOpen && handleAdd() },
+        {
+            key: 'Escape',
+            handler: () => {
+                if (isFormOpen) setIsFormOpen(false);
+                if (isDeleteOpen) setIsDeleteOpen(false);
+            }
         },
-        '/': (e) => {
-            e.preventDefault();
-            document.querySelector('input[placeholder*="Search"]')?.focus();
+        {
+            key: '/',
+            handler: (e) => {
+                e.preventDefault();
+                document.querySelector('input[placeholder*="Search"]')?.focus();
+            }
         }
-    });
+    ]);
 
     // TanStack Table Columns - Memoized for performance
     const columns = useMemo(() => [
@@ -640,7 +646,16 @@ export default function CostCenters() {
 
     // Optimized change handler
     const handleChange = useCallback((name, value) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value };
+            // Keep status and isActive in sync
+            if (name === 'isActive') {
+                updated.status = value ? 'Active' : 'Inactive';
+            } else if (name === 'status') {
+                updated.isActive = value === 'Active';
+            }
+            return updated;
+        });
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }

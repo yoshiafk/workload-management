@@ -44,13 +44,15 @@ import {
     Activity,
     Clock,
     Zap,
-    Scale
+    Scale,
+    Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner";
 import './LibraryPage.css';
 
 const initialFormState = {
-    id: '',
+    // id: '', // Let backend handle ID
     name: '',
     phaseId: '',
     estimates: {
@@ -64,19 +66,20 @@ const initialFormState = {
 };
 
 export default function TaskTemplates() {
-    const { state, dispatch } = useApp();
+    const { state, addTask, updateTask, deleteTask } = useApp();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [currentTask, setCurrentTask] = useState(null);
     const [formData, setFormData] = useState(initialFormState);
     const [globalFilter, setGlobalFilter] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // TanStack Table Columns with Grouping
     const columns = useMemo(() => [
         {
             accessorKey: "id",
             header: "ID",
-            cell: ({ row }) => <span className="text-[10px] font-mono text-slate-400">{row.getValue("id")}</span>,
+            cell: ({ row }) => <span className="text-[10px] font-mono text-slate-400">{row.getValue("id")?.toString().substring(0, 8)}</span>,
         },
         {
             accessorKey: "name",
@@ -238,16 +241,16 @@ export default function TaskTemplates() {
             header: () => <div className="text-right">Actions</div>,
             cell: ({ row }) => (
                 <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(row.original)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(row.original)} disabled={isSubmitting}>
                         <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDelete(row.original)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDelete(row.original)} disabled={isSubmitting}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
             ),
         },
-    ], []);
+    ], [isSubmitting]);
 
     const [sorting, setSorting] = useState([]);
 
@@ -270,13 +273,13 @@ export default function TaskTemplates() {
         const filter = globalFilter.toLowerCase();
         return state.tasks.filter(t =>
             t.name.toLowerCase().includes(filter) ||
-            t.id.toLowerCase().includes(filter)
+            (t.id && t.id.toString().toLowerCase().includes(filter))
         );
     }, [state.tasks, globalFilter]);
 
     const handleAdd = () => {
-        const nextId = `T${String(state.tasks.length + 1).padStart(3, '0')}`;
-        setFormData({ ...initialFormState, id: nextId });
+        // ID handled by backend
+        setFormData({ ...initialFormState });
         setCurrentTask(null);
         setIsFormOpen(true);
     };
@@ -307,22 +310,44 @@ export default function TaskTemplates() {
         setIsDeleteOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (currentTask) {
-            dispatch({ type: ACTIONS.DELETE_TASK, payload: currentTask.id });
+    const confirmDelete = async () => {
+        if (!currentTask) return;
+        setIsSubmitting(true);
+        try {
+            await deleteTask(currentTask.id);
+            toast.success("Task template deleted");
+            setIsDeleteOpen(false);
+            setCurrentTask(null);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to delete task");
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsDeleteOpen(false);
-        setCurrentTask(null);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (currentTask) {
-            dispatch({ type: ACTIONS.UPDATE_TASK, payload: formData });
-        } else {
-            dispatch({ type: ACTIONS.ADD_TASK, payload: formData });
+    const handleSubmit = async () => {
+        if (!formData.name) {
+            toast.error("Task name is required");
+            return;
         }
-        setIsFormOpen(false);
+
+        setIsSubmitting(true);
+        try {
+            if (currentTask) {
+                await updateTask(currentTask.id, formData);
+                toast.success("Task template updated");
+            } else {
+                await addTask(formData);
+                toast.success("Task template created");
+            }
+            setIsFormOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to save task");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const updateEstimate = (level, field, value) => {
@@ -331,10 +356,6 @@ export default function TaskTemplates() {
             ...formData.estimates[level],
             [field]: numValue,
         };
-
-        if (field === 'hours' || field === 'days') {
-            // Recalculation happens in render
-        }
 
         setFormData({
             ...formData,
@@ -359,7 +380,11 @@ export default function TaskTemplates() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                <Button
+                    className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95"
+                    onClick={handleAdd}
+                    disabled={isSubmitting}
+                >
                     <Plus className="mr-2 h-4 w-4" />
                     Add template
                 </Button>
@@ -374,6 +399,7 @@ export default function TaskTemplates() {
                         className="pl-9 bg-muted border-slate-200 dark:border-slate-800 rounded-lg focus-visible:ring-indigo-500"
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
+                        disabled={isSubmitting}
                     />
                 </div>
                 <div className="text-xs font-bold text-slate-400 px-2 uppercase tracking-wider dark:text-slate-500">
@@ -435,7 +461,9 @@ export default function TaskTemplates() {
             </div>
 
             {/* Add/Edit Dialog */}
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <Dialog open={isFormOpen} onOpenChange={(open) => {
+                if (!isSubmitting) setIsFormOpen(open);
+            }}>
                 <DialogContent className="sm:max-w-xl bg-card border-border shadow-2xl p-0 overflow-hidden flex flex-col rounded-2xl">
                     <DialogHeader className="p-6 pb-0 flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-lg font-black tracking-tight">
@@ -453,7 +481,7 @@ export default function TaskTemplates() {
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <Label className="text-xs font-bold uppercase tracking-tight text-slate-400">Template ID</Label>
-                                <Input value={formData.id} readOnly className="bg-slate-50 rounded-lg border-slate-200 text-slate-500 font-mono text-xs h-9" />
+                                <Input value={formData.id || '(Auto-generated)'} readOnly className="bg-slate-50 rounded-lg border-slate-200 text-slate-500 font-mono text-xs h-9" />
                             </div>
                             <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor="name" className="text-xs font-bold uppercase tracking-tight text-slate-400">Task Name</Label>
@@ -464,13 +492,15 @@ export default function TaskTemplates() {
                                     className="rounded-lg h-9"
                                     placeholder="e.g. System Integration Testing"
                                     required
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div className="space-y-2 md:col-span-3">
                                 <Label htmlFor="phase" className="text-xs font-bold uppercase tracking-tight text-slate-400">Linked Phase</Label>
                                 <Select
-                                    value={formData.phaseId || ''}
+                                    value={formData.phaseId?.toString() || ''}
                                     onValueChange={(v) => setFormData({ ...formData, phaseId: v })}
+                                    disabled={isSubmitting}
                                 >
                                     <SelectTrigger className="rounded-lg h-9">
                                         <SelectValue placeholder="Select Phase" />
@@ -517,6 +547,7 @@ export default function TaskTemplates() {
                                                     onChange={(e) => updateEstimate(level, 'days', e.target.value)}
                                                     className="h-8 rounded-lg text-center text-xs dark:bg-slate-900 dark:border-slate-800"
                                                     min="0"
+                                                    disabled={isSubmitting}
                                                 />
                                             </div>
                                             <div className="space-y-1.5 text-center">
@@ -527,6 +558,7 @@ export default function TaskTemplates() {
                                                     onChange={(e) => updateEstimate(level, 'hours', e.target.value)}
                                                     className="h-8 rounded-lg text-center text-xs dark:bg-slate-900 dark:border-slate-800"
                                                     min="0"
+                                                    disabled={isSubmitting}
                                                 />
                                             </div>
                                             <div className="space-y-1.5 text-center">
@@ -550,20 +582,29 @@ export default function TaskTemplates() {
                             variant="ghost"
                             onClick={() => setIsFormOpen(false)}
                             className="font-bold rounded-xl h-11"
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-primary/20 bg-indigo-600 hover:bg-indigo-700 border-none"
+                            className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-primary/20 bg-indigo-600 hover:bg-indigo-700 border-none min-w-[120px]"
+                            disabled={isSubmitting}
                         >
-                            {currentTask ? 'Update' : 'Create'} template
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>{currentTask ? 'Update' : 'Create'} template</>
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <Dialog open={isDeleteOpen} onOpenChange={(open) => !isSubmitting && setIsDeleteOpen(open)}>
                 <DialogContent className="sm:max-w-[400px] rounded-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-red-600">Delete Task Template</DialogTitle>
@@ -573,8 +614,22 @@ export default function TaskTemplates() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
-                        <Button variant="destructive" onClick={confirmDelete} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Template</Button>
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl" disabled={isSubmitting}>Cancel</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            className="rounded-xl bg-red-600 hover:bg-red-700 min-w-[120px]"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                "Delete Template"
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

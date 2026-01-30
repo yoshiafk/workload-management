@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp, ACTIONS } from '../../context/AppContext';
+import { useApp } from '../../context/AppContext';
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -21,23 +21,24 @@ import {
     ChevronUp,
     ChevronDown,
     Layers,
-    AlertCircle,
     Search,
-    Clock
+    Clock,
+    Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import './LibraryPage.css';
 
 // Empty phase template
 const emptyPhase = {
-    id: 0,
     name: '',
     tasks: [],
     isTerminal: false,
+    sortOrder: 0,
 };
 
 export default function Phases() {
-    const { state, dispatch } = useApp();
+    const { state, addPhase, updatePhase, deletePhase } = useApp();
 
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -49,16 +50,18 @@ export default function Phases() {
     const [formData, setFormData] = useState(emptyPhase);
     const [errors, setErrors] = useState({});
     const [taskSearch, setTaskSearch] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Get next available ID
-    const getNextId = () => {
-        const maxId = state.phases.reduce((max, p) => Math.max(max, p.id), 0);
-        return maxId + 1;
-    };
+    // Sort phases by sortOrder
+    const sortedPhases = [...state.phases].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     // Open add modal
     const handleAdd = () => {
-        setFormData({ ...emptyPhase, id: getNextId() });
+        const nextOrder = sortedPhases.length > 0
+            ? Math.max(...sortedPhases.map(p => p.sortOrder || 0)) + 1
+            : 0;
+
+        setFormData({ ...emptyPhase, sortOrder: nextOrder });
         setEditingPhase(null);
         setErrors({});
         setIsFormOpen(true);
@@ -97,45 +100,98 @@ export default function Phases() {
     };
 
     // Submit form
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validate()) return;
+        setIsSubmitting(true);
 
-        if (editingPhase) {
-            dispatch({ type: ACTIONS.UPDATE_PHASE, payload: formData });
-        } else {
-            dispatch({ type: ACTIONS.ADD_PHASE, payload: formData });
+        try {
+            if (editingPhase) {
+                await updatePhase(editingPhase.id, formData);
+                toast.success("Phase updated successfully");
+            } else {
+                await addPhase(formData);
+                toast.success("Phase created successfully");
+            }
+            setIsFormOpen(false);
+            setTaskSearch('');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to save phase");
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsFormOpen(false);
-        setTaskSearch('');
     };
 
     // Confirm delete
-    const handleDeleteConfirm = () => {
-        if (phaseToDelete) {
-            dispatch({ type: ACTIONS.DELETE_PHASE, payload: phaseToDelete.id });
+    const handleDeleteConfirm = async () => {
+        if (!phaseToDelete) return;
+        setIsSubmitting(true);
+
+        try {
+            await deletePhase(phaseToDelete.id);
+            toast.success("Phase deleted successfully");
+            setIsDeleteOpen(false);
+            setPhaseToDelete(null);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to delete phase");
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsDeleteOpen(false);
-        setPhaseToDelete(null);
     };
 
     // Move phase up
-    const handleMoveUp = (index) => {
+    const handleMoveUp = async (index) => {
         if (index === 0) return;
-        const newPhases = [...state.phases];
-        [newPhases[index - 1], newPhases[index]] = [newPhases[index], newPhases[index - 1]];
-        // Update IDs to reflect new order
-        const reorderedPhases = newPhases.map((p, i) => ({ ...p, id: i + 1 }));
-        dispatch({ type: ACTIONS.SET_PHASES, payload: reorderedPhases });
+
+        const currentPhase = sortedPhases[index];
+        const prevPhase = sortedPhases[index - 1];
+
+        // Swap sortOrder
+        const currentOrder = currentPhase.sortOrder || 0;
+        const prevOrder = prevPhase.sortOrder || 0;
+
+        // If they have same sortOrder, we need to adjust
+        const newCurrentOrder = prevOrder;
+        const newPrevOrder = currentOrder;
+
+        try {
+            // Optimistic update would be complex here, so we just await
+            await Promise.all([
+                updatePhase(currentPhase.id, { ...currentPhase, sortOrder: newCurrentOrder }),
+                updatePhase(prevPhase.id, { ...prevPhase, sortOrder: newPrevOrder })
+            ]);
+            toast.success("Phase order updated");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to reorder phases");
+        }
     };
 
     // Move phase down
-    const handleMoveDown = (index) => {
-        if (index === state.phases.length - 1) return;
-        const newPhases = [...state.phases];
-        [newPhases[index], newPhases[index + 1]] = [newPhases[index + 1], newPhases[index]];
-        // Update IDs to reflect new order
-        const reorderedPhases = newPhases.map((p, i) => ({ ...p, id: i + 1 }));
-        dispatch({ type: ACTIONS.SET_PHASES, payload: reorderedPhases });
+    const handleMoveDown = async (index) => {
+        if (index === sortedPhases.length - 1) return;
+
+        const currentPhase = sortedPhases[index];
+        const nextPhase = sortedPhases[index + 1];
+
+        // Swap sortOrder
+        const currentOrder = currentPhase.sortOrder || 0;
+        const nextOrder = nextPhase.sortOrder || 0;
+
+        const newCurrentOrder = nextOrder;
+        const newNextOrder = currentOrder;
+
+        try {
+            await Promise.all([
+                updatePhase(currentPhase.id, { ...currentPhase, sortOrder: newCurrentOrder }),
+                updatePhase(nextPhase.id, { ...nextPhase, sortOrder: newNextOrder })
+            ]);
+            toast.success("Phase order updated");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to reorder phases");
+        }
     };
 
     return (
@@ -152,14 +208,18 @@ export default function Phases() {
                     </div>
                 </div>
 
-                <Button className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95" onClick={handleAdd}>
+                <Button
+                    className="rounded-xl shadow-lg dark:shadow-none transition-all active:scale-95"
+                    onClick={handleAdd}
+                    disabled={isSubmitting}
+                >
                     <Plus className="mr-2 h-4 w-4" />
                     Add phase
                 </Button>
             </div>
 
             <div className="grid gap-3">
-                {state.phases.map((phase, index) => (
+                {sortedPhases.map((phase, index) => (
                     <div
                         key={phase.id}
                         className={cn(
@@ -173,7 +233,7 @@ export default function Phases() {
                                 size="icon"
                                 className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                                 onClick={() => handleMoveUp(index)}
-                                disabled={index === 0}
+                                disabled={index === 0 || isSubmitting}
                             >
                                 <ChevronUp className="h-4 w-4" />
                             </Button>
@@ -182,7 +242,7 @@ export default function Phases() {
                                 size="icon"
                                 className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                                 onClick={() => handleMoveDown(index)}
-                                disabled={index === state.phases.length - 1}
+                                disabled={index === sortedPhases.length - 1 || isSubmitting}
                             >
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
@@ -202,22 +262,22 @@ export default function Phases() {
                                 )}
                             </div>
                             <p className="text-xs text-slate-500 font-medium">
-                                {phase.tasks.length} task templates linked
+                                {phase.tasks?.length || 0} task templates linked
                             </p>
                         </div>
 
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(phase)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEdit(phase)} disabled={isSubmitting}>
                                 <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDeleteClick(phase)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDeleteClick(phase)} disabled={isSubmitting}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
                 ))}
 
-                {state.phases.length === 0 && (
+                {sortedPhases.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-border bg-muted/50 text-slate-400">
                         <Layers className="h-10 w-10 mb-2 opacity-20" />
                         <p className="font-medium">No phases defined yet.</p>
@@ -228,8 +288,10 @@ export default function Phases() {
 
             {/* Add/Edit Dialog */}
             <Dialog open={isFormOpen} onOpenChange={(open) => {
-                setIsFormOpen(open);
-                if (!open) setTaskSearch('');
+                if (!isSubmitting) {
+                    setIsFormOpen(open);
+                    if (!open) setTaskSearch('');
+                }
             }}>
                 <DialogContent className="sm:max-w-xl bg-card border-border shadow-2xl p-0 overflow-hidden rounded-2xl">
                     <DialogHeader className="p-6 pb-0">
@@ -253,6 +315,7 @@ export default function Phases() {
                                 onChange={(e) => handleChange('name', e.target.value)}
                                 className={cn("rounded-lg h-9", errors.name && "border-red-500")}
                                 placeholder="e.g. Planning, Execution, Review"
+                                disabled={isSubmitting}
                             />
                         </FormField>
 
@@ -263,6 +326,7 @@ export default function Phases() {
                                 checked={formData.isTerminal}
                                 onCheckedChange={(v) => handleChange('isTerminal', v)}
                                 className="mt-1 rounded-[4px]"
+                                disabled={isSubmitting}
                             />
                             <div className="space-y-1">
                                 <Label htmlFor="isTerminal" className="text-sm font-bold text-slate-900 dark:text-slate-100 cursor-pointer">
@@ -292,6 +356,7 @@ export default function Phases() {
                                         className="h-8 pl-8 text-xs rounded-lg dark:bg-slate-900"
                                         value={taskSearch}
                                         onChange={(e) => setTaskSearch(e.target.value)}
+                                        disabled={isSubmitting}
                                     />
                                 </div>
                             </div>
@@ -325,6 +390,7 @@ export default function Phases() {
                                                                     : "bg-background border-border hover:border-indigo-500/30"
                                                             )}
                                                             onClick={() => {
+                                                                if (isSubmitting) return;
                                                                 const checked = !formData.tasks.includes(task.id);
                                                                 const newTasks = checked
                                                                     ? [...formData.tasks, task.id]
@@ -336,6 +402,7 @@ export default function Phases() {
                                                                 id={`task-${task.id}`}
                                                                 checked={formData.tasks.includes(task.id)}
                                                                 className="rounded-md"
+                                                                disabled={isSubmitting}
                                                             />
                                                             <div className="flex-1 min-w-0">
                                                                 <Label
@@ -350,7 +417,7 @@ export default function Phases() {
                                                                         {task.estimates?.medium?.hours || 0}h
                                                                     </div>
                                                                     <span className="opacity-30">•</span>
-                                                                    <span>{task.id}</span>
+                                                                    <span>{task.id.toString().substring(0, 8)}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -376,21 +443,30 @@ export default function Phases() {
                             variant="ghost"
                             onClick={() => setIsFormOpen(false)}
                             className="font-bold rounded-xl h-11"
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-primary/20 bg-indigo-600 hover:bg-indigo-700 border-none"
+                            disabled={isSubmitting}
+                            className="px-8 font-black uppercase tracking-wider text-[10px] rounded-xl h-11 shadow-lg shadow-primary/20 bg-indigo-600 hover:bg-indigo-700 border-none min-w-[120px]"
                         >
-                            {editingPhase ? 'Update' : 'Create'} Stage
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>{editingPhase ? 'Update' : 'Create'} Stage</>
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Confirmation Dialog */}
-            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <Dialog open={isDeleteOpen} onOpenChange={(open) => !isSubmitting && setIsDeleteOpen(open)}>
                 <DialogContent className="sm:max-w-[400px] rounded-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-red-600">Delete Phase</DialogTitle>
@@ -400,8 +476,22 @@ export default function Phases() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700">Delete Phase</Button>
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl" disabled={isSubmitting}>Cancel</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                            className="rounded-xl bg-red-600 hover:bg-red-700 min-w-[120px]"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                "Delete Phase"
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

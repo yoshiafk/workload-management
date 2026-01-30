@@ -47,8 +47,8 @@ export const allocationsApi = {
 };
 
 export const configApi = {
-    getPhases: () => api.get('/phases'),
-    getTasks: () => api.get('/tasks'),
+    getPhases: (params) => api.get('/phases', { params }),
+    getTasks: (params) => api.get('/tasks', { params }),
     createPhase: (data) => api.post('/phases', data),
     updatePhase: (id, data) => api.put(`/phases/${id}`, data),
     deletePhase: (id) => api.delete(`/phases/${id}`),
@@ -58,8 +58,8 @@ export const configApi = {
 };
 
 export const financeApi = {
-    getCostCenters: () => api.get('/finance/cost-centers'),
-    getCOA: () => api.get('/finance/coa'),
+    getCostCenters: (params) => api.get('/finance/cost-centers', { params }),
+    getCOA: (params) => api.get('/finance/coa', { params }),
     createCostCenter: (data) => api.post('/finance/cost-centers', data),
     updateCostCenter: (id, data) => api.put(`/finance/cost-centers/${id}`, data),
     deleteCostCenter: (id) => api.delete(`/finance/cost-centers/${id}`),
@@ -69,14 +69,19 @@ export const financeApi = {
 };
 
 export const lookupsApi = {
-    getStatuses: () => api.get('/lookups/statuses'),
-    getComplexities: () => api.get('/lookups/complexity'),
-    getTags: () => api.get('/lookups/tags'),
+    getStatuses: (params) => api.get('/lookups/statuses', { params }),
+    getComplexities: (params) => api.get('/lookups/complexity', { params }),
+    updateComplexity: (level, data) => api.put(`/lookups/complexity/${level}`, data),
+    getTags: (params) => api.get('/lookups/tags', { params }),
     getHolidays: (params) => api.get('/lookups/holidays', { params }),
+    syncHolidays: (year) => api.post(`/lookups/holidays/sync${year ? `?year=${year}` : ''}`),
+    createHoliday: (data) => api.post('/lookups/holidays', data),
+    updateHoliday: (id, data) => api.put(`/lookups/holidays/${id}`, data),
+    deleteHoliday: (id) => api.delete(`/lookups/holidays/${id}`),
 };
 
 export const rolesApi = {
-    getAll: () => api.get('/roles'),
+    getAll: (params) => api.get('/roles', { params }),
     getOne: (code) => api.get(`/roles/${code}`),
     updateTier: (id, data) => api.put(`/roles/tiers/${id}`, data),
 };
@@ -94,10 +99,10 @@ export const leavesApi = {
     rejectRequest: (id, reason) => api.put(`/admin/leaves/${id}/reject`, { reason }),
     getAllBalances: (params) => api.get('/admin/leaves/balances', { params }),
     updateBalance: (id, data) => api.put(`/admin/leaves/balances/${id}`, data),
-    getTypes: () => api.get('/admin/leaves/types'),
-    createType: (data) => api.post('/admin/leaves/types', data),
-    updateType: (id, data) => api.put('/admin/leaves/types/' + id, data),
-    deleteType: (id) => api.delete('/admin/leaves/types/' + id)
+    getLeaveTypes: () => api.get('/admin/leaves/types'),
+    createLeaveType: (data) => api.post('/admin/leaves/types', data),
+    updateLeaveType: (id, data) => api.put('/admin/leaves/types/' + id, data),
+    deleteLeaveType: (id) => api.delete('/admin/leaves/types/' + id)
 };
 
 export const timesheetsApi = {
@@ -113,6 +118,20 @@ export const timesheetsApi = {
     getPendingTimesheets: () => api.get('/timesheets/admin/pending'),
     getDetails: (id) => api.get(`/timesheets/admin/${id}`),
     reviewTimesheet: (id, data) => api.put(`/timesheets/admin/${id}/review`, data)
+};
+
+export const costsApi = {
+    getAll: (params) => api.get('/costs', { params }),
+    getOne: (id) => api.get(`/costs/${id}`),
+    create: (data) => api.post('/costs', data),
+    update: (id, data) => api.put(`/costs/${id}`, data),
+    delete: (id) => api.delete(`/costs/${id}`)
+};
+
+export const settingsApi = {
+    getAll: () => api.get('/settings'),
+    getOne: (key) => api.get(`/settings/${key}`),
+    update: (key, value) => api.put(`/settings/${key}`, value)
 };
 
 export default api;

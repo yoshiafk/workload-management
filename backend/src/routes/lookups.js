@@ -1,6 +1,7 @@
 import express from 'express';
-import { Complexity, Status, Tag, Holiday } from '../models/index.js';
-import { authenticate } from '../middleware/auth.js';
+import { Complexity, Status, Tag } from '../models/index.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+import * as lookupController from '../controllers/lookupController.js';
 
 const router = express.Router();
 
@@ -9,7 +10,6 @@ router.use(authenticate);
 
 /**
  * GET /api/lookups/complexity
- * Get all complexity levels
  */
 router.get('/complexity', async (req, res) => {
     try {
@@ -21,8 +21,22 @@ router.get('/complexity', async (req, res) => {
 });
 
 /**
+ * PUT /api/lookups/complexity/:level
+ */
+router.put('/complexity/:level', authorize('admin'), async (req, res) => {
+    try {
+        const item = await Complexity.findByPk(req.params.level);
+        if (!item) return res.status(404).json({ message: 'Complexity level not found' });
+
+        await item.update(req.body);
+        res.json(item);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+/**
  * GET /api/lookups/statuses
- * Get all task statuses
  */
 router.get('/statuses', async (req, res) => {
     try {
@@ -35,7 +49,6 @@ router.get('/statuses', async (req, res) => {
 
 /**
  * GET /api/lookups/tags
- * Get all tags
  */
 router.get('/tags', async (req, res) => {
     try {
@@ -46,26 +59,11 @@ router.get('/tags', async (req, res) => {
     }
 });
 
-/**
- * GET /api/lookups/holidays
- * Get holidays, optionally filtered by year
- */
-router.get('/holidays', async (req, res) => {
-    try {
-        const { year, type } = req.query;
-        const where = {};
-
-        if (year) where.year = parseInt(year);
-        if (type) where.type = type;
-
-        const items = await Holiday.findAll({
-            where,
-            order: [['date', 'ASC']]
-        });
-        res.json({ items });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Holiday Routes
+router.get('/holidays', lookupController.getHolidays);
+router.post('/holidays/sync', authorize('admin'), lookupController.syncHolidays);
+router.post('/holidays', authorize('admin'), lookupController.createHoliday);
+router.put('/holidays/:id', authorize('admin'), lookupController.updateHoliday);
+router.delete('/holidays/:id', authorize('admin'), lookupController.deleteHoliday);
 
 export default router;

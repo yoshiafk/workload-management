@@ -11,8 +11,8 @@ import {
     threePointEstimate,
 } from '../utils/calculations';
 import { calculateSLAStatus, getPriorityColor, calculateSLADeadline } from '../utils/supportCalculations';
-import { getStatusOptions } from '../data/defaultStatuses';
-import { getTagOptions } from '../data/defaultTags';
+import { getStatusOptions } from '../utils/statuses';
+import { getTagOptions } from '../utils/tags';
 
 import {
     flexRender,

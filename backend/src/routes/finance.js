@@ -6,7 +6,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 // Cost Centers
-const ccController = createCRUDController(CostCenter, { include: ['manager', 'parent', 'children'] });
+const ccController = createCRUDController(CostCenter, { include: ['managerRef', 'parent', 'children'] });
 router.get('/cost-centers', authenticate, ccController.getAll);
 router.post('/cost-centers', authenticate, authorize('admin'), ccController.create);
 router.put('/cost-centers/:id', authenticate, authorize('admin'), ccController.update);

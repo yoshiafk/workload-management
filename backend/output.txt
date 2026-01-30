@@ -1,0 +1,23 @@
+Unable to connect to the database: ConnectionRefusedError [SequelizeConnectionRefusedError]
+    at Client._connectionCallback (/Users/yoshiafk/Development/Personal Project/hr-management/backend/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:133:24)
+    at Client._handleErrorWhileConnecting (/Users/yoshiafk/Development/Personal Project/hr-management/backend/node_modules/pg/lib/client.js:376:19)
+    at Client._handleErrorEvent (/Users/yoshiafk/Development/Personal Project/hr-management/backend/node_modules/pg/lib/client.js:386:19)
+    at Connection.emit (node:events:508:28)
+    at Socket.reportStreamError (/Users/yoshiafk/Development/Personal Project/hr-management/backend/node_modules/pg/lib/connection.js:56:12)
+    at Socket.emit (node:events:508:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  parent: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  },
+  original: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}

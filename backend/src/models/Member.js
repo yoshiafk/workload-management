@@ -34,6 +34,10 @@ const Member = sequelize.define('Member', {
         type: DataTypes.UUID,
         allowNull: true
     },
+    defaultCoaId: {
+        type: DataTypes.UUID,
+        allowNull: true
+    },
     maxCapacity: {
         type: DataTypes.DECIMAL(3, 2),
         allowNull: false,

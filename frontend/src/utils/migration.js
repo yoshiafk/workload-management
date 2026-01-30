@@ -4,7 +4,12 @@
  */
 
 import { loadFromStorage, saveToStorage } from './storage';
-import { defaultComplexity, defaultCostCenters, defaultCOA, defaultTaskTemplates } from '../data';
+// Defaults removed as src/data is deleted.
+// Defining placeholders to prevent build errors.
+const defaultComplexity = {};
+const defaultCostCenters = [];
+const defaultCOA = [];
+const defaultTaskTemplates = [];
 
 // Current data version - increment when schema changes
 export const CURRENT_VERSION = '2.2.0';

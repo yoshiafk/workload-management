@@ -109,7 +109,7 @@ const formatDate = (dateStr) => {
 };
 
 export default function ImportantDates() {
-    const { state, dispatch } = useApp();
+    const { state, dispatch, apiActions } = useApp();
     const { user, isAdmin } = useAuth();
 
     // Filters
@@ -337,15 +337,28 @@ export default function ImportantDates() {
         return Object.keys(errors).length === 0;
     };
 
-    const handleHolidaySubmit = () => {
+    const handleHolidaySubmit = async () => {
         if (!validateHoliday()) return;
-        if (editingHoliday) dispatch({ type: ACTIONS.UPDATE_HOLIDAY, payload: holidayForm });
-        else dispatch({ type: ACTIONS.ADD_HOLIDAY, payload: holidayForm });
-        setIsHolidayFormOpen(false);
+        try {
+            if (editingHoliday) {
+                await apiActions.updateHoliday(holidayForm.id, holidayForm);
+            } else {
+                await apiActions.addHoliday(holidayForm);
+            }
+            setIsHolidayFormOpen(false);
+        } catch (error) {
+            console.error('Failed to save holiday:', error);
+        }
     };
 
-    const handleHolidayDeleteConfirm = () => {
-        if (holidayToDelete) dispatch({ type: ACTIONS.DELETE_HOLIDAY, payload: holidayToDelete.id });
+    const handleHolidayDeleteConfirm = async () => {
+        if (holidayToDelete) {
+            try {
+                await apiActions.deleteHoliday(holidayToDelete.id);
+            } catch (error) {
+                console.error('Failed to delete holiday:', error);
+            }
+        }
         setIsHolidayDeleteOpen(false);
         setHolidayToDelete(null);
     };
@@ -415,7 +428,9 @@ export default function ImportantDates() {
     const handleRefreshHolidays = async () => {
         setIsRefreshing(true);
         try {
-            const freshHolidays = await refreshHolidays();
+            // Use current year filter or current year
+            const year = yearFilter === 'all' ? new Date().getFullYear() : parseInt(yearFilter);
+            const freshHolidays = await refreshHolidays(year);
             dispatch({ type: ACTIONS.SET_HOLIDAYS, payload: freshHolidays });
         } catch (error) {
             console.error('Failed to refresh holidays:', error);

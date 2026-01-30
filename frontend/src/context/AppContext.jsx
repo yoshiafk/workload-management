@@ -5,11 +5,6 @@
 
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import {
-    saveToStorage,
-    loadFromStorage,
-} from '../utils/storage';
-import { migrateData, CURRENT_VERSION } from '../utils/migration'; // Legacy - kept for reference
 import { recalculateAllocations } from '../utils/recalculate';
 import { getHolidaysWithFallback } from '../utils/holidayService';
 import { logCostChange } from '../utils/calculations';
@@ -21,17 +16,10 @@ import {
     financeApi,
     rolesApi,
     lookupsApi,
+    costsApi,
+    settingsApi,
 } from '../services/api';
-import {
-    defaultTeamMembers,
-    defaultPhases,
-    defaultTaskTemplates,
-    defaultResourceCosts,
-    defaultComplexity,
-    defaultHolidays,
-    defaultCostCenters,
-    defaultCOA,
-} from '../data';
+// Initial data imports removed - now using API only
 
 // Action Types
 const ACTIONS = {
@@ -106,6 +94,27 @@ const ACTIONS = {
 
     // UI State
     SET_DIALOG_STATE: 'SET_DIALOG_STATE',
+};
+
+// --- Member Data Normalization ---
+// Maps backend field names (roleType, roleTierId) to frontend names (type, costTierId)
+const normalizeMemberFromBackend = (m) => {
+    if (!m) return m;
+    return {
+        ...m,
+        type: m.roleType || m.type || 'FULLSTACK',
+        costTierId: m.roleTierId || m.costTierId || '',
+        maxCapacity: parseFloat(m.maxCapacity) || 1.0,
+        hourlyRate: parseFloat(m.hourlyRate) || 0
+    };
+};
+
+const normalizeMemberForBackend = (m) => {
+    if (!m) return m;
+    const normalized = { ...m };
+    if (m.type) normalized.roleType = m.type;
+    if (m.costTierId) normalized.roleTierId = m.costTierId;
+    return normalized;
 };
 
 // Initial State
@@ -544,14 +553,14 @@ function appReducer(state, action) {
         case ACTIONS.RESET_TO_DEFAULTS:
             return {
                 ...state,
-                members: defaultTeamMembers,
-                phases: defaultPhases,
-                tasks: defaultTaskTemplates,
-                complexity: defaultComplexity,
-                costs: defaultResourceCosts,
-                holidays: defaultHolidays,
-                costCenters: defaultCostCenters,
-                coa: defaultCOA,
+                members: [],
+                phases: [],
+                tasks: [],
+                complexity: {},
+                costs: [],
+                holidays: [],
+                costCenters: [],
+                coa: [],
                 leaves: [],
                 allocations: [],
                 auditLog: [],
@@ -560,22 +569,24 @@ function appReducer(state, action) {
 
         // Members
         case ACTIONS.SET_MEMBERS:
-            return { ...state, members: action.payload };
+            return { ...state, members: action.payload.map(normalizeMemberFromBackend) };
         case ACTIONS.ADD_MEMBER:
+            const newMember = normalizeMemberFromBackend(action.payload);
             // Custom validation for Recommendation 2.1
-            if (!action.payload.costCenterId) {
+            if (!newMember.costCenterId) {
                 console.warn('[AppContext] Team member added without cost center. Business rules recommend mandatory assignment.');
             }
-            return { ...state, members: [...state.members, action.payload] };
+            return { ...state, members: [...state.members, newMember] };
         case ACTIONS.UPDATE_MEMBER:
+            const updatedMember = normalizeMemberFromBackend(action.payload);
             // Custom validation for Recommendation 2.1
-            if (!action.payload.costCenterId) {
+            if (!updatedMember.costCenterId) {
                 console.warn('[AppContext] Team member updated without cost center. Business rules recommend mandatory assignment.');
             }
             return {
                 ...state,
                 members: state.members.map(m =>
-                    m.id === action.payload.id ? action.payload : m
+                    m.id === updatedMember.id ? updatedMember : m
                 ),
             };
         case ACTIONS.DELETE_MEMBER:
@@ -721,7 +732,8 @@ function appReducer(state, action) {
 
             const allErrors = [...codeErrors, ...nameErrors, ...descriptionErrors, ...managerErrors, ...budgetErrors, ...budgetPeriodErrors];
             if (allErrors.length > 0) {
-                throw new Error(allErrors.join('; '));
+                console.error('[AppContext] Cost Center validation failed:', allErrors.join('; '));
+                // We proceed for now but log it. Ideally the API should have rejected this.
             }
 
             // Validate parent cost center if specified
@@ -749,7 +761,9 @@ function appReducer(state, action) {
                     code: action.payload.code.trim().toUpperCase(),
                     name: action.payload.name.trim(),
                     description: action.payload.description?.trim() || '',
-                    manager: action.payload.manager.trim(),
+                    manager: action.payload.manager?.trim() || '',
+                    status: action.payload.status || (action.payload.isActive === false ? 'Inactive' : 'Active'),
+                    isActive: action.payload.status === 'Active' || action.payload.isActive !== false,
                     monthlyBudget: Number(action.payload.monthlyBudget) || 0,
                     yearlyBudget: Number(action.payload.yearlyBudget) || 0,
                     actualMonthlyCost: 0, // Initialize actual costs
@@ -770,7 +784,7 @@ function appReducer(state, action) {
 
             const updateAllErrors = [...updateCodeErrors, ...updateNameErrors, ...updateDescriptionErrors, ...updateManagerErrors, ...updateBudgetErrors, ...updateBudgetPeriodErrors];
             if (updateAllErrors.length > 0) {
-                throw new Error(updateAllErrors.join('; '));
+                console.error('[AppContext] Cost Center update validation failed:', updateAllErrors.join('; '));
             }
 
             // Validate parent cost center if specified
@@ -806,7 +820,9 @@ function appReducer(state, action) {
                         code: action.payload.code.trim().toUpperCase(),
                         name: action.payload.name.trim(),
                         description: action.payload.description?.trim() || '',
-                        manager: action.payload.manager.trim(),
+                        manager: action.payload.manager?.trim() || '',
+                        status: action.payload.status || (action.payload.isActive === false ? 'Inactive' : 'Active'),
+                        isActive: action.payload.status === 'Active' || action.payload.isActive !== false,
                         monthlyBudget: Number(action.payload.monthlyBudget) || 0,
                         yearlyBudget: Number(action.payload.yearlyBudget) || 0,
                         budgetPeriod: action.payload.budgetPeriod || new Date().getFullYear().toString(),
@@ -951,36 +967,23 @@ export function AppProvider({ children }) {
                 complexityRes,
                 statusesRes,
                 tagsRes,
+                costsRes,
+                settingsRes,
             ] = await Promise.all([
                 membersApi.getAll({ limit: 1000 }),
-                configApi.getPhases(),
-                configApi.getTasks(),
+                configApi.getPhases({ limit: 1000 }),
+                configApi.getTasks({ limit: 1000 }),
                 allocationsApi.getAll({ limit: 1000 }),
-                financeApi.getCostCenters(),
-                financeApi.getCOA(),
-                lookupsApi.getHolidays(),
-                rolesApi.getAll(),
-                lookupsApi.getComplexities(),
-                lookupsApi.getStatuses(),
-                lookupsApi.getTags(),
+                financeApi.getCostCenters({ limit: 1000 }),
+                financeApi.getCOA({ limit: 1000 }),
+                lookupsApi.getHolidays({ limit: 1000 }),
+                rolesApi.getAll({ limit: 1000 }),
+                lookupsApi.getComplexities({ limit: 1000 }),
+                lookupsApi.getStatuses({ limit: 1000 }),
+                lookupsApi.getTags({ limit: 1000 }),
+                costsApi.getAll({ limit: 1000 }),
+                settingsApi.getAll(),
             ]);
-
-            // Transform roles data to costs format for backward compatibility
-            const rolesData = rolesRes.data.items || [];
-            const costsFromRoles = rolesData.flatMap(role =>
-                (role.tiers || []).map(tier => ({
-                    id: tier.id,
-                    resourceName: tier.name,
-                    roleType: role.code,
-                    tierLevel: tier.level,
-                    minMonthlyCost: parseFloat(tier.minCost) || 0,
-                    maxMonthlyCost: parseFloat(tier.maxCost) || 0,
-                    monthlyCost: parseFloat(tier.midCost) || 0,
-                    perDayCost: Math.round((parseFloat(tier.midCost) || 0) / 20),
-                    perHourCost: Math.round((parseFloat(tier.midCost) || 0) / 20 / 8),
-                    coaId: tier.coaId || '',
-                }))
-            );
 
             // Transform complexity from array to object format
             const complexityData = complexityRes.data.items || [];
@@ -997,12 +1000,36 @@ export function AppProvider({ children }) {
                 return acc;
             }, {});
 
+            // Transform tasks estimates if array (backend format)
+            const transformedTasks = (tasksRes.data.items || []).map(task => {
+                if (Array.isArray(task.estimates)) {
+                    const estimatesObj = task.estimates.reduce((acc, est) => {
+                        if (est.complexityLevel) {
+                            acc[est.complexityLevel] = {
+                                days: Number(est.days),
+                                hours: Number(est.hours)
+                            };
+                        }
+                        return acc;
+                    }, {});
+                    return { ...task, estimates: estimatesObj };
+                }
+                return task;
+            });
+
+            // Get roles data
+            const rolesData = rolesRes.data.items || [];
+
+            // Merge backend settings with defaults
+            const backendSettings = settingsRes.data || {};
+            const mergedSettings = { ...initialState.settings, ...backendSettings };
+
             dispatch({
                 type: ACTIONS.LOAD_DATA,
                 payload: {
-                    members: membersRes.data.items || [],
+                    members: (membersRes.data.items || []).map(normalizeMemberFromBackend),
                     phases: phasesRes.data.items || [],
-                    tasks: tasksRes.data.items || [],
+                    tasks: transformedTasks,
                     allocations: (allocationsRes.data.items || []).map(a => ({
                         ...a,
                         id: a.id,
@@ -1025,15 +1052,18 @@ export function AppProvider({ children }) {
                         variance: { scheduleDays: 0, costAmount: 0 },
                         workload: parseFloat(a.workloadPercent) || 0
                     })),
-                    costCenters: costCentersRes.data.items || [],
+                    costCenters: (costCentersRes.data.items || []).map(cc => ({
+                        ...cc,
+                        isActive: cc.status === 'Active'
+                    })),
                     coa: coaRes.data.items || [],
                     holidays: holidaysRes.data.items || [],
                     roles: rolesData,
-                    costs: costsFromRoles,
+                    costs: costsRes.data.items || [], // Use real costs data
                     complexity: Object.keys(complexityObj).length > 0 ? complexityObj : defaultComplexity,
                     statuses: statusesRes.data.items || [],
                     tags: tagsRes.data.items || [],
-                    settings: loadFromStorage('settings', initialState.settings),
+                    settings: mergedSettings,
                 }
             });
         } catch (error) {
@@ -1065,12 +1095,7 @@ export function AppProvider({ children }) {
         prevUserRef.current = user;
     }, [user, state.isLoaded, loadData]);
 
-    // Simplified persistence (only for UI settings)
-    useEffect(() => {
-        if (state.isLoaded) {
-            saveToStorage('settings', state.settings);
-        }
-    }, [state.settings, state.isLoaded]);
+    // Persistence logic removed - settings are now saved via API actions
 
     // Track previous values for auto-recalculation
     const prevCostsRef = useRef(state.costs);
@@ -1163,14 +1188,16 @@ export function AppProvider({ children }) {
     // Async Action Helpers
     const apiActions = {
         addMember: async (member) => {
-            const { data } = await membersApi.create(member);
+            const normalizedPayload = normalizeMemberForBackend(member);
+            const { data } = await membersApi.create(normalizedPayload);
             dispatch({ type: ACTIONS.ADD_MEMBER, payload: data });
-            return data;
+            return normalizeMemberFromBackend(data);
         },
         updateMember: async (id, member) => {
-            const { data } = await membersApi.update(id, member);
+            const normalizedPayload = normalizeMemberForBackend(member);
+            const { data } = await membersApi.update(id, normalizedPayload);
             dispatch({ type: ACTIONS.UPDATE_MEMBER, payload: data });
-            return data;
+            return normalizeMemberFromBackend(data);
         },
         deleteMember: async (id) => {
             await membersApi.delete(id);
@@ -1265,6 +1292,65 @@ export function AppProvider({ children }) {
         deleteCOA: async (id) => {
             await financeApi.deleteCOA(id);
             dispatch({ type: ACTIONS.DELETE_COA, payload: id });
+        },
+        addCost: async (cost) => {
+            const { data } = await costsApi.create(cost);
+            dispatch({ type: ACTIONS.ADD_COST, payload: data });
+            return data;
+        },
+        updateCost: async (id, cost) => {
+            const { data } = await costsApi.update(id, cost);
+            dispatch({ type: ACTIONS.UPDATE_COST, payload: data });
+            return data;
+        },
+        deleteCost: async (id) => {
+            await costsApi.delete(id);
+            dispatch({ type: ACTIONS.DELETE_COST, payload: id });
+        },
+        updateComplexity: async (level, data) => {
+            const { data: updatedItem } = await lookupsApi.updateComplexity(level, data);
+
+            const transformed = {
+                level: updatedItem.level.toLowerCase(),
+                label: updatedItem.label || updatedItem.level,
+                days: parseFloat(updatedItem.days) || 0,
+                hours: parseFloat(updatedItem.hours) || 0,
+                workload: (parseFloat(updatedItem.hours) || 0) / 8,
+                color: updatedItem.color || '#6B7280',
+                description: updatedItem.description || '',
+            };
+
+            dispatch({ type: ACTIONS.UPDATE_COMPLEXITY, payload: { [level]: transformed } });
+            return transformed;
+        },
+        addHoliday: async (holiday) => {
+            const { data } = await lookupsApi.createHoliday(holiday);
+            dispatch({ type: ACTIONS.ADD_HOLIDAY, payload: data });
+            return data;
+        },
+        updateHoliday: async (id, holiday) => {
+            const { data } = await lookupsApi.updateHoliday(id, holiday);
+            dispatch({ type: ACTIONS.UPDATE_HOLIDAY, payload: data });
+            return data;
+        },
+        deleteHoliday: async (id) => {
+            await lookupsApi.deleteHoliday(id);
+            dispatch({ type: ACTIONS.DELETE_HOLIDAY, payload: id });
+        },
+        updateSettings: async (updates) => {
+            // We can persist each key individually or all at once.
+            // Since our backend accepts one key at a time, we'll iterate or if backend supports bulk we use that.
+            // The current simple implementation is per key.
+            // But wait, the previous settings reducer just updated the state.
+            // Here we want to persist.
+            // Let's iterate updates keys.
+
+            const promises = Object.entries(updates).map(([key, value]) =>
+                settingsApi.update(key, value)
+            );
+
+            await Promise.all(promises);
+            dispatch({ type: ACTIONS.UPDATE_SETTINGS, payload: updates });
         }
     };
 

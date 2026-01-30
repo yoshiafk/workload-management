@@ -57,6 +57,10 @@ export const CostCenter = sequelize.define('CostCenter', {
             model: 'Members',
             key: 'id'
         }
+    },
+    manager: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     tableName: 'CostCenters'

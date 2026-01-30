@@ -45,10 +45,12 @@ import {
     DollarSign,
     Calculator,
     Clock,
-    Target
+    Target,
+    Loader2
 } from "lucide-react"
 import { formatCurrency } from '../../utils/calculations';
 import { cn } from "@/lib/utils"
+import { toast } from "sonner";
 import './LibraryPage.css';
 
 // Generate unique ID
@@ -73,7 +75,7 @@ const emptyCost = {
 };
 
 export default function ResourceCosts() {
-    const { state, dispatch } = useApp();
+    const { state, dispatch, addCost, updateCost, deleteCost } = useApp();
 
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -288,24 +290,48 @@ export default function ResourceCosts() {
         return Object.keys(newErrors).length === 0;
     };
 
+    // State for loading
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // Submit form
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validate()) return;
-        if (editingCost) {
-            dispatch({ type: ACTIONS.UPDATE_COST, payload: formData });
-        } else {
-            dispatch({ type: ACTIONS.ADD_COST, payload: formData });
+        setIsSubmitting(true);
+
+        try {
+            if (editingCost) {
+                await updateCost(editingCost.id, formData);
+                toast.success("Cost tier updated successfully");
+            } else {
+                await addCost(formData);
+                toast.success("Cost tier created successfully");
+            }
+            setIsFormOpen(false);
+            setGlobalFilter('');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to save cost tier");
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsFormOpen(false);
     };
 
     // Confirm delete
-    const handleDeleteConfirm = () => {
-        if (costToDelete) {
-            dispatch({ type: ACTIONS.DELETE_COST, payload: costToDelete.id });
+    const handleDeleteConfirm = async () => {
+        if (!costToDelete) return;
+        setIsSubmitting(true);
+
+        try {
+            await deleteCost(costToDelete.id);
+            toast.success("Cost tier deleted successfully");
+            setIsDeleteOpen(false);
+            setCostToDelete(null);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to delete cost tier");
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsDeleteOpen(false);
-        setCostToDelete(null);
     };
 
     // Generate tier level options
@@ -560,8 +586,16 @@ export default function ResourceCosts() {
                         <Button
                             onClick={handleSubmit}
                             className="shadow-lg px-8 font-bold"
+                            disabled={isSubmitting}
                         >
-                            {editingCost ? 'Update' : 'Confirm'} tier
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {editingCost ? 'Updating...' : 'Creating...'}
+                                </>
+                            ) : (
+                                editingCost ? 'Update tier' : 'Confirm tier'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -577,8 +611,17 @@ export default function ResourceCosts() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">Cancel</Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700 font-bold">Delete Tier</Button>
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl" disabled={isSubmitting}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} className="rounded-xl bg-red-600 hover:bg-red-700 font-bold" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete Tier'
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

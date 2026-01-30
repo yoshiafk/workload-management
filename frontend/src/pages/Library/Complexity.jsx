@@ -18,13 +18,15 @@ import {
     Calendar,
     Zap,
     Edit2,
-    Settings2
+    Settings2,
+    Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import './LibraryPage.css';
 
 export default function Complexity() {
-    const { state, dispatch } = useApp();
+    const { state, updateComplexity } = useApp();
     const { complexity } = state;
 
     // Modal state
@@ -32,6 +34,7 @@ export default function Complexity() {
     const [editingLevel, setEditingLevel] = useState(null);
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Open edit modal
     const handleEdit = (level) => {
@@ -67,13 +70,19 @@ export default function Complexity() {
     };
 
     // Submit form
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validate()) return;
-        dispatch({
-            type: ACTIONS.UPDATE_COMPLEXITY,
-            payload: { [formData.level]: formData }
-        });
-        setIsFormOpen(false);
+        setIsSubmitting(true);
+        try {
+            await updateComplexity(formData.level, formData);
+            toast.success("Complexity updated successfully");
+            setIsFormOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Failed to update complexity");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -214,8 +223,16 @@ export default function Complexity() {
                         <Button
                             onClick={handleSubmit}
                             className="shadow-lg px-8 font-bold"
+                            disabled={isSubmitting}
                         >
-                            Update settings
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Updating...
+                                </>
+                            ) : (
+                                'Update settings'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -18,6 +18,9 @@ import lookupRoutes from './routes/lookups.js';
 import leaveRoutes from './routes/leaves.js';
 import adminLeaveRoutes from './routes/adminLeaves.js';
 import timesheetRoutes from './routes/timesheetRoutes.js';
+import costsRoutes from './routes/costs.js';
+import settingsRoutes from './routes/settings.js';
+
 import { seedDatabase } from './utils/seeder.js';
 
 dotenv.config();
@@ -51,6 +54,8 @@ app.use('/api/lookups', lookupRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/admin/leaves', adminLeaveRoutes);
 app.use('/api/timesheets', timesheetRoutes);
+app.use('/api/costs', costsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -6,11 +6,13 @@ import { Phase, TaskTemplate, TaskEstimate } from './ConfigModels.js';
 import { CostCenter, COA } from './FinancialModels.js';
 import { RoleType, RoleTier } from './RoleModels.js';
 import { Complexity, Status, Tag, Holiday } from './LookupModels.js';
+import Cost from './Cost.js';
 import LeaveType from './LeaveType.js';
 import LeaveBalance from './LeaveBalance.js';
 import LeaveRequest from './LeaveRequest.js';
 import TimeEntry from './TimeEntry.js';
 import TimesheetPeriod from './TimesheetPeriod.js';
+import Setting from './Setting.js';
 
 // ============================================
 // User - Member Association
@@ -39,10 +41,13 @@ RoleTier.hasMany(Member, { foreignKey: 'roleTierId', as: 'members', constraints:
 Member.belongsTo(CostCenter, { foreignKey: 'costCenterId', as: 'costCenter', constraints: false });
 CostCenter.hasMany(Member, { foreignKey: 'costCenterId', as: 'members', constraints: false });
 
+Member.belongsTo(COA, { foreignKey: 'defaultCoaId', as: 'defaultAccount', constraints: false });
+COA.hasMany(Member, { foreignKey: 'defaultCoaId', as: 'members', constraints: false });
+
 // ============================================
 // CostCenter - Member (Manager) Association (no FK constraints)
 // ============================================
-CostCenter.belongsTo(Member, { foreignKey: 'managerId', as: 'manager', constraints: false });
+CostCenter.belongsTo(Member, { foreignKey: 'managerId', as: 'managerRef', constraints: false });
 
 // ============================================
 // Allocation - Phase/Task Associations
@@ -60,6 +65,11 @@ Allocation.belongsTo(Status, { foreignKey: 'status', targetKey: 'id', as: 'statu
 // ============================================
 TaskEstimate.belongsTo(Complexity, { foreignKey: 'complexityLevel', targetKey: 'level', as: 'complexity', constraints: false });
 Complexity.hasMany(TaskEstimate, { foreignKey: 'complexityLevel', sourceKey: 'level', as: 'estimates', constraints: false });
+
+// ============================================
+// Cost - COA Association
+// ============================================
+Cost.belongsTo(COA, { foreignKey: 'coaId', as: 'account', constraints: false });
 
 // ============================================
 // Leave Management Associations
@@ -115,11 +125,13 @@ const models = {
     Status,
     Tag,
     Holiday,
+    Cost,
     LeaveType,
     LeaveBalance,
     LeaveRequest,
     TimeEntry,
-    TimesheetPeriod
+    TimesheetPeriod,
+    Setting
 };
 
 export {
@@ -138,11 +150,13 @@ export {
     Status,
     Tag,
     Holiday,
+    Cost,
     LeaveType,
     LeaveBalance,
     LeaveRequest,
     TimeEntry,
-    TimesheetPeriod
+    TimesheetPeriod,
+    Setting
 };
 
 export default models;
