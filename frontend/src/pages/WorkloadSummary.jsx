@@ -30,6 +30,8 @@ import {
     ProjectedCostChart,
     TeamPreview
 } from "@/components/dashboard";
+import TaskStatsWidget from '../components/dashboard/TaskStatsWidget';
+import PendingApprovalsWidget from '../components/leave/PendingApprovalsWidget';
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { Button } from "@/components/ui/button";
 import { useDensity } from "@/context/DensityContext";
@@ -42,7 +44,8 @@ import {
     TrendingUp,
     Clock,
     FilterX,
-    Download
+    Download,
+    Umbrella
 } from "lucide-react";
 import { exportElementAsPng } from "@/utils/export";
 import { cn } from "@/lib/utils"; // Assuming cn utility is available
@@ -376,6 +379,30 @@ export default function WorkloadSummary() {
                 />
             </motion.div>
 
+            {/* Admin Action Center */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                    <PendingApprovalsWidget limit={2} />
+                </div>
+                <div className="lg:col-span-1">
+                    <TaskStatsWidget />
+                </div>
+                <div className="lg:col-span-1">
+                    <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 h-full flex flex-col justify-center">
+                        <h3 className="text-primary font-bold mb-4">Admin Quick Links</h3>
+                        <div className="flex flex-col gap-3">
+                            <Button variant="outline" className="justify-start gap-2 h-12 bg-white" onClick={() => navigate('/admin/leaves')}>
+                                <Umbrella className="h-4 w-4 text-primary" /> Leave Admin
+                            </Button>
+                            <Button variant="outline" className="justify-start gap-2 h-12 bg-white" onClick={() => navigate('/library/members')}>
+                                <Users className="h-4 w-4 text-primary" /> Team Management
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             {/* Capacity Heatmap */}
             <CollapsibleSection
                 title="Team Capacity Heatmap"
@@ -453,6 +480,6 @@ export default function WorkloadSummary() {
                     subTitle={`${heatmapTitle} (max 5 concurrent tasks)`}
                 />
             </CollapsibleSection>
-            </div>
+        </div>
     );
 }

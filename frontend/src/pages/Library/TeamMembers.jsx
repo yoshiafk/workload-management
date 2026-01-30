@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp, ACTIONS } from '../../context/AppContext';
-import { defaultRoleTiers, getRoleOptions, roleHasCostTracking } from '../../data/defaultRoleTiers';
 import {
     flexRender,
     getCoreRowModel,
@@ -88,6 +87,30 @@ export default function TeamMembers() {
     const [bulkCoaId, setBulkCoaId] = useState('');
     const [bulkType, setBulkType] = useState('cost-center'); // 'cost-center' or 'coa'
 
+    // Build role-related data from state.roles
+    const roleTiersMap = useMemo(() => {
+        const map = {};
+        (state.roles || []).forEach(role => {
+            map[role.code] = {
+                name: role.name,
+                hasCostTracking: role.hasCostTracking,
+                tiers: role.tiers || [],
+            };
+        });
+        return map;
+    }, [state.roles]);
+
+    const roleOptions = useMemo(() => {
+        return (state.roles || []).map(role => ({
+            value: role.code,
+            label: role.name,
+        }));
+    }, [state.roles]);
+
+    const roleHasCostTracking = (roleCode) => {
+        return roleTiersMap[roleCode]?.hasCostTracking ?? false;
+    };
+
     // TanStack Table Columns
     const columns = useMemo(() => [
         {
@@ -141,7 +164,7 @@ export default function TeamMembers() {
             header: "Role",
             cell: ({ row }) => {
                 const type = row.getValue("type");
-                const label = defaultRoleTiers[type]?.name || type;
+                const label = roleTiersMap[type]?.name || type;
                 return (
                     <Badge variant={
                         type === 'FRONTEND' ? 'info' :
@@ -222,7 +245,7 @@ export default function TeamMembers() {
                 </div>
             ),
         },
-    ], [state.costs, state.costCenters]);
+    ], [state.costs, state.costCenters, roleTiersMap]);
 
     const [sorting, setSorting] = useState([]);
     const [rowSelection, setRowSelection] = useState({});
@@ -548,7 +571,7 @@ export default function TeamMembers() {
                                         <SelectValue placeholder="Select role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {getRoleOptions().map(opt => (
+                                        {roleOptions.map(opt => (
                                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                         ))}
                                     </SelectContent>

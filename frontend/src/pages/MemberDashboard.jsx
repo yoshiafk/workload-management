@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import {
-    formatCurrency,
-    calculateWorkloadPercentage
+    formatCurrency
 } from '../utils/calculations';
 import {
     differenceInDays,
@@ -27,10 +26,13 @@ import {
 import { StatCard } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
+import LeaveBalanceWidget from '../components/leave/LeaveBalanceWidget';
+import StatusSelector from '../components/tasks/StatusSelector';
 
 export default function MemberDashboard() {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const { state } = useApp();
     const { allocations, members } = state;
@@ -73,11 +75,11 @@ export default function MemberDashboard() {
         };
     }, [myAllocations]);
 
-    // Calculate workload percentage
     const workload = useMemo(() => {
         if (!member) return 0;
-        const activeHours = tasks.active.reduce((sum, a) => sum + (a.plan?.taskHours || 0), 0);
-        return calculateWorkloadPercentage(activeHours, member.maxHoursPerWeek);
+        // Recommendation 2.4: Sum up workload from active tasks
+        const totalWorkload = tasks.active.reduce((sum, a) => sum + (a.workload || 0), 0);
+        return Math.round(totalWorkload * 100);
     }, [member, tasks.active]);
 
     if (!member) {
@@ -183,9 +185,15 @@ export default function MemberDashboard() {
                                             </span>
                                             <h3 className="font-bold text-slate-900 dark:text-slate-100">{task.activityName}</h3>
                                         </div>
-                                        <Badge variant={task.complexity === 'High' ? 'destructive' : task.complexity === 'Medium' ? 'warning' : 'info'} className="font-bold">
-                                            {task.complexity}
-                                        </Badge>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <Badge variant={task.complexity === 'High' ? 'destructive' : task.complexity === 'Medium' ? 'warning' : 'info'} className="font-bold">
+                                                {task.complexity}
+                                            </Badge>
+                                            <StatusSelector
+                                                allocationId={task.id}
+                                                currentStatus={task.status}
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
@@ -196,7 +204,7 @@ export default function MemberDashboard() {
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <Clock className="h-3.5 w-3.5" />
-                                                <span>{task.plan.taskHours}h total</span>
+                                                <span>{(task.workload * (member.maxHoursPerWeek || 40)).toFixed(1)}h est.</span>
                                             </div>
                                         </div>
                                         <Link to={`/member/${member.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -241,7 +249,7 @@ export default function MemberDashboard() {
 
                     <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden">
                         <div className="relative z-10">
-                            <h3 className="font-bold mb-2">Efficiency Tip</h3>
+                            <h3 className="font-bold mb-2 text-white border-none">Efficiency Tip</h3>
                             <p className="text-sm text-indigo-100 mb-4 opacity-90">
                                 You're most productive between 10am-12pm. Try scheduling your "High" complexity tasks during this window.
                             </p>
@@ -251,8 +259,13 @@ export default function MemberDashboard() {
                         </div>
                         <Activity className="absolute -right-4 -bottom-4 h-24 w-24 text-white/10" />
                     </div>
+
+                    <LeaveBalanceWidget
+                        onRequestLeave={() => navigate('/leave')}
+                    />
                 </div>
             </div>
         </div>
+
     );
 }

@@ -30,7 +30,9 @@ import {
     Settings,
     X,
     PanelLeftClose,
-    PanelLeft
+    PanelLeft,
+    Umbrella,
+    Clock
 } from 'lucide-react';
 import { CURRENT_VERSION } from '../../utils/migration';
 import logo from '../../assets/logo.svg';
@@ -50,6 +52,10 @@ const navItems = [
             { path: '/allocation', label: 'Resource Allocation', icon: ClipboardList, adminOnly: true },
             { path: '/timeline', label: 'Timeline', icon: CalendarDays },
             { path: '/dates', label: 'Important Dates', icon: CalendarClock },
+            { path: '/leave', label: 'Leave Management', icon: Umbrella },
+            { path: '/timesheets', label: 'Timesheets', icon: Clock },
+            { path: '/admin/leaves', label: 'Leave Administration', icon: Umbrella, adminOnly: true },
+            { path: '/admin/timesheets', label: 'Timesheet Review', icon: Clock, adminOnly: true },
             { path: '/cost-calculator', label: 'Cost Calculator', icon: Calculator, adminOnly: true },
         ],
     },
@@ -64,6 +70,7 @@ const navItems = [
             { path: '/library/cost-centers', label: 'Cost Centers', icon: Building2, adminOnly: true },
             { path: '/library/chart-of-accounts', label: 'Chart of Accounts', icon: Receipt, adminOnly: true },
             { path: '/library/cost-center-reports', label: 'Cost Center Reports', icon: BarChart3, adminOnly: true },
+            { path: '/library/leave-config', label: 'Leave Configuration', icon: Settings, adminOnly: true },
         ],
     },
     {

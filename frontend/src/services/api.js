@@ -41,7 +41,9 @@ export const allocationsApi = {
     getMyTasks: () => api.get('/allocations/my/tasks'),
     create: (data) => api.post('/allocations', data),
     update: (id, data) => api.put(`/allocations/${id}`, data),
-    delete: (id) => api.delete(`/allocations/${id}`)
+    updateStatus: (id, data) => api.put(`/allocations/${id}/status`, data),
+    delete: (id) => api.delete(`/allocations/${id}`),
+    getAdminStats: () => api.get('/allocations/admin/stats')
 };
 
 export const configApi = {
@@ -66,4 +68,52 @@ export const financeApi = {
     deleteCOA: (id) => api.delete(`/finance/coa/${id}`),
 };
 
+export const lookupsApi = {
+    getStatuses: () => api.get('/lookups/statuses'),
+    getComplexities: () => api.get('/lookups/complexity'),
+    getTags: () => api.get('/lookups/tags'),
+    getHolidays: (params) => api.get('/lookups/holidays', { params }),
+};
+
+export const rolesApi = {
+    getAll: () => api.get('/roles'),
+    getOne: (code) => api.get(`/roles/${code}`),
+    updateTier: (id, data) => api.put(`/roles/tiers/${id}`, data),
+};
+
+export const leavesApi = {
+    // Member endpoints
+    getBalance: () => api.get('/leaves/balance'),
+    getMyRequests: (params) => api.get('/leaves/me', { params }),
+    submitRequest: (data) => api.post('/leaves', data),
+    cancelRequest: (id) => api.put(`/leaves/${id}/cancel`),
+
+    // Admin endpoints
+    getPendingRequests: () => api.get('/admin/leaves/pending'),
+    approveRequest: (id, note) => api.put(`/admin/leaves/${id}/approve`, { note }),
+    rejectRequest: (id, reason) => api.put(`/admin/leaves/${id}/reject`, { reason }),
+    getAllBalances: (params) => api.get('/admin/leaves/balances', { params }),
+    updateBalance: (id, data) => api.put(`/admin/leaves/balances/${id}`, data),
+    getTypes: () => api.get('/admin/leaves/types'),
+    createType: (data) => api.post('/admin/leaves/types', data),
+    updateType: (id, data) => api.put('/admin/leaves/types/' + id, data),
+    deleteType: (id) => api.delete('/admin/leaves/types/' + id)
+};
+
+export const timesheetsApi = {
+    // Member endpoints
+    getMyEntries: (params) => api.get('/timesheets/me/entries', { params }),
+    logTime: (data) => api.post('/timesheets/entries', data),
+    updateEntry: (id, data) => api.put(`/timesheets/entries/${id}`, data),
+    deleteEntry: (id) => api.delete(`/timesheets/entries/${id}`),
+    getMyPeriods: () => api.get('/timesheets/me/periods'),
+    submitTimesheet: (data) => api.post('/timesheets/submit', data),
+
+    // Admin endpoints
+    getPendingTimesheets: () => api.get('/timesheets/admin/pending'),
+    getDetails: (id) => api.get(`/timesheets/admin/${id}`),
+    reviewTimesheet: (id, data) => api.put(`/timesheets/admin/${id}/review`, data)
+};
+
 export default api;
+

@@ -8,14 +8,22 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/calculations';
 import { differenceInDays, parseISO } from 'date-fns';
-import { defaultRoleTiers } from '../data';
 import './MemberTaskHistory.css';
 
 export default function MemberTaskHistory() {
     const { memberId } = useParams();
     const navigate = useNavigate();
     const { state } = useApp();
-    const { members, allocations, phases, tasks } = state;
+    const { members, allocations, phases, tasks, roles } = state;
+
+    // Build role-related data from state.roles
+    const roleTiersMap = useMemo(() => {
+        const map = {};
+        (roles || []).forEach(role => {
+            map[role.code] = { name: role.name };
+        });
+        return map;
+    }, [roles]);
 
     // Find the member
     const member = members.find(m => m.id === memberId);
@@ -82,7 +90,7 @@ export default function MemberTaskHistory() {
                     <div className="member-details">
                         <h1>{member.name}</h1>
                         <span className="member-role">
-                            {defaultRoleTiers[member.type]?.name || member.type}
+                            {roleTiersMap[member.type]?.name || member.type}
                         </span>
                     </div>
                 </div>

@@ -35,6 +35,11 @@ const CostCenterReports = lazy(() => import('./pages/Library/CostCenterReports')
 const MemberTaskHistory = lazy(() => import('./pages/MemberTaskHistory'));
 const ProjectCostCalculator = lazy(() => import('./pages/ProjectCostCalculator'));
 const Settings = lazy(() => import('./pages/Settings'));
+const LeaveManagement = lazy(() => import('./pages/LeaveManagement'));
+const LeaveAdmin = lazy(() => import('./pages/LeaveAdmin'));
+const LeaveConfiguration = lazy(() => import('./pages/LeaveConfiguration'));
+const Timesheet = lazy(() => import('./pages/Timesheet'));
+const TimesheetReview = lazy(() => import('./pages/TimesheetReview'));
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsHelp } from './components/ui/KeyboardShortcutsHelp';
@@ -115,6 +120,10 @@ function AppInner() {
             <Route path="dates" element={<ImportantDates />} />
             <Route path="member/:memberId" element={<MemberTaskHistory />} />
             <Route path="cost-calculator" element={<ProjectCostCalculator />} />
+            <Route path="leave" element={<LeaveManagement />} />
+            <Route path="timesheets" element={<Timesheet />} />
+            <Route path="admin/leaves" element={<ProtectedRoute adminOnly><LeaveAdmin /></ProtectedRoute>} />
+            <Route path="admin/timesheets" element={<ProtectedRoute adminOnly><TimesheetReview /></ProtectedRoute>} />
 
             {/* Library (Config) */}
             <Route path="library/members" element={<TeamMembers />} />
@@ -125,6 +134,7 @@ function AppInner() {
             <Route path="library/cost-centers" element={<ProtectedRoute adminOnly><CostCenters /></ProtectedRoute>} />
             <Route path="library/chart-of-accounts" element={<ProtectedRoute adminOnly><ChartOfAccounts /></ProtectedRoute>} />
             <Route path="library/cost-center-reports" element={<ProtectedRoute adminOnly><CostCenterReports /></ProtectedRoute>} />
+            <Route path="library/leave-config" element={<ProtectedRoute adminOnly><LeaveConfiguration /></ProtectedRoute>} />
 
             {/* Settings */}
             <Route path="settings" element={<Settings />} />

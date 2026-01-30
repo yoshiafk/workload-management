@@ -469,8 +469,8 @@ export default function TaskTemplates() {
                             <div className="space-y-2 md:col-span-3">
                                 <Label htmlFor="phase" className="text-xs font-bold uppercase tracking-tight text-slate-400">Linked Phase</Label>
                                 <Select
-                                    value={formData.phaseId?.toString()}
-                                    onValueChange={(v) => setFormData({ ...formData, phaseId: parseInt(v) })}
+                                    value={formData.phaseId || ''}
+                                    onValueChange={(v) => setFormData({ ...formData, phaseId: v })}
                                 >
                                     <SelectTrigger className="rounded-lg h-9">
                                         <SelectValue placeholder="Select Phase" />

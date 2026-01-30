@@ -3,12 +3,13 @@
  * Global state management using React Context + useReducer
  */
 
-import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from './AuthContext';
 import {
     saveToStorage,
     loadFromStorage,
 } from '../utils/storage';
-import { migrateData, CURRENT_VERSION } from '../utils/migration';
+import { migrateData, CURRENT_VERSION } from '../utils/migration'; // Legacy - kept for reference
 import { recalculateAllocations } from '../utils/recalculate';
 import { getHolidaysWithFallback } from '../utils/holidayService';
 import { logCostChange } from '../utils/calculations';
@@ -18,6 +19,8 @@ import {
     allocationsApi,
     configApi,
     financeApi,
+    rolesApi,
+    lookupsApi,
 } from '../services/api';
 import {
     defaultTeamMembers,
@@ -117,6 +120,9 @@ const initialState = {
     allocations: [],
     costCenters: [],
     coa: [],
+    roles: [],
+    statuses: [],
+    tags: [],
     settings: {
         currency: 'IDR',
         theme: 'dark',
@@ -924,64 +930,119 @@ const AppContext = createContext(null);
 // Provider Component
 export function AppProvider({ children }) {
     const [state, dispatch] = useReducer(appReducer, initialState);
+    const { user } = useAuth();
+    const prevUserRef = useRef(null);
 
-    // Load data from localStorage on mount
-    useEffect(() => {
-        // Load initial data
-        const loadData = async () => {
-            // Run migrations first to ensure data schema is up-to-date
-            try {
-                const migrationResult = migrateData();
-                if (migrationResult.migrated) {
-                    console.log(`[AppContext] Data migrated from v${migrationResult.from} to v${migrationResult.version}`);
+    // Function to load all data from API
+    const loadData = useCallback(async () => {
+        if (!user) return;
+
+        console.log('[AppContext] Fetching fresh data from API for user:', user.name);
+        try {
+            const [
+                membersRes,
+                phasesRes,
+                tasksRes,
+                allocationsRes,
+                costCentersRes,
+                coaRes,
+                holidaysRes,
+                rolesRes,
+                complexityRes,
+                statusesRes,
+                tagsRes,
+            ] = await Promise.all([
+                membersApi.getAll({ limit: 1000 }),
+                configApi.getPhases(),
+                configApi.getTasks(),
+                allocationsApi.getAll({ limit: 1000 }),
+                financeApi.getCostCenters(),
+                financeApi.getCOA(),
+                lookupsApi.getHolidays(),
+                rolesApi.getAll(),
+                lookupsApi.getComplexities(),
+                lookupsApi.getStatuses(),
+                lookupsApi.getTags(),
+            ]);
+
+            // Transform roles data to costs format for backward compatibility
+            const rolesData = rolesRes.data.items || [];
+            const costsFromRoles = rolesData.flatMap(role =>
+                (role.tiers || []).map(tier => ({
+                    id: tier.id,
+                    resourceName: tier.name,
+                    roleType: role.code,
+                    tierLevel: tier.level,
+                    minMonthlyCost: parseFloat(tier.minCost) || 0,
+                    maxMonthlyCost: parseFloat(tier.maxCost) || 0,
+                    monthlyCost: parseFloat(tier.midCost) || 0,
+                    perDayCost: Math.round((parseFloat(tier.midCost) || 0) / 20),
+                    perHourCost: Math.round((parseFloat(tier.midCost) || 0) / 20 / 8),
+                    coaId: tier.coaId || '',
+                }))
+            );
+
+            // Transform complexity from array to object format
+            const complexityData = complexityRes.data.items || [];
+            const complexityObj = complexityData.reduce((acc, c) => {
+                acc[c.level.toLowerCase()] = {
+                    level: c.level.toLowerCase(),
+                    label: c.label || c.level,
+                    days: parseFloat(c.days) || 0,
+                    hours: parseFloat(c.hours) || 0,
+                    workload: (parseFloat(c.hours) || 0) / 8,
+                    color: c.color || '#6B7280',
+                    description: c.description || '',
+                };
+                return acc;
+            }, {});
+
+            dispatch({
+                type: ACTIONS.LOAD_DATA,
+                payload: {
+                    members: membersRes.data.items || [],
+                    phases: phasesRes.data.items || [],
+                    tasks: tasksRes.data.items || [],
+                    allocations: allocationsRes.data.items || [],
+                    costCenters: costCentersRes.data.items || [],
+                    coa: coaRes.data.items || [],
+                    holidays: holidaysRes.data.items || [],
+                    roles: rolesData,
+                    costs: costsFromRoles,
+                    complexity: Object.keys(complexityObj).length > 0 ? complexityObj : defaultComplexity,
+                    statuses: statusesRes.data.items || [],
+                    tags: tagsRes.data.items || [],
+                    settings: loadFromStorage('settings', initialState.settings),
                 }
-            } catch (error) {
-                console.error('[AppContext] Migration failed:', error);
-            }
-            // Load initial data from API
-            try {
-                const [
-                    membersRes,
-                    phasesRes,
-                    tasksRes,
-                    allocationsRes,
-                    costCentersRes,
-                    coaRes,
-                ] = await Promise.all([
-                    membersApi.getAll(),
-                    configApi.getPhases(),
-                    configApi.getTasks(),
-                    allocationsApi.getAll(),
-                    financeApi.getCostCenters(),
-                    financeApi.getCOA(),
-                ]);
+            });
+        } catch (error) {
+            console.error('[AppContext] Error loading data from API:', error);
+            // Don't fallback to defaults silently anymore
+        }
+    }, [user, dispatch]);
 
-                dispatch({
-                    type: ACTIONS.LOAD_DATA,
-                    payload: {
-                        members: membersRes.data.items || [],
-                        phases: phasesRes.data.items || [],
-                        tasks: tasksRes.data.items || [],
-                        allocations: allocationsRes.data.items || [],
-                        costCenters: costCentersRes.data.items || [],
-                        coa: coaRes.data.items || [],
-                        // Fallbacks for now
-                        complexity: loadFromStorage('complexity', defaultComplexity),
-                        costs: loadFromStorage('costs', defaultResourceCosts),
-                        holidays: loadFromStorage('holidays', defaultHolidays),
-                        settings: loadFromStorage('settings', initialState.settings),
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading data from API:', error);
-                // Fallback to local storage if API fails during transition?
-                // Better to show error but for now let's use defaults if possible
-                dispatch({ type: ACTIONS.RESET_TO_DEFAULTS });
-            }
-        };
-
-        loadData();
-    }, []);
+    // Handle authentication state changes
+    useEffect(() => {
+        if (user && !prevUserRef.current) {
+            // User just logged in
+            loadData();
+        } else if (!user && prevUserRef.current) {
+            // User just logged out - clear sensitive data
+            dispatch({
+                type: ACTIONS.LOAD_DATA,
+                payload: {
+                    members: [],
+                    allocations: [],
+                    leaves: [],
+                    isLoaded: false
+                }
+            });
+        } else if (!state.isLoaded && user) {
+            // App mounted and already logged in
+            loadData();
+        }
+        prevUserRef.current = user;
+    }, [user, state.isLoaded, loadData]);
 
     // Simplified persistence (only for UI settings)
     useEffect(() => {

@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { TaskBar } from './TaskBar';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { defaultRoleTiers } from '@/data';
 import { isBefore, isAfter, parseISO } from 'date-fns';
 
-export function TimelineRow({ resource, tasks, dateRange, cellWidth, gridWidth, rowHeight, onTaskUpdate }) {
+export function TimelineRow({ resource, tasks, dateRange, cellWidth, gridWidth, rowHeight, onTaskUpdate, roleTiersMap = {} }) {
     // Stacking algorithm: assign tasks to lanes
     const stackedTasks = useMemo(() => {
         if (!tasks.length) return [];
@@ -67,7 +66,7 @@ export function TimelineRow({ resource, tasks, dateRange, cellWidth, gridWidth, 
                         {resource.name}
                     </span>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">
-                        {defaultRoleTiers[resource.type]?.name || resource.type}
+                        {roleTiersMap[resource.type]?.name || resource.type}
                     </span>
                 </div>
             </div>

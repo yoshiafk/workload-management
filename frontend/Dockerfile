@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -22,13 +22,13 @@ COPY --from=builder /app/dist ./aii/wr-management/
 RUN echo 'server { \
     listen 3000; \
     location / { \
-        return 301 /aii/wr-management/; \
+    return 301 /aii/wr-management/; \
     } \
     location /aii/wr-management/ { \
-        alias /usr/share/nginx/html/aii/wr-management/; \
-        try_files $uri $uri/ /aii/wr-management/index.html; \
+    alias /usr/share/nginx/html/aii/wr-management/; \
+    try_files $uri $uri/ /aii/wr-management/index.html; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+    }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
 

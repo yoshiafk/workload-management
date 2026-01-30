@@ -3,6 +3,7 @@ import { TimelineHeader } from './TimelineHeader';
 import { TimelineGrid } from './TimelineGrid';
 import { TimelineRow } from './TimelineRow';
 import { TodayIndicator } from './TodayIndicator';
+import { useApp } from '@/context/AppContext';
 import './Timeline.css';
 
 const RESOURCE_WIDTH = 240;
@@ -18,6 +19,16 @@ export function Timeline({
 }) {
     const scrollContainerRef = useRef(null);
     const headerScrollRef = useRef(null);
+    const { state } = useApp();
+
+    // Build role-related data from state.roles
+    const roleTiersMap = useMemo(() => {
+        const map = {};
+        (state.roles || []).forEach(role => {
+            map[role.code] = { name: role.name };
+        });
+        return map;
+    }, [state.roles]);
 
     // Calculate explicit widths
     const gridWidth = useMemo(() =>
@@ -124,6 +135,7 @@ export function Timeline({
                                 gridWidth={gridWidth}
                                 rowHeight={rowHeight}
                                 onTaskUpdate={onTaskUpdate}
+                                roleTiersMap={roleTiersMap}
                             />
                         ))}
                     </div>

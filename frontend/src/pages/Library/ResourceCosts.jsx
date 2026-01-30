@@ -48,7 +48,6 @@ import {
     Target
 } from "lucide-react"
 import { formatCurrency } from '../../utils/calculations';
-import { defaultRoleTiers, getTierByRoleAndLevel, getRoleOptions } from '../../data';
 import { cn } from "@/lib/utils"
 import './LibraryPage.css';
 
@@ -87,6 +86,32 @@ export default function ResourceCosts() {
     const [errors, setErrors] = useState({});
     const [globalFilter, setGlobalFilter] = useState("");
 
+    // Build role-related data from state.roles
+    const roleTiersMap = useMemo(() => {
+        const map = {};
+        (state.roles || []).forEach(role => {
+            map[role.code] = {
+                name: role.name,
+                hasCostTracking: role.hasCostTracking,
+                tiers: role.tiers || [],
+            };
+        });
+        return map;
+    }, [state.roles]);
+
+    const roleOptions = useMemo(() => {
+        return (state.roles || []).map(role => ({
+            value: role.code,
+            label: role.name,
+        }));
+    }, [state.roles]);
+
+    const getTierByRoleAndLevel = (roleCode, level) => {
+        const role = roleTiersMap[roleCode];
+        if (!role) return null;
+        return role.tiers.find(t => t.level === level) || null;
+    };
+
     // TanStack Table Columns
     const columns = useMemo(() => [
         {
@@ -99,7 +124,7 @@ export default function ResourceCosts() {
             header: "Role",
             cell: ({ row }) => {
                 const type = row.getValue("roleType");
-                const label = defaultRoleTiers[type]?.name || type;
+                const label = roleTiersMap[type]?.name || type;
                 return (
                     <Badge variant={
                         type === 'FRONTEND' ? 'info' :
@@ -158,7 +183,7 @@ export default function ResourceCosts() {
                 </div>
             ),
         },
-    ], []);
+    ], [roleTiersMap]);
 
     const [sorting, setSorting] = useState([]);
 
@@ -285,7 +310,7 @@ export default function ResourceCosts() {
 
     // Generate tier level options
     const getTierLevelOptions = (roleType) => {
-        const role = defaultRoleTiers[roleType];
+        const role = roleTiersMap[roleType];
         if (!role) return [];
         return role.tiers.map(tier => ({
             value: tier.level.toString(),
@@ -325,7 +350,7 @@ export default function ResourceCosts() {
                         </div>
 
                         <div className="space-y-4">
-                            {Object.entries(defaultRoleTiers).map(([roleKey, role]) => {
+                            {Object.entries(roleTiersMap).map(([roleKey, role]) => {
                                 const isEnabled = state.settings?.costTrackingByRole?.[roleKey] ?? role.hasCostTracking;
                                 return (
                                     <div key={roleKey} className="flex items-center justify-between group">
@@ -440,7 +465,7 @@ export default function ResourceCosts() {
                                         <SelectValue placeholder="Select role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {getRoleOptions().map(opt => (
+                                        {roleOptions.map(opt => (
                                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                         ))}
                                     </SelectContent>

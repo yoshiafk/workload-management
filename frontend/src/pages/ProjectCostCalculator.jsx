@@ -6,8 +6,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { defaultRoleTiers, getTierByRoleAndLevel, getRoleOptions } from '../data';
-import { defaultPhases } from '../data/defaultPhases';
 import { formatCurrency } from '../utils/calculations';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +61,7 @@ const generateId = () => `RES-${Date.now().toString(36).toUpperCase()}`;
 
 export default function ProjectCostCalculator() {
     const { state } = useApp();
-    const { complexity: complexitySettings } = state;
+    const { complexity: complexitySettings, roles, phases } = state;
 
     // State
     const [startPhase, setStartPhase] = useState('2'); // Default: Planning
@@ -71,12 +69,37 @@ export default function ProjectCostCalculator() {
     const [resources, setResources] = useState([]);
     const [isConfigExpanded, setIsConfigExpanded] = useState(true);
 
+    // Build role-related data from state.roles
+    const roleTiersMap = useMemo(() => {
+        const map = {};
+        (roles || []).forEach(role => {
+            map[role.code] = {
+                name: role.name,
+                tiers: role.tiers || [],
+            };
+        });
+        return map;
+    }, [roles]);
+
+    const roleOptions = useMemo(() => {
+        return (roles || []).map(role => ({
+            value: role.code,
+            label: role.name,
+        }));
+    }, [roles]);
+
+    const getTierByRoleAndLevel = (roleCode, level) => {
+        const role = roleTiersMap[roleCode];
+        if (!role) return null;
+        return role.tiers.find(t => t.level === level) || null;
+    };
+
     // Get project phases only (exclude Support and Terminal)
     const projectPhases = useMemo(() => {
-        return defaultPhases.filter(p =>
+        return (phases || []).filter(p =>
             p.category === 'Project' && !p.isTerminal
         ).sort((a, b) => a.sortOrder - b.sortOrder);
-    }, []);
+    }, [phases]);
 
     // Calculate phase span
     const phaseSpan = useMemo(() => {
@@ -123,7 +146,7 @@ export default function ProjectCostCalculator() {
                 roleType: resource.roleType,
                 tierLevel: resource.tierLevel,
                 tierName: tier.name,
-                roleName: defaultRoleTiers[resource.roleType]?.name || resource.roleType,
+                roleName: roleTiersMap[resource.roleType]?.name || resource.roleType,
                 monthlyCost,
                 perHourCost,
                 cost: phaseCost,
@@ -161,7 +184,7 @@ export default function ProjectCostCalculator() {
 
     // Get tier options
     const getTierOptions = (roleType) => {
-        const role = defaultRoleTiers[roleType];
+        const role = roleTiersMap[roleType];
         if (!role) return [];
         return role.tiers.map(t => ({
             value: t.level.toString(),
@@ -393,7 +416,7 @@ export default function ProjectCostCalculator() {
                                                                 <SelectValue />
                                                             </SelectTrigger>
                                                             <SelectContent className="bg-popover border-border">
-                                                                {getRoleOptions().map(opt => (
+                                                                {roleOptions.map(opt => (
                                                                     <SelectItem key={opt.value} value={opt.value} className="font-bold">
                                                                         {opt.label}
                                                                     </SelectItem>

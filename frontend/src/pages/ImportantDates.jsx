@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useApp, ACTIONS } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { refreshHolidays } from '../utils/holidayService';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import {
@@ -109,6 +110,7 @@ const formatDate = (dateStr) => {
 
 export default function ImportantDates() {
     const { state, dispatch } = useApp();
+    const { user, isAdmin } = useAuth();
 
     // Filters
     const [yearFilter, setYearFilter] = useState('all');
@@ -188,24 +190,26 @@ export default function ImportantDates() {
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex justify-end gap-1">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                        onClick={() => handleEditHoliday(row.original)}
-                    >
-                        <Edit2 className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => handleDeleteHolidayClick(row.original)}
-                    >
-                        <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                </div>
+                isAdmin ? (
+                    <div className="flex justify-end gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                            onClick={() => handleEditHoliday(row.original)}
+                        >
+                            <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => handleDeleteHolidayClick(row.original)}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                    </div>
+                ) : null
             )
         }
     ];
@@ -257,24 +261,26 @@ export default function ImportantDates() {
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex justify-end gap-1">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                        onClick={() => handleEditLeave(row.original)}
-                    >
-                        <Edit2 className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => handleDeleteLeaveClick(row.original)}
-                    >
-                        <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                </div>
+                isAdmin ? (
+                    <div className="flex justify-end gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                            onClick={() => handleEditLeave(row.original)}
+                        >
+                            <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => handleDeleteLeaveClick(row.original)}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                    </div>
+                ) : null
             )
         }
     ];
@@ -346,7 +352,12 @@ export default function ImportantDates() {
 
     // Leave handlers
     const handleAddLeave = () => {
-        setLeaveForm({ ...emptyLeave, id: generateLeaveId() });
+        setLeaveForm({
+            ...emptyLeave,
+            id: generateLeaveId(),
+            memberId: !isAdmin ? user?.id : '',
+            memberName: !isAdmin ? user?.name : ''
+        });
         setEditingLeave(null);
         setLeaveErrors({});
         setIsLeaveFormOpen(true);
@@ -529,15 +540,17 @@ export default function ImportantDates() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button
-                                variant="default"
-                                size="sm"
-                                className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 border-none font-black uppercase tracking-wider text-[10px]"
-                                onClick={handleAddLeave}
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Leave
-                            </Button>
+                            {isAdmin && (
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 border-none font-black uppercase tracking-wider text-[10px]"
+                                    onClick={handleAddLeave}
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Leave
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -676,19 +689,30 @@ export default function ImportantDates() {
                     <div className="p-6 space-y-5">
                         <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Team Member</Label>
-                            <Select
-                                value={leaveForm.memberId}
-                                onValueChange={(v) => handleLeaveChange('memberId', v)}
-                            >
-                                <SelectTrigger className={cn("bg-muted/20 border-border/40 rounded-xl font-bold h-11", leaveErrors.memberId && "border-red-500/50")}>
-                                    <SelectValue placeholder="Select member..." />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl border-border bg-popover">
-                                    {state.members.map(m => (
-                                        <SelectItem key={m.id} value={m.id} className="font-bold">{m.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {isAdmin ? (
+                                <Select
+                                    value={String(leaveForm.memberId || '')}
+                                    onValueChange={(v) => handleLeaveChange('memberId', v)}
+                                >
+                                    <SelectTrigger className={cn("bg-muted/20 border-border/40 rounded-xl font-bold h-11", leaveErrors.memberId && "border-red-500/50")}>
+                                        <SelectValue placeholder="Select member..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-border bg-popover">
+                                        {state.members.map(m => (
+                                            <SelectItem key={m.id} value={String(m.id)} className="font-bold">{m.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="bg-muted/20 border border-border/40 rounded-xl px-4 h-11 flex items-center gap-3">
+                                    <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center text-[10px] font-bold text-emerald-600 capitalize">
+                                        {(leaveForm.memberName || user?.name || '?').charAt(0)}
+                                    </div>
+                                    <span className="font-bold text-sm text-foreground">
+                                        {leaveForm.memberName || user?.name}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
