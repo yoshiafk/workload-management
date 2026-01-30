@@ -61,6 +61,26 @@ const Allocation = sequelize.define('Allocation', {
     demandNumber: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    activityName: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    category: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    priority: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    ticketId: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    remarks: {
+        type: DataTypes.TEXT,
+        allowNull: true
     }
 });
 

@@ -386,12 +386,31 @@ export default function ResourceAllocation() {
             formData.category
         );
 
-        // Get member's current cost center information
+        // Get member's current cost center information and ID
         const member = state.members.find(m => m.name === formData.resource);
         const memberCostCenterId = member?.costCenterId;
 
+        // Get phase and task IDs
+        const phaseObj = state.phases.find(p => p.name === formData.phase);
+        const taskObj = state.tasks.find(t => t.name === formData.taskName);
+
+        if (!member || !phaseObj || !taskObj) {
+            console.error('Missing references:', { member, phaseObj, taskObj });
+            // Should show an error toast here in a real app
+            return;
+        }
+
         const allocationData = {
             ...formData,
+            // Map to backend schema
+            memberId: member.id,
+            phaseId: phaseObj.id,
+            taskId: taskObj.id,
+            complexityId: formData.complexity,
+            startDate: formData.plan.taskStart,
+            endDate: calculatedPlan.taskEnd,
+            workloadPercent: workload,
+
             plan: {
                 ...formData.plan,
                 taskEnd: calculatedPlan.taskEnd,
@@ -403,6 +422,12 @@ export default function ResourceAllocation() {
             costCenterId: memberCostCenterId || '',
             costCenterSnapshot: calculatedPlan.costCenterSnapshot,
         };
+
+        // Backend expects UUID for ID. For new allocations, let backend generate it.
+        // The frontend generates 'ALLOC-xxx' which fails UUID validation.
+        if (!editingAllocation) {
+            delete allocationData.id;
+        }
 
         if (editingAllocation) {
             updateAllocation(editingAllocation.id, allocationData);

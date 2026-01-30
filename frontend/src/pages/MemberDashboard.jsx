@@ -59,17 +59,23 @@ export default function MemberDashboard() {
         const now = startOfDay(new Date());
         return {
             active: myAllocations.filter(a => {
-                const start = startOfDay(parseISO(a.plan?.taskStart));
-                const end = endOfDay(parseISO(a.plan?.taskEnd));
-                return isBefore(start, now) && isAfter(end, now) && a.status !== 'completed';
+                if (!a.plan?.taskStart || !a.plan?.taskEnd) return false;
+                const start = startOfDay(parseISO(a.plan.taskStart));
+                const end = endOfDay(parseISO(a.plan.taskEnd));
+                // Active if start <= now <= end
+                // !isAfter(start, now) -> start <= now
+                // !isBefore(end, now) -> end >= now
+                return !isAfter(start, now) && !isBefore(end, now) && a.status !== 'completed';
             }),
             upcoming: myAllocations.filter(a => {
-                const start = startOfDay(parseISO(a.plan?.taskStart));
+                if (!a.plan?.taskStart) return false;
+                const start = startOfDay(parseISO(a.plan.taskStart));
                 return isAfter(start, now);
             }),
             completed: myAllocations.filter(a => a.status === 'completed'),
             overdue: myAllocations.filter(a => {
-                const end = endOfDay(parseISO(a.plan?.taskEnd));
+                if (!a.plan?.taskEnd) return false;
+                const end = endOfDay(parseISO(a.plan.taskEnd));
                 return isBefore(end, now) && a.status !== 'completed';
             })
         };

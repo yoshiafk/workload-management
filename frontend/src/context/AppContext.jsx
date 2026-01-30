@@ -1003,7 +1003,28 @@ export function AppProvider({ children }) {
                     members: membersRes.data.items || [],
                     phases: phasesRes.data.items || [],
                     tasks: tasksRes.data.items || [],
-                    allocations: allocationsRes.data.items || [],
+                    allocations: (allocationsRes.data.items || []).map(a => ({
+                        ...a,
+                        id: a.id,
+                        resource: a.member?.name || '',
+                        phase: a.phase?.name || '',
+                        taskName: a.task?.name || '',
+                        complexity: a.complexityId,
+                        plan: {
+                            taskStart: a.startDate,
+                            taskEnd: a.endDate,
+                            // Calculate approximate costs if missing
+                            costProject: 0,
+                            costMonthly: 0
+                        },
+                        actual: {
+                            taskStart: a.status === 'completed' ? a.startDate : '', // Basic assumption
+                            taskEnd: a.status === 'completed' ? a.endDate : '',
+                            costProject: 0
+                        },
+                        variance: { scheduleDays: 0, costAmount: 0 },
+                        workload: parseFloat(a.workloadPercent) || 0
+                    })),
                     costCenters: costCentersRes.data.items || [],
                     coa: coaRes.data.items || [],
                     holidays: holidaysRes.data.items || [],
@@ -1157,13 +1178,33 @@ export function AppProvider({ children }) {
         },
         addAllocation: async (allocation) => {
             const { data } = await allocationsApi.create(allocation);
-            dispatch({ type: ACTIONS.ADD_ALLOCATION, payload: data });
-            return data;
+            // Merge response with input to preserve names (resource, phase, etc.) for UI
+            const payload = {
+                ...allocation,
+                ...data,
+                id: data.id,
+                plan: allocation.plan || {
+                    taskStart: data.startDate,
+                    taskEnd: data.endDate
+                }
+            };
+            dispatch({ type: ACTIONS.ADD_ALLOCATION, payload });
+            return payload;
         },
         updateAllocation: async (id, allocation) => {
             const { data } = await allocationsApi.update(id, allocation);
-            dispatch({ type: ACTIONS.UPDATE_ALLOCATION, payload: data });
-            return data;
+            // Merge response with input to preserve names for UI
+            const payload = {
+                ...allocation,
+                ...data,
+                id: data.id,
+                plan: allocation.plan || {
+                    taskStart: data.startDate,
+                    taskEnd: data.endDate
+                }
+            };
+            dispatch({ type: ACTIONS.UPDATE_ALLOCATION, payload });
+            return payload;
         },
         deleteAllocation: async (id) => {
             await allocationsApi.delete(id);
