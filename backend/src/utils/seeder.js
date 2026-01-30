@@ -11,8 +11,13 @@ import {
     Complexity,
     Status,
     Tag,
-    Holiday
+    Holiday,
+    LeaveType,
+    LeaveBalance,
+    TimeEntry,
+    TimesheetPeriod
 } from '../models/index.js';
+import { startOfWeek, endOfWeek, format } from 'date-fns';
 
 /**
  * Comprehensive database seeder
@@ -308,17 +313,19 @@ export const seedDatabase = async () => {
             memberMap[m.name] = member.id;
         }
 
-        // System Admin member for auth
         const [adminMember] = await Member.findOrCreate({
-            where: { name: 'System Admin' },
+            where: { email: 'admin@example.com' },
             defaults: { name: 'System Admin', email: 'admin@example.com', roleType: 'ARCHITECT', isActive: true, maxHoursPerWeek: 40 }
+        });
+
+        const [testMemberRecord] = await Member.findOrCreate({
+            where: { email: 'member@example.com' },
+            defaults: { name: 'Test Member', email: 'member@example.com', roleType: 'FULLSTACK', isActive: true, maxHoursPerWeek: 40 }
         });
 
         // ========================================
         // 10. USERS (Auth)
         // ========================================
-        console.log('[Seeder] Seeding Users...');
-
         const [adminUser, createdAdmin] = await User.findOrCreate({
             where: { email: 'admin@example.com' },
             defaults: { password: 'admin123', role: 'admin', memberId: adminMember.id }
@@ -329,7 +336,17 @@ export const seedDatabase = async () => {
             await adminUser.save();
         }
 
-        // Create a regular user linked to first member
+        const [memberUser, createdMember] = await User.findOrCreate({
+            where: { email: 'member@example.com' },
+            defaults: { password: 'member123', role: 'member', memberId: testMemberRecord.id }
+        });
+
+        if (!createdMember) {
+            memberUser.password = 'member123';
+            await memberUser.save();
+        }
+
+        // Create a regular user linked to first member (legacy seeder support)
         await User.findOrCreate({
             where: { email: 'abdurrahman@company.com' },
             defaults: { password: 'user123', role: 'member', memberId: memberMap['Abdurrahman Hakim'] }
@@ -403,6 +420,97 @@ export const seedDatabase = async () => {
             await Holiday.findOrCreate({ where: { id: h.id }, defaults: h });
         }
 
+        // ========================================
+        // 12. LEAVE TYPES
+        // ========================================
+        console.log('[Seeder] Seeding LeaveTypes...');
+
+        const leaveTypeData = [
+            { name: 'Annual Leave', defaultDays: 20, carryOverMax: 5, color: '#22C55E', requiresApproval: true },
+            { name: 'Sick Leave', defaultDays: 10, carryOverMax: 0, color: '#EF4444', requiresApproval: true },
+            { name: 'Personal Leave', defaultDays: 3, carryOverMax: 0, color: '#8B5CF6', requiresApproval: true },
+            { name: 'Unpaid Leave', defaultDays: 0, carryOverMax: 0, color: '#6B7280', requiresApproval: true }
+        ];
+
+        const leaveTypesMap = {};
+        for (const lt of leaveTypeData) {
+            const [leaveType] = await LeaveType.findOrCreate({ where: { name: lt.name }, defaults: lt });
+            leaveTypesMap[lt.name] = leaveType;
+        }
+
+        // ========================================
+        // 13. LEAVE BALANCES (for all members)
+        // ========================================
+        console.log('[Seeder] Seeding LeaveBalances for members...');
+
+        const currentYear = new Date().getFullYear();
+        const allMembers = await Member.findAll();
+        const allLeaveTypes = await LeaveType.findAll({ where: { isActive: true } });
+
+        for (const member of allMembers) {
+            for (const type of allLeaveTypes) {
+                await LeaveBalance.findOrCreate({
+                    where: { memberId: member.id, leaveTypeId: type.id, year: currentYear },
+                    defaults: {
+                        memberId: member.id,
+                        leaveTypeId: type.id,
+                        year: currentYear,
+                        totalDays: type.defaultDays,
+                        usedDays: 0
+                    }
+                });
+            }
+        }
+
+        // ========================================
+        // 14. SAMPLE TIMESHEETS
+        // ========================================
+        console.log('[Seeder] Seeding Sample Timesheets...');
+
+        const lastMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const lastSunday = endOfWeek(new Date(), { weekStartsOn: 1 });
+
+        const memberUserRecord = await User.findOne({ where: { email: 'member@example.com' } });
+        if (memberUserRecord && memberUserRecord.memberId) {
+            const [period] = await TimesheetPeriod.findOrCreate({
+                where: { memberId: memberUserRecord.memberId, startDate: format(lastMonday, 'yyyy-MM-dd') },
+                defaults: {
+                    memberId: memberUserRecord.memberId,
+                    startDate: format(lastMonday, 'yyyy-MM-dd'),
+                    endDate: format(lastSunday, 'yyyy-MM-dd'),
+                    status: 'DRAFT',
+                    totalHours: 16
+                }
+            });
+
+            await TimeEntry.findOrCreate({
+                where: { memberId: memberUserRecord.memberId, date: format(lastMonday, 'yyyy-MM-dd') },
+                defaults: {
+                    memberId: memberUserRecord.memberId,
+                    date: format(lastMonday, 'yyyy-MM-dd'),
+                    hours: 8,
+                    description: 'Development work on Leave System',
+                    category: 'PROJECT',
+                    timesheetPeriodId: period.id
+                }
+            });
+
+            const tuesday = new Date(lastMonday);
+            tuesday.setDate(tuesday.getDate() + 1);
+
+            await TimeEntry.findOrCreate({
+                where: { memberId: memberUserRecord.memberId, date: format(tuesday, 'yyyy-MM-dd') },
+                defaults: {
+                    memberId: memberUserRecord.memberId,
+                    date: format(tuesday, 'yyyy-MM-dd'),
+                    hours: 8,
+                    description: 'Bug fixing and UI polish',
+                    category: 'PROJECT',
+                    timesheetPeriodId: period.id
+                }
+            });
+        }
+
         console.log('[Seeder] ✅ Database seeding completed successfully!');
         console.log('[Seeder] Summary:');
         console.log('  - 8 Role Types with 40 Role Tiers');
@@ -416,6 +524,10 @@ export const seedDatabase = async () => {
         console.log('  - 11 Team Members');
         console.log('  - 2 Users (admin + member)');
         console.log('  - 52 Holidays (2025-2026)');
+        console.log(`  - ${leaveTypeData.length} Leave Types`);
+        console.log(`  - ${allMembers.length * allLeaveTypes.length} Leave Balance records`);
+        console.log('  - Sample Timesheet data (member@example.com)');
+
 
     } catch (error) {
         console.error('[Seeder] ❌ Error seeding database:', error);

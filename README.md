@@ -14,6 +14,17 @@ A professional resource management platform designed to track team workload, pro
 
 ---
 
+## 🔐 Test Accounts
+
+Use these credentials to test the application features (Member vs. Admin views):
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Administrator** | `admin@example.com` | `admin123` |
+| **Team Member** | `member@example.com` | `member123` |
+
+---
+
 ## 📊 Calculation Logic Reference
 
 This project uses formulas translated from high-fidelity Excel prototypes to ensure financial and scheduling accuracy.
@@ -116,3 +127,7 @@ npm run deploy
 ## 📄 License
 
 MIT
+
+Upgrae to using postgre-16 alpine
+
+Check the homepage url or path we have setting up, likely we have settings /aii/wr-management, can we remove it to be neutral? And after that please update the project readme with new url too

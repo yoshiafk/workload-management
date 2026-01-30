@@ -15,6 +15,9 @@ import configRoutes from './routes/config.js';
 import financeRoutes from './routes/finance.js';
 import roleRoutes from './routes/roles.js';
 import lookupRoutes from './routes/lookups.js';
+import leaveRoutes from './routes/leaves.js';
+import adminLeaveRoutes from './routes/adminLeaves.js';
+import timesheetRoutes from './routes/timesheetRoutes.js';
 import { seedDatabase } from './utils/seeder.js';
 
 dotenv.config();
@@ -45,6 +48,9 @@ app.use('/api', configRoutes); // phases and tasks
 app.use('/api/finance', financeRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/lookups', lookupRoutes);
+app.use('/api/leaves', leaveRoutes);
+app.use('/api/admin/leaves', adminLeaveRoutes);
+app.use('/api/timesheets', timesheetRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
